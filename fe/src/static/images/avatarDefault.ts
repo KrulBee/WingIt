@@ -1,0 +1,4 @@
+/* Base64 encoded placeholder avatar - this would normally be a real image file */
+export const avatarBase64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2U5ZWNlZiIvPjxjaXJjbGUgY3g9IjEyOCIgY3k9IjEwMCIgcj0iNTAiIGZpbGw9IiNhYmI1YmUiLz48cGF0aCBkPSJNMjA4IDE5NmE4MCA4MCAwIDEgMC0xNjAgMGgxNjB6IiBmaWxsPSIjYWJiNWJlIi8+PC9zdmc+';
+
+export default avatarBase64;
