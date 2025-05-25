@@ -1,19 +1,49 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
 import { Card, CardBody, Avatar, Tabs, Tab, Button } from "@nextui-org/react";
 import { User, UserCheck, UserPlus, UserX } from "react-feather";
+import FriendService from "@/services/FriendService";
+import UserService from "@/services/UserService";
 
+// Types matching the backend API
+interface UserDTO {
+  id: number;
+  username: string;
+  displayName?: string;
+  bio?: string;
+  profilePicture?: string;
+  dateOfBirth?: string;
+}
+
+interface FriendDTO {
+  id: number;
+  friend: UserDTO;
+  friendshipDate: string;
+}
+
+interface FriendRequestDTO {
+  id: number;
+  sender: UserDTO;
+  receiver: UserDTO;
+  status: string;
+  requestDate: string;
+  responseDate?: string;
+}
+
+// UI interface for compatibility
 interface FriendProps {
   id: string;
   name: string;
   username: string;
   avatar: string;
   mutualFriends?: number;
+  originalId?: number; // Store the backend ID
 }
 
-const friendsList: FriendProps[] = [
+// Mock data as fallback
+const mockFriendsList: FriendProps[] = [
   {
     id: "f1",
     name: "Jane Smith",
@@ -28,23 +58,9 @@ const friendsList: FriendProps[] = [
     avatar: "https://i.pravatar.cc/150?u=alicej",
     mutualFriends: 8
   },
-  {
-    id: "f3",
-    name: "Robert Wilson",
-    username: "robertw",
-    avatar: "https://i.pravatar.cc/150?u=robertw",
-    mutualFriends: 5
-  },
-  {
-    id: "f4",
-    name: "Emily Davis",
-    username: "emilyd",
-    avatar: "https://i.pravatar.cc/150?u=emilyd",
-    mutualFriends: 3
-  },
 ];
 
-const friendRequests: FriendProps[] = [
+const mockFriendRequests: FriendProps[] = [
   {
     id: "r1",
     name: "Michael Brown",
@@ -52,16 +68,9 @@ const friendRequests: FriendProps[] = [
     avatar: "https://i.pravatar.cc/150?u=michaelb",
     mutualFriends: 4
   },
-  {
-    id: "r2",
-    name: "Sophia Garcia",
-    username: "sophiag",
-    avatar: "https://i.pravatar.cc/150?u=sophiag",
-    mutualFriends: 2
-  },
 ];
 
-const suggestions: FriendProps[] = [
+const mockSuggestions: FriendProps[] = [
   {
     id: "s1",
     name: "David Miller",
@@ -69,30 +78,9 @@ const suggestions: FriendProps[] = [
     avatar: "https://i.pravatar.cc/150?u=davidm",
     mutualFriends: 7
   },
-  {
-    id: "s2",
-    name: "Sarah Thompson",
-    username: "saraht",
-    avatar: "https://i.pravatar.cc/150?u=saraht",
-    mutualFriends: 5
-  },
-  {
-    id: "s3",
-    name: "James Wilson",
-    username: "jamesw",
-    avatar: "https://i.pravatar.cc/150?u=jamesw",
-    mutualFriends: 3
-  },
-  {
-    id: "s4",
-    name: "Olivia Martinez",
-    username: "oliviam",
-    avatar: "https://i.pravatar.cc/150?u=oliviam",
-    mutualFriends: 1
-  },
 ];
 
-const FriendCard = ({ friend }: { friend: FriendProps }) => {
+const FriendCard = ({ friend, onUnfriend }: { friend: FriendProps; onUnfriend: (friendId: string) => void }) => {
   return (
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="flex items-center mb-3">
@@ -121,6 +109,7 @@ const FriendCard = ({ friend }: { friend: FriendProps }) => {
           color="danger"
           variant="flat"
           startContent={<UserX size={16} />}
+          onPress={() => onUnfriend(friend.id)}
         >
           Unfriend
         </Button>
@@ -129,7 +118,7 @@ const FriendCard = ({ friend }: { friend: FriendProps }) => {
   );
 };
 
-const RequestCard = ({ request }: { request: FriendProps }) => {
+const RequestCard = ({ request, onAccept, onReject }: { request: FriendProps; onAccept: (requestId: string) => void; onReject: (requestId: string) => void }) => {
   return (
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="flex items-center mb-3">
@@ -150,6 +139,7 @@ const RequestCard = ({ request }: { request: FriendProps }) => {
           color="success"
           variant="flat"
           startContent={<UserCheck size={16} />}
+          onPress={() => onAccept(request.id)}
         >
           Accept
         </Button>
@@ -158,6 +148,7 @@ const RequestCard = ({ request }: { request: FriendProps }) => {
           color="danger"
           variant="flat"
           startContent={<UserX size={16} />}
+          onPress={() => onReject(request.id)}
         >
           Reject
         </Button>
@@ -166,7 +157,7 @@ const RequestCard = ({ request }: { request: FriendProps }) => {
   );
 };
 
-const SuggestionCard = ({ suggestion }: { suggestion: FriendProps }) => {
+const SuggestionCard = ({ suggestion, onAddFriend }: { suggestion: FriendProps; onAddFriend: (userId: string) => void }) => {
   return (
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="flex items-center mb-3">
@@ -186,6 +177,7 @@ const SuggestionCard = ({ suggestion }: { suggestion: FriendProps }) => {
           size="sm" 
           color="primary"
           startContent={<UserPlus size={16} />}
+          onPress={() => onAddFriend(suggestion.id)}
         >
           Add Friend
         </Button>
@@ -195,35 +187,231 @@ const SuggestionCard = ({ suggestion }: { suggestion: FriendProps }) => {
 };
 
 export default function FriendsPage() {
+  const [friends, setFriends] = useState<FriendProps[]>([]);
+  const [friendRequests, setFriendRequests] = useState<FriendProps[]>([]);
+  const [suggestions, setSuggestions] = useState<FriendProps[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchFriendsData();
+  }, []);
+
+  // Transform backend data to UI format
+  const transformUserToFriendProps = (user: UserDTO, type: 'friend' | 'suggestion', originalId?: number): FriendProps => ({
+    id: user.id.toString(),
+    name: user.displayName || user.username,
+    username: user.username,
+    avatar: user.profilePicture || `https://i.pravatar.cc/150?u=${user.username}`,
+    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    originalId: originalId || user.id
+  });
+
+  const transformFriendDTOToFriendProps = (friendDTO: FriendDTO): FriendProps => ({
+    id: friendDTO.id.toString(),
+    name: friendDTO.friend.displayName || friendDTO.friend.username,
+    username: friendDTO.friend.username,
+    avatar: friendDTO.friend.profilePicture || `https://i.pravatar.cc/150?u=${friendDTO.friend.username}`,
+    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    originalId: friendDTO.friend.id
+  });
+
+  const transformFriendRequestDTOToFriendProps = (requestDTO: FriendRequestDTO): FriendProps => ({
+    id: requestDTO.id.toString(),
+    name: requestDTO.sender.displayName || requestDTO.sender.username,
+    username: requestDTO.sender.username,
+    avatar: requestDTO.sender.profilePicture || `https://i.pravatar.cc/150?u=${requestDTO.sender.username}`,
+    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    originalId: requestDTO.sender.id
+  });
+
+  const fetchFriendsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch friends, friend requests, and user suggestions in parallel
+      const [friendsData, requestsData, usersData] = await Promise.all([
+        FriendService.getFriends().catch(() => []),
+        FriendService.getReceivedFriendRequests().catch(() => []),
+        UserService.getAllUsers().catch(() => [])
+      ]);
+
+      // Transform friends data
+      const transformedFriends = friendsData.map(transformFriendDTOToFriendProps);
+      setFriends(transformedFriends);
+
+      // Transform friend requests data
+      const transformedRequests = requestsData.map(transformFriendRequestDTOToFriendProps);
+      setFriendRequests(transformedRequests);
+
+      // Transform users data to suggestions (filter out current user and existing friends)
+      const currentFriendIds = new Set(friendsData.map(f => f.friend.id));
+      const requestSenderIds = new Set(requestsData.map(r => r.sender.id));
+      
+      const suggestionUsers = usersData
+        .filter(user => !currentFriendIds.has(user.id) && !requestSenderIds.has(user.id))
+        .slice(0, 6); // Limit to 6 suggestions
+        
+      const transformedSuggestions = suggestionUsers.map(user => 
+        transformUserToFriendProps(user, 'suggestion')
+      );
+      setSuggestions(transformedSuggestions);
+
+    } catch (err) {
+      console.error('Error fetching friends data:', err);
+      setError('Failed to load friends data. Using offline data.');
+      
+      // Fallback to mock data
+      setFriends(mockFriendsList);
+      setFriendRequests(mockFriendRequests);
+      setSuggestions(mockSuggestions);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnfriend = async (friendId: string) => {
+    try {
+      const friend = friends.find(f => f.id === friendId);
+      if (!friend?.originalId) return;
+
+      await FriendService.removeFriend(friend.originalId);
+      
+      // Update local state
+      setFriends(prev => prev.filter(f => f.id !== friendId));
+    } catch (err) {
+      console.error('Error removing friend:', err);
+      setError('Failed to remove friend. Please try again.');
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    try {
+      const request = friendRequests.find(r => r.id === requestId);
+      if (!request) return;
+
+      await FriendService.acceptFriendRequest(parseInt(requestId));
+      
+      // Move from requests to friends
+      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+      setFriends(prev => [...prev, request]);
+    } catch (err) {
+      console.error('Error accepting friend request:', err);
+      setError('Failed to accept friend request. Please try again.');
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    try {
+      await FriendService.rejectFriendRequest(parseInt(requestId));
+      
+      // Remove from requests
+      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      console.error('Error rejecting friend request:', err);
+      setError('Failed to reject friend request. Please try again.');
+    }
+  };
+
+  const handleAddFriend = async (userId: string) => {
+    try {
+      const suggestion = suggestions.find(s => s.id === userId);
+      if (!suggestion?.originalId) return;
+
+      await FriendService.sendFriendRequest(suggestion.originalId);
+      
+      // Remove from suggestions (friend request sent)
+      setSuggestions(prev => prev.filter(s => s.id !== userId));
+    } catch (err) {
+      console.error('Error sending friend request:', err);
+      setError('Failed to send friend request. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <Sidebar />
+        <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex justify-center items-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading friends...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+        <RightSidebar />
+      </div>
+    );
+  }
+
   return (
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Left sidebar */}
       <Sidebar />
         {/* Main content */}
-      <main className="flex-1 ml-0 md:ml-64 p-4">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
+        <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Friends</h1>
           
+          {error && (
+            <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+              <p className="text-yellow-800 dark:text-yellow-200 text-sm">{error}</p>
+            </div>
+          )}
+          
           <Tabs aria-label="Friend options" className="mb-6">
-            <Tab key="all-friends" title={`All Friends (${friendsList.length})`}>
+            <Tab key="all-friends" title={`All Friends (${friends.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {friendsList.map((friend) => (
-                  <FriendCard key={friend.id} friend={friend} />
+                {friends.map((friend) => (
+                  <FriendCard 
+                    key={friend.id} 
+                    friend={friend} 
+                    onUnfriend={handleUnfriend}
+                  />
                 ))}
+                {friends.length === 0 && (
+                  <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
+                    No friends yet. Start connecting with people!
+                  </div>
+                )}
               </div>
             </Tab>
             <Tab key="requests" title={`Requests (${friendRequests.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {friendRequests.map((request) => (
-                  <RequestCard key={request.id} request={request} />
+                  <RequestCard 
+                    key={request.id} 
+                    request={request} 
+                    onAccept={handleAcceptRequest}
+                    onReject={handleRejectRequest}
+                  />
                 ))}
+                {friendRequests.length === 0 && (
+                  <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
+                    No pending friend requests.
+                  </div>
+                )}
               </div>
             </Tab>
             <Tab key="suggestions" title="Suggestions">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {suggestions.map((suggestion) => (
-                  <SuggestionCard key={suggestion.id} suggestion={suggestion} />
+                  <SuggestionCard 
+                    key={suggestion.id} 
+                    suggestion={suggestion} 
+                    onAddFriend={handleAddFriend}
+                  />
                 ))}
+                {suggestions.length === 0 && (
+                  <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
+                    No friend suggestions available.
+                  </div>
+                )}
               </div>
             </Tab>
           </Tabs>

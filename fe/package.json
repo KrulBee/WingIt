@@ -14,9 +14,11 @@
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
-    "@headlessui/react": "^1.7.19",
+    "@headlessui/react": "^2.0.0",
     "@nextui-org/react": "^2.6.11",
     "@reduxjs/toolkit": "^2.2.3",
+    "@types/styled-components": "^5.1.34",
+    "antd": "^5.25.0",
     "cookies-next": "^4.1.1",
     "date-fns": "^3.6.0",
     "emoji-picker-react": "^4.9.2",
@@ -33,7 +35,8 @@
     "react-slick": "^0.30.2",
     "react-use": "^17.5.0",
     "sass": "^1.74.1",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "styled-components": "^6.1.18"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

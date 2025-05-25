@@ -1,6 +1,8 @@
 package com.example.server.service;
 
 import com.example.server.dto.UserDTO;
+import com.example.server.dto.UpdateUserProfileRequest;
+import com.example.server.dto.ChangePasswordRequest;
 import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.UserData;
 import com.example.server.model.Entity.Role; // Changed import from com.example.wingit.model.Enum.Role
@@ -13,6 +15,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -74,5 +78,111 @@ public class UserService {
             return userDTO;
         }
         return null; // Handle authentication failure
+    }
+
+    public UserDTO getUserById(Integer userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            return convertToUserDTO(userOpt.get());
+        }
+        throw new RuntimeException("User not found");
+    }
+
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return convertToUserDTO(user);
+        }
+        throw new RuntimeException("User not found");
+    }
+
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::convertToUserDTO)
+                .collect(Collectors.toList());
+    }
+
+    public UserDTO updateUserProfile(Integer userId, UpdateUserProfileRequest request) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = userOpt.get();
+        UserData userData = user.getUserData();
+        
+        if (userData == null) {
+            userData = new UserData();
+            userData.setUser(user);
+        }
+
+        if (request.getDisplayName() != null) {
+            userData.setDisplayName(request.getDisplayName());
+        }
+        if (request.getBio() != null) {
+            userData.setBio(request.getBio());
+        }
+        if (request.getProfilePicture() != null) {
+            userData.setProfilePicture(request.getProfilePicture());
+        }
+        if (request.getDateOfBirth() != null) {
+            try {
+                LocalDate dateOfBirth = LocalDate.parse(request.getDateOfBirth(), DATE_FORMATTER);
+                userData.setDateOfBirth(dateOfBirth);
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Invalid date format. Please use ISO format (YYYY-MM-DD)");
+            }
+        }
+
+        userDataRepository.save(userData);
+        user.setUserData(userData);
+        
+        return convertToUserDTO(user);
+    }
+
+    public boolean changePassword(Integer userId, ChangePasswordRequest request) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = userOpt.get();
+        
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            return false; // Current password is incorrect
+        }
+
+        // Update to new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        
+        return true;
+    }
+
+    public void deleteUser(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("User not found");
+        }
+        userRepository.deleteById(userId);
+    }
+
+    private UserDTO convertToUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUsername(user.getUsername());
+        
+        if (user.getUserData() != null) {
+            UserData userData = user.getUserData();
+            userDTO.setDisplayName(userData.getDisplayName());
+            userDTO.setBio(userData.getBio());
+            userDTO.setProfilePicture(userData.getProfilePicture());
+            if (userData.getDateOfBirth() != null) {
+                userDTO.setDateOfBirth(userData.getDateOfBirth().toString());
+            }
+        }
+        
+        return userDTO;
     }
 }

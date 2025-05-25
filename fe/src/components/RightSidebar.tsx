@@ -71,7 +71,7 @@ const SuggestedUsers = () => {
 
 export default function RightSidebar() {
   return (
-    <div className="w-72 h-screen fixed right-0 top-0 p-4 hidden lg:block overflow-y-auto">
+    <div className="w-80 h-screen fixed right-0 top-0 p-4 hidden lg:block overflow-y-auto">
       <div className="sticky top-4 space-y-4">
         <div className="relative mb-4">
           <input

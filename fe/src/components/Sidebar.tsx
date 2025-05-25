@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, User, Settings, Search, Bell, MessageCircle, Users, Bookmark, LogOut } from "react-feather";
 import ThemeToggle from "./ThemeToggle";
 
@@ -34,6 +34,15 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
+    // Redirect to auth page
+    router.push('/auth');
+  };
+  
   const sidebarItems = [
     {
       icon: <Home size={20} />,
@@ -78,9 +87,8 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 h-screen fixed left-0 top-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 flex flex-col">      <div className="py-4 px-3">
-        <Link href="/home">
-          <h1 className="text-xl font-bold text-primary">Social Platform</h1>
+    <div className="w-64 h-screen fixed left-0 top-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 flex flex-col">      <div className="py-4 px-3">        <Link href="/home">
+          <h1 className="text-xl font-bold text-primary">WingIt</h1>
         </Link>
       </div>
       
@@ -99,7 +107,7 @@ export default function Sidebar() {
       </div>
       
       <div className="pt-4 pb-2 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between px-3">
+        <div className="flex items-center justify-between px-3 mb-4">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700"></div>
             <div className="ml-3">
@@ -108,6 +116,18 @@ export default function Sidebar() {
           </div>
           <ThemeToggle />
         </div>
+        
+        <button 
+          onClick={handleLogout}
+          className="flex items-center space-x-3 p-3 rounded-lg transition-all hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer w-full"
+        >
+          <div className="text-gray-700 dark:text-gray-300">
+            <LogOut size={20} />
+          </div>
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Logout
+          </div>
+        </button>
       </div>
     </div>
   );

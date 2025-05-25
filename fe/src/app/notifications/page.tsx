@@ -1,8 +1,9 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
-import { Card, CardBody, Avatar, Tabs, Tab, Button } from "@nextui-org/react";
+import { Card, CardBody, Avatar, Tabs, Tab, Button, Spinner } from "@nextui-org/react";
+import { NotificationService } from "@/services";
 
 interface NotificationProps {
   id: string;
@@ -17,7 +18,8 @@ interface NotificationProps {
   read: boolean;
 }
 
-const notifications: NotificationProps[] = [
+// Mock data for fallback
+const MOCK_NOTIFICATIONS: NotificationProps[] = [
   {
     id: "n1",
     type: "like",
@@ -80,9 +82,75 @@ const notifications: NotificationProps[] = [
   },
 ];
 
-const NotificationItem = ({ notification }: { notification: NotificationProps }) => {
+// Helper function to transform backend NotificationDTO to UI format
+const transformNotification = (backendNotification: any): NotificationProps => {
+  const getNotificationType = (type: string): "like" | "comment" | "follow" | "mention" => {
+    switch (type.toLowerCase()) {
+      case 'like':
+      case 'reaction':
+        return 'like';
+      case 'comment':
+        return 'comment';
+      case 'follow':
+        return 'follow';
+      case 'mention':
+        return 'mention';
+      default:
+        return 'like';
+    }
+  };
+
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds} seconds ago`;
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+  };
+
+  return {
+    id: backendNotification.id.toString(),
+    type: getNotificationType(backendNotification.type),
+    user: {
+      name: backendNotification.userDisplayName || backendNotification.userName || 'Unknown User',
+      username: backendNotification.userName || 'unknown',
+      avatar: backendNotification.userProfilePicture || `https://i.pravatar.cc/150?u=${backendNotification.userName}`,
+    },
+    content: backendNotification.content || '',
+    time: formatTime(backendNotification.createdAt),
+    read: backendNotification.readStatus || false,
+  };
+};
+
+const NotificationItem = ({ 
+  notification, 
+  onMarkAsRead 
+}: { 
+  notification: NotificationProps;
+  onMarkAsRead?: (id: string) => void;
+}) => {
+  const handleClick = () => {
+    if (!notification.read && onMarkAsRead) {
+      onMarkAsRead(notification.id);
+    }
+  };
+
   return (
-    <div className={`p-4 border-b border-gray-200 dark:border-gray-700 ${!notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+    <div 
+      className={`p-4 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${!notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      onClick={handleClick}
+    >
       <div className="flex items-start gap-3">
         <Avatar src={notification.user.avatar} className="flex-shrink-0" />
         <div className="flex-1 min-w-0">
@@ -100,34 +168,164 @@ const NotificationItem = ({ notification }: { notification: NotificationProps })
 };
 
 export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [markingAllAsRead, setMarkingAllAsRead] = useState(false);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await NotificationService.getAllNotifications();
+      const transformedNotifications = response.map(transformNotification);
+      setNotifications(transformedNotifications);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError('Failed to load notifications');
+      // Fallback to mock data
+      setNotifications(MOCK_NOTIFICATIONS);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await NotificationService.markAsRead(parseInt(notificationId));
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, read: true }
+            : notif
+        )
+      );
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      setMarkingAllAsRead(true);
+      await NotificationService.markAllAsRead();
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => ({ ...notif, read: true }))
+      );
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    } finally {
+      setMarkingAllAsRead(false);
+    }
+  };
+
+  const handleRetry = () => {
+    fetchNotifications();
+  };
+
+  const unreadNotifications = notifications.filter(n => !n.read);
+
+  if (loading) {
+    return (
+      <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <Sidebar />
+        <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex justify-center items-center h-64">
+              <Spinner size="lg" />
+            </div>
+          </div>
+        </main>
+        <RightSidebar />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <Sidebar />
+        <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center text-red-500 p-4">
+              <p>{error}</p>
+              <button 
+                onClick={handleRetry}
+                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </main>
+        <RightSidebar />
+      </div>
+    );
+  }
+
   return (
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Left sidebar */}
       <Sidebar />
         {/* Main content */}
-      <main className="flex-1 ml-0 md:ml-64 p-4">
+      <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Notifications</h1>
-            <Button size="sm" variant="light">Mark all as read</Button>
+            <Button 
+              size="sm" 
+              variant="light"
+              onClick={handleMarkAllAsRead}
+              isLoading={markingAllAsRead}
+              isDisabled={unreadNotifications.length === 0}
+            >
+              Mark all as read
+            </Button>
           </div>
           
           <Tabs aria-label="Notification options">
-            <Tab key="all" title="All">
+            <Tab key="all" title={`All (${notifications.length})`}>
               <Card>
                 <CardBody className="p-0">
-                  {notifications.map((notification) => (
-                    <NotificationItem key={notification.id} notification={notification} />
-                  ))}
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <NotificationItem 
+                        key={notification.id} 
+                        notification={notification}
+                        onMarkAsRead={handleMarkAsRead}
+                      />
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500">
+                      No notifications yet
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </Tab>
-            <Tab key="unread" title="Unread">
+            <Tab key="unread" title={`Unread (${unreadNotifications.length})`}>
               <Card>
                 <CardBody className="p-0">
-                  {notifications.filter(n => !n.read).map((notification) => (
-                    <NotificationItem key={notification.id} notification={notification} />
-                  ))}
+                  {unreadNotifications.length > 0 ? (
+                    unreadNotifications.map((notification) => (
+                      <NotificationItem 
+                        key={notification.id} 
+                        notification={notification}
+                        onMarkAsRead={handleMarkAsRead}
+                      />
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500">
+                      No unread notifications
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </Tab>

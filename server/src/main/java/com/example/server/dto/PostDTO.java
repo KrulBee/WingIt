@@ -1,12 +1,26 @@
 package com.example.server.dto;
 
-public class PostDTO {
-    // Add fields that represent a Post for data transfer
-    // Example:
-    // private Long id;
-    // private String content;
-    // private java.time.LocalDateTime createdDate;
-    // private String userId; // or UserDTO author;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
-    // Constructors, getters, and setters
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PostDTO {
+    private Long id;
+    private String content;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedAt;
+    private UserDTO author;
+    private PostTypeDTO type;
+    private List<PostMediaDTO> media;
+    private List<CommentDTO> comments;
+    private List<PostReactionDTO> reactions;
+    private int likesCount;
+    private int commentsCount;
+    private int sharesCount;
+    private boolean liked; // Whether current user liked this post
 }

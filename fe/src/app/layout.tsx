@@ -7,8 +7,8 @@ import MobileNavigation from "@/components/MobileNavigation";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Social Platform",
-  description: "A modern social platform experience",
+  title: "WingIt",
+  description: "A modern social experience with WingIt",
 };
 
 export default function RootLayout({

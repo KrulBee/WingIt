@@ -9,7 +9,7 @@ interface PostProps {
   id: string;
   authorName: string;
   authorUsername: string;
-  authorAvatar: string;
+  authorAvatar?: string;
   content: string;
   image?: string;
   likes: number;
@@ -48,7 +48,11 @@ export default function Post({
     <Card className="mb-4 border border-gray-200 dark:border-gray-700">
       <CardHeader className="justify-between">
         <div className="flex gap-3">
-          <Avatar radius="full" size="md" src={authorAvatar} />
+          <Avatar 
+            radius="full" 
+            size="md" 
+            src={authorAvatar || "https://i.pravatar.cc/150?u=default"} 
+          />
           <div className="flex flex-col items-start justify-center">
             <h4 className="text-sm font-semibold leading-none text-default-600">{authorName}</h4>
             <p className="text-xs text-default-400">@{authorUsername}</p>

@@ -1,5 +1,5 @@
 package com.example.server.model.Entity;
-
+    
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

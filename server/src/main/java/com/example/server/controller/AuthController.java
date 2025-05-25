@@ -2,7 +2,9 @@ package com.example.server.controller;
 
 import com.example.server.config.JwtConfig;
 import com.example.server.model.Entity.User;
+import com.example.server.model.Entity.UserData;
 import com.example.server.repository.UserRepository;
+import com.example.server.repository.UserDataRepository;
 import com.example.server.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,7 +23,7 @@ import com.example.server.dto.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthController {
 
     @Autowired
@@ -32,6 +34,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserDataRepository userDataRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -69,18 +74,41 @@ public class AuthController {
                 consumes = MediaType.APPLICATION_JSON_VALUE,
                 produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+        try {
+            System.out.println("Registration attempt for user: " + registerRequest.getUsername());
+            
+            if (userRepository.existsByUsername(registerRequest.getUsername())) {
+                System.out.println("Registration failed: Username already exists - " + registerRequest.getUsername());
+                return ResponseEntity.badRequest().body("Username already exists");
+            }
+
+            // Create and save User entity
+            User user = new User();
+            user.setUsername(registerRequest.getUsername());
+            user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+            user.setRole(roleRepository.findById(1).orElseThrow(() -> new RuntimeException("Role not found")));
+
+            user = userRepository.save(user);
+            System.out.println("User created successfully with ID: " + user.getId());
+
+            // Create and save UserData entity with display name same as username
+            UserData userData = new UserData();
+            userData.setUser(user);
+            userData.setDisplayName(registerRequest.getUsername()); // Set display name to username
+            userData.setBio(""); // Empty bio by default
+            userData.setProfilePicture(null); // No profile picture by default
+            userData.setDateOfBirth(null); // No date of birth by default
+            
+            userDataRepository.save(userData);
+            System.out.println("UserData created successfully for user: " + registerRequest.getUsername() + 
+                             " with display name: " + userData.getDisplayName());
+
+            return ResponseEntity.ok("User registered successfully");
+        } catch (Exception e) {
+            System.err.println("Registration failed for user: " + registerRequest.getUsername() + " - " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
         }
-
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setRole(roleRepository.findById(1).orElseThrow(() -> new RuntimeException("Role not found")));
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping(value = "/logout",

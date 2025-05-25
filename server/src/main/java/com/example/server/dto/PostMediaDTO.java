@@ -1,13 +1,17 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostMediaDTO {
-    // private Long id;
-    // private Long postId; // or PostDTO post;
-    // private String mediaUrl;
-    // private String mediaType; // e.g., IMAGE, VIDEO
-    // private LocalDateTime uploadedAt;
-
-    // Constructors, getters, and setters
+    private Long id;
+    private Long postId;
+    private String mediaUrl;
+    private String mediaType; // IMAGE, VIDEO, etc.
+    private LocalDateTime uploadedAt;
 }

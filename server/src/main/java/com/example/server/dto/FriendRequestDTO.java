@@ -1,16 +1,18 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime; // Example import
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FriendRequestDTO {
-    // Add fields that represent a FriendRequest for data transfer
-    // Example:
-    // private Long id;
-    // private UserDTO sender;
-    // private UserDTO receiver;
-    // private String status; // e.g., PENDING, ACCEPTED, DECLINED
-    // private LocalDateTime requestDate;
-    // private LocalDateTime responseDate;
-
-    // Constructors, getters, and setters
+    private Long id;
+    private UserDTO sender;
+    private UserDTO receiver;
+    private String status; // PENDING, ACCEPTED, DECLINED
+    private LocalDateTime requestDate;
+    private LocalDateTime responseDate;
 }

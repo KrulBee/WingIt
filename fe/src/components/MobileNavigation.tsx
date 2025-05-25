@@ -1,13 +1,23 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, User, Settings, Search, Bell, MessageCircle, Users, Bookmark, Menu, X } from "react-feather";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, User, Settings, Search, Bell, MessageCircle, Users, Bookmark, Menu, X, LogOut } from "react-feather";
 import ThemeToggle from "./ThemeToggle";
 
 export default function MobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
+    // Redirect to auth page
+    router.push('/auth');
+    // Close the menu
+    setIsOpen(false);
+  };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -78,7 +88,7 @@ export default function MobileNavigation() {
         <div className="flex flex-col h-full p-6">
           <div className="flex justify-between items-center mb-8">
             <Link href="/home" onClick={() => setIsOpen(false)}>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Social Platform</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">WingIt</h1>
             </Link>
             <ThemeToggle />
           </div>
@@ -103,16 +113,15 @@ export default function MobileNavigation() {
               ))}
             </ul>
           </nav>
-
-          <div className="mt-auto pt-6 border-t border-gray-300 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-              <div className="ml-3">
-                <p className="font-medium text-gray-900 dark:text-white">User Name</p>
-                <button className="text-sm text-red-600 dark:text-red-400">Logout</button>
-              </div>
-            </div>
-          </div>
+          
+          {/* Logout button */}
+          <button 
+            onClick={handleLogout}
+            className="flex items-center text-lg text-gray-800 dark:text-gray-200 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6"
+          >
+            <span className="mr-4"><LogOut size={20} /></span>
+            Logout
+          </button>
         </div>
       </div>
     </>

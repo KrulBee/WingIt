@@ -1,15 +1,17 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime; // Example import
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageDTO {
-    // Add fields that represent a Message for data transfer
-    // Example:
-    // private Long id;
-    // private UserDTO sender;
-    // private ChatRoomDTO chatRoom;
-    // private String content;
-    // private LocalDateTime timestamp;
-
-    // Constructors, getters, and setters
+    private Long id;
+    private Long chatRoomId;
+    private UserDTO sender;
+    private String content;
+    private LocalDateTime timestamp;
 }

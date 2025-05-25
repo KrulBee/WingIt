@@ -4,7 +4,11 @@ import com.example.server.model.Entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    // Add custom query methods here if needed
+    List<Message> findByChatRoomIdOrderByTimestampDesc(Long chatRoomId);
+    List<Message> findByChatRoomIdOrderByTimestampAsc(Long chatRoomId);
+    List<Message> findBySenderIdOrderByTimestampDesc(Integer senderId);
 }

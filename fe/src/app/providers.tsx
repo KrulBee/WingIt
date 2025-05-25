@@ -4,10 +4,12 @@ import { ThemeProvider } from "next-themes";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 
-// Create a simple store with no reducers for now
+// Create a simple store with a dummy reducer to prevent the combineReducers error
+const dummyReducer = (state = {}, action: any) => state;
+
 const store = configureStore({
   reducer: {
-    // We'll add reducers here when needed
+    dummy: dummyReducer,
   },
 });
 

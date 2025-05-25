@@ -1,15 +1,20 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime; // Example import
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentDTO {
-    // Add fields that represent a Comment for data transfer
-    // Example:
-    // private Long id;
-    // private String text;
-    // private UserDTO author;
-    // private PostDTO post;
-    // private LocalDateTime createdDate;
-
-    // Constructors, getters, and setters
+    private Long id;
+    private Long postId;
+    private UserDTO author;
+    private String text;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedAt;
+    private List<CommentReplyDTO> replies;
 }

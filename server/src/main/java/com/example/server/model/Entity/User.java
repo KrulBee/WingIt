@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "user")
@@ -65,8 +63,8 @@ public class User {
     @OneToMany(mappedBy = "sender")  // Changed from "sender_id" to "sender"
     private List<Message> sentMessages;
 
-    @ManyToMany(mappedBy = "users")
-    private Set<ChatRoom> chatRooms = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoomUser> roomUsers;
 
     @OneToMany(mappedBy = "user")
     private List<PostReaction> postReactions;

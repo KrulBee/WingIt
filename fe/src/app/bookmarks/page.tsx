@@ -1,12 +1,31 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
+import RightSidebar from "@/components/RightSidebar";
 import Post from "@/components/Post";
-import { Tabs, Tab, Input, Button, Card, CardBody, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
-import { Search, Filter, MoreHorizontal } from "react-feather";
+import { Tabs, Tab, Input, Button, Card, CardBody, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Textarea } from "@nextui-org/react";
+import { Search, Filter, MoreHorizontal, Plus } from "react-feather";
+import BookmarkService, { BookmarkData, BookmarkCollectionData } from "@/services/BookmarkService";
+import AuthGuard from "@/components/AuthGuard";
 
-// Mock data for bookmarked posts
-const bookmarkedPosts = [
+// Interface for UI compatibility
+interface BookmarkPost {
+  id: string;
+  authorName: string;
+  authorUsername: string;
+  authorAvatar?: string;
+  content: string;
+  image?: string;
+  likes: number;
+  comments: number;
+  shares: number;
+  createdAt: Date;
+  liked?: boolean;
+  category?: string;
+}
+
+// Mock data for fallback
+const mockBookmarkedPosts: BookmarkPost[] = [
   {
     id: "post1",
     authorName: "Jane Smith",
@@ -44,63 +63,145 @@ const bookmarkedPosts = [
     shares: 31,
     createdAt: new Date(2025, 4, 14),
     category: "Work"
-  },
-  {
-    id: "post4",
-    authorName: "Michael Brown",
-    authorUsername: "michaelb",
-    authorAvatar: "https://i.pravatar.cc/150?u=michaelb",
-    content: "Here's my take on the latest React updates and how they'll change our development workflow. Thread 🧵👇",
-    likes: 275,
-    comments: 64,
-    shares: 42,
-    createdAt: new Date(2025, 4, 15),
-    category: "Development"
-  },
-  {
-    id: "post5",
-    authorName: "Emily Davis",
-    authorUsername: "emilyd",
-    authorAvatar: "https://i.pravatar.cc/150?u=emilyd",
-    content: "Beautiful hike in the mountains this weekend. Nature always helps me reset and come back to work refreshed. #outdoors #nature #weekend",
-    image: "https://picsum.photos/800/500?random=5",
-    likes: 412,
-    comments: 28,
-    shares: 15,
-    createdAt: new Date(2025, 4, 16),
-    category: "Personal"
   }
 ];
 
-// Mock data for custom collections
-const collections = [
-  { id: "all", name: "All Bookmarks", count: bookmarkedPosts.length },
-  { id: "dev", name: "Development", count: 2 },
-  { id: "design", name: "Design", count: 1 },
-  { id: "inspo", name: "Inspiration", count: 3 },
-  { id: "readlater", name: "Read Later", count: 7 },
-];
-
 export default function BookmarksPage() {
+  const [bookmarks, setBookmarks] = useState<BookmarkPost[]>([]);
+  const [collections, setCollections] = useState<BookmarkCollectionData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeCollection, setActiveCollection] = useState("all");
+  const [activeCollection, setActiveCollection] = useState<number | "all">(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Filter bookmarks based on search term
-  const filteredBookmarks = bookmarkedPosts.filter(post => 
-    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.authorUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (post.category && post.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-  
-  return (
-    <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
+  // Collection modal
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [newCollectionName, setNewCollectionName] = useState("");
+  const [newCollectionDescription, setNewCollectionDescription] = useState("");
+  const [creatingCollection, setCreatingCollection] = useState(false);
+
+  // Fetch bookmarks and collections on component mount
+  useEffect(() => {
+    fetchBookmarksData();
+  }, []);
+
+  const fetchBookmarksData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch bookmarks and collections in parallel
+      const [bookmarksData, collectionsData] = await Promise.all([
+        BookmarkService.getUserBookmarks().catch(() => []),
+        BookmarkService.getUserCollections().catch(() => [])
+      ]);
+
+      // Transform bookmark data to UI format
+      const transformedBookmarks: BookmarkPost[] = bookmarksData.map(bookmark => ({
+        id: bookmark.postId.toString(),
+        authorName: bookmark.post?.user?.displayName || bookmark.post?.user?.username || 'Unknown User',
+        authorUsername: bookmark.post?.user?.username || 'unknown',
+        authorAvatar: bookmark.post?.user?.profilePicture || `https://i.pravatar.cc/150?u=${bookmark.post?.user?.username}`,
+        content: bookmark.post?.content || '',
+        image: bookmark.post?.mediaUrls?.[0],
+        likes: bookmark.post?.likesCount || 0,
+        comments: bookmark.post?.commentsCount || 0,
+        shares: bookmark.post?.sharesCount || 0,
+        createdAt: new Date(bookmark.createdDate),
+        liked: false, // Would need to check user reactions
+        category: extractCategory(bookmark.post?.content || '')
+      }));
+
+      setBookmarks(transformedBookmarks);
+
+      // Add default "All Bookmarks" collection
+      const allCollectionsWithDefault = [
+        { id: 0, name: "All Bookmarks", userId: 0, createdDate: new Date().toISOString(), bookmarkCount: transformedBookmarks.length },
+        ...collectionsData
+      ];
+      setCollections(allCollectionsWithDefault);
+
+    } catch (err) {
+      console.error('Error fetching bookmarks data:', err);
+      setError('Failed to load bookmarks. Using offline data.');
+      
+      // Fallback to mock data
+      setBookmarks(mockBookmarkedPosts);
+      setCollections([
+        { id: 0, name: "All Bookmarks", userId: 0, createdDate: new Date().toISOString(), bookmarkCount: mockBookmarkedPosts.length }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const extractCategory = (content: string): string => {
+    // Simple category extraction based on hashtags or keywords
+    if (content.toLowerCase().includes('design') || content.includes('#design') || content.includes('#ux')) return 'Design';
+    if (content.toLowerCase().includes('development') || content.includes('#dev') || content.includes('javascript') || content.includes('react')) return 'Development';
+    if (content.toLowerCase().includes('work') || content.includes('#work') || content.includes('team')) return 'Work';
+    if (content.toLowerCase().includes('nature') || content.includes('#outdoors') || content.includes('weekend')) return 'Personal';
+    return 'General';
+  };
+
+  const handleCreateCollection = async () => {
+    if (!newCollectionName.trim()) return;
+
+    try {
+      setCreatingCollection(true);
+      const newCollection = await BookmarkService.createCollection(
+        newCollectionName.trim(),
+        newCollectionDescription.trim() || undefined
+      );
+
+      setCollections(prev => [...prev, newCollection]);
+      setNewCollectionName("");
+      setNewCollectionDescription("");
+      onOpenChange();
+    } catch (err) {
+      console.error('Error creating collection:', err);
+      setError('Failed to create collection. Please try again.');
+    } finally {
+      setCreatingCollection(false);
+    }
+  };
+
+  const handleDeleteCollection = async (collectionId: number) => {
+    if (collectionId === 0) return; // Can't delete "All Bookmarks"
+
+    try {
+      await BookmarkService.deleteCollection(collectionId);
+      setCollections(prev => prev.filter(c => c.id !== collectionId));
+        // Reset to "All Bookmarks" if current collection was deleted
+      if (activeCollection === collectionId) {
+        setActiveCollection(0);
+      }
+    } catch (err) {
+      console.error('Error deleting collection:', err);
+      setError('Failed to delete collection. Please try again.');
+    }
+  };
+  // Filter bookmarks based on search term and active collection
+  const filteredBookmarks = bookmarks.filter(post => {
+    const matchesSearch = post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.authorUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (post.category && post.category.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCollection = activeCollection === 0; // For now, only show "All Bookmarks"
+    
+    return matchesSearch && matchesCollection;
+  });  return (
+    <AuthGuard>
+      <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       <Sidebar />
-      <main className="flex-1 ml-0 md:ml-64 p-6">
+      <main className="flex-1 ml-0 md:ml-64 p-6 lg:pr-80">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Bookmarks</h1>
-          <div className="flex gap-2">
-            <Button color="primary" size="sm">New Collection</Button>
+          <h1 className="text-2xl font-bold">Bookmarks</h1>          <div className="flex gap-2">
+            <Button color="primary" size="sm" onPress={onOpen}>
+              <Plus size={16} />
+              New Collection
+            </Button>
           </div>
         </div>
         
@@ -127,9 +228,8 @@ export default function BookmarksPage() {
                       className={`flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 ${activeCollection === collection.id ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                       onClick={() => setActiveCollection(collection.id)}
                     >
-                      <div className="font-medium">{collection.name}</div>
-                      <div className="text-xs bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1">
-                        {collection.count}
+                      <div className="font-medium">{collection.name}</div>                      <div className="text-xs bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1">
+                        {collection.bookmarkCount || 0}
                       </div>
                     </div>
                   ))}
@@ -137,11 +237,16 @@ export default function BookmarksPage() {
               </CardBody>
             </Card>
           </div>
-          
-          {/* Bookmarks content */}
+            {/* Bookmarks content */}
           <div className="lg:col-span-3">
             <Card className="w-full">
               <CardBody>
+                {error && (
+                  <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold">
                     {collections.find(c => c.id === activeCollection)?.name || "All Bookmarks"}
@@ -174,9 +279,13 @@ export default function BookmarksPage() {
                       </DropdownMenu>
                     </Dropdown>
                   </div>
-                </div>
-                
-                {filteredBookmarks.length > 0 ? (
+                </div>                
+                {loading ? (
+                  <div className="py-12 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-gray-500 dark:text-gray-400">Loading bookmarks...</p>
+                  </div>
+                ) : filteredBookmarks.length > 0 ? (
                   <div className="space-y-4">
                     {filteredBookmarks.map(post => (
                       <Post
@@ -202,11 +311,53 @@ export default function BookmarksPage() {
                     </Button>
                   </div>
                 )}
-              </CardBody>
-            </Card>
+              </CardBody>            </Card>
           </div>
         </div>
-      </main>
-    </div>
+      </main>      
+      {/* Right sidebar */}
+      <RightSidebar />
+
+      {/* New Collection Modal */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Create New Collection</ModalHeader>
+              <ModalBody>
+                <Input
+                  autoFocus
+                  label="Collection Name"
+                  placeholder="Enter collection name"
+                  variant="bordered"
+                  value={newCollectionName}
+                  onChange={(e) => setNewCollectionName(e.target.value)}
+                />
+                <Textarea
+                  label="Description (Optional)"
+                  placeholder="Enter collection description"
+                  variant="bordered"
+                  value={newCollectionDescription}
+                  onChange={(e) => setNewCollectionDescription(e.target.value)}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="flat" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  color="primary" 
+                  onPress={handleCreateCollection}
+                  isLoading={creatingCollection}
+                  isDisabled={!newCollectionName.trim()}
+                >
+                  Create Collection
+                </Button>              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      </div>
+    </AuthGuard>
   );
 }

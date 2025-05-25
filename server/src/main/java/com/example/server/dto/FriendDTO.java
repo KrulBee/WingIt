@@ -1,14 +1,15 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime; // Example import
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FriendDTO {
-    // Add fields that represent a Friend for data transfer
-    // Example:
-    // private Long id;
-    // private UserDTO user1;
-    // private UserDTO user2;
-    // private LocalDateTime friendshipDate;
-
-    // Constructors, getters, and setters
+    private Long id;
+    private UserDTO friend; // The other user in the friendship
+    private LocalDateTime friendshipDate;
 }
