@@ -1,6 +1,28 @@
 // This file provides reusable hooks for working with media uploads through your backend
 import { useState } from 'react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+// Helper function to get auth token
+const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth-token');
+  }
+  return null;
+};
+
+// Helper function to create headers for file upload
+const createFileUploadHeaders = () => {
+  const token = getAuthToken();
+  const headers: HeadersInit = {};
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
 // Hook to handle media upload for posts and profile pictures
 export const useMediaUpload = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,9 +44,9 @@ export const useMediaUpload = () => {
       if (type === 'profile') {
         // For profile pictures, we only handle a single file
         formData.append('file', files[0]);
-        
-        const response = await fetch('/api/v1/users/profile-picture', {
+          const response = await fetch(`${API_BASE_URL}/api/v1/users/profile-picture`, {
           method: 'POST',
+          headers: createFileUploadHeaders(),
           body: formData,
         });
         
@@ -39,9 +61,9 @@ export const useMediaUpload = () => {
         files.forEach(file => {
           formData.append('files', file);
         });
-        
-        const response = await fetch('/api/v1/posts/upload-media', {
+          const response = await fetch(`${API_BASE_URL}/api/v1/posts/upload-media`, {
           method: 'POST',
+          headers: createFileUploadHeaders(),
           body: formData,
         });
         
@@ -69,13 +91,12 @@ export const useMediaUpload = () => {
     setIsLoading(true);
     setError(null);
     
-    try {
-      const endpoint = type === 'profile' 
-        ? '/api/v1/users/profile-picture' 
-        : '/api/v1/posts/delete-media';
-      
-      const response = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
+    try {      const endpoint = type === 'profile' 
+        ? `${API_BASE_URL}/api/v1/users/profile-picture` 
+        : `${API_BASE_URL}/api/v1/posts/delete-media`;
+        const response = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
         method: 'DELETE',
+        headers: createFileUploadHeaders(),
       });
       
       if (!response.ok) {

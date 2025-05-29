@@ -35,17 +35,26 @@ public class FriendService {
         return friendships.stream()
                 .map(friend -> convertToDTO(friend, userId))
                 .collect(Collectors.toList());
-    }
-
-    public FriendRequestDTO sendFriendRequest(Integer senderId, Integer receiverId) {
+    }    public FriendRequestDTO sendFriendRequest(Integer senderId, Integer receiverId) {
+        System.out.println("Attempting to send friend request from user " + senderId + " to user " + receiverId);
+        
         if (senderId.equals(receiverId)) {
+            System.err.println("Error: User " + senderId + " tried to send friend request to themselves");
             throw new RuntimeException("Cannot send friend request to yourself");
         }
 
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Error: Sender with ID " + senderId + " not found");
+                    return new RuntimeException("Sender not found");
+                });
         User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Error: Receiver with ID " + receiverId + " not found");
+                    return new RuntimeException("Receiver not found");
+                });
+
+        System.out.println("Found sender: " + sender.getUsername() + ", receiver: " + receiver.getUsername());
 
         // Check if friendship already exists
         boolean friendshipExists = friendRepository.findAll().stream()
@@ -55,6 +64,7 @@ public class FriendService {
                 );
 
         if (friendshipExists) {
+            System.err.println("Error: Users " + senderId + " and " + receiverId + " are already friends");
             throw new RuntimeException("Users are already friends");
         }
 
@@ -67,22 +77,46 @@ public class FriendService {
                 );
 
         if (requestExists) {
+            System.err.println("Error: Friend request from " + senderId + " to " + receiverId + " already exists");
             throw new RuntimeException("Friend request already sent");
         }
 
+        // Find pending status
+        System.out.println("Looking for PENDING status in request statuses...");
         RequestStatus pendingStatus = requestStatusRepository.findAll().stream()
-                .filter(status -> "PENDING".equals(status.getStatusName()))
+                .filter(status -> {
+                    System.out.println("Found status: " + status.getStatusName());
+                    return "PENDING".equals(status.getStatusName());
+                })
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Pending status not found"));
+                .orElseThrow(() -> {
+                    System.err.println("Error: PENDING status not found in database");
+                    System.out.println("Available statuses: " + 
+                        requestStatusRepository.findAll().stream()
+                            .map(s -> s.getStatusName())
+                            .collect(Collectors.joining(", ")));
+                    return new RuntimeException("Pending status not found");
+                });
 
-        FriendRequest friendRequest = new FriendRequest();
-        friendRequest.setSender(sender);
-        friendRequest.setReceiver(receiver);
-        friendRequest.setStatus(pendingStatus);
-        friendRequest.setRequestDate(LocalDateTime.now());
+        System.out.println("Found pending status: " + pendingStatus.getStatusName());
 
-        FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
-        return convertRequestToDTO(savedRequest);
+        try {
+            FriendRequest friendRequest = new FriendRequest();
+            friendRequest.setSender(sender);
+            friendRequest.setReceiver(receiver);
+            friendRequest.setStatus(pendingStatus);
+            friendRequest.setRequestDate(LocalDateTime.now());
+
+            System.out.println("Saving friend request...");
+            FriendRequest savedRequest = friendRequestRepository.save(friendRequest);
+            System.out.println("Friend request saved successfully with ID: " + savedRequest.getId());
+            
+            return convertRequestToDTO(savedRequest);
+        } catch (Exception e) {
+            System.err.println("Error saving friend request: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save friend request: " + e.getMessage());
+        }
     }
 
     public List<FriendRequestDTO> getSentFriendRequests(Integer userId) {

@@ -14,36 +14,47 @@ interface UserData {
   dateOfBirth?: string;
 }
 
-// Define the actual PostData interface from PostService
+// Define the actual PostData interface matching PostService
 interface PostData {
   id: number;
   content: string;
-  userId: number;
+  createdDate: string;
+  updatedAt?: string;
+  author: {
+    id: number;
+    username: string;
+    displayName?: string;
+    profilePicture?: string;
+    bio?: string;
+  };
+  type?: {
+    id: number;
+    typeName: string;
+  };
+  location?: {
+    id: number;
+    location: string;
+  };
+  media?: Array<{
+    id: number;
+    mediaUrl: string;
+    mediaType: string;
+  }>;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  liked: boolean;
+  // Legacy fields for backward compatibility
+  userId?: number;
   user?: {
     id: number;
     username: string;
     displayName?: string;
     profilePicture?: string;
   };
-  createdDate: string;
-  updatedDate?: string;
   mediaUrls?: string[];
-  location?: {
-    id: number;
-    name: string;
-  };
-  postType?: {
-    id: number;
-    name: string;
-  };
-  // Legacy fields (kept for backward compatibility)
   reactionCount?: number;
   commentCount?: number;
-  // New fields matching backend PostDTO
-  likesCount?: number;
-  commentsCount?: number;
-  sharesCount?: number;
-  liked?: boolean;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -144,7 +155,8 @@ const searchUsers = (users: UserData[], query: string): UserSearchResult[] => {
 // Helper function to search posts by query
 const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
   if (!query.trim()) return [];
-    const searchTerm = query.toLowerCase();
+  
+  const searchTerm = query.toLowerCase();
   return posts
     .filter(post => 
       post.content?.toLowerCase().includes(searchTerm)
@@ -153,10 +165,10 @@ const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
       id: post.id,
       content: post.content,
       author: {
-        id: post.user?.id || post.userId,
-        username: post.user?.username || 'unknown',
-        displayName: post.user?.displayName,
-        profilePicture: post.user?.profilePicture
+        id: post.author?.id || post.user?.id || post.userId || 0,
+        username: post.author?.username || post.user?.username || 'unknown',
+        displayName: post.author?.displayName || post.user?.displayName,
+        profilePicture: post.author?.profilePicture || post.user?.profilePicture
       },
       likesCount: post.likesCount || 0,
       commentsCount: post.commentsCount || 0,
@@ -166,7 +178,7 @@ const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
         id: index,
         mediaUrl: url,
         mediaType: url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? 'IMAGE' : 'VIDEO'
-      })) || []
+      })) || post.media || []
     }))
     .slice(0, 20); // Limit results
 };
@@ -304,15 +316,14 @@ export const SearchService = {
       console.error('Get suggested users error:', error);
       return [];
     }
-  },
-  // Search posts with media (photos/videos)
+  },  // Search posts with media (photos/videos)
   searchMedia: async (query: string): Promise<PostSearchResult[]> => {
     try {
       const posts = await PostService.getAllPosts();
       
       // Filter posts that have media
       const postsWithMedia = posts.filter((post: PostData) => 
-        post.mediaUrls && post.mediaUrls.length > 0
+        (post.mediaUrls && post.mediaUrls.length > 0) || (post.media && post.media.length > 0)
       );
       
       // Apply search if query is provided
@@ -326,20 +337,20 @@ export const SearchService = {
           id: post.id,
           content: post.content,
           author: {
-            id: post.user?.id || post.userId,
-            username: post.user?.username || 'unknown',
-            displayName: post.user?.displayName,
-            profilePicture: post.user?.profilePicture
+            id: post.author?.id || post.user?.id || post.userId || 0,
+            username: post.author?.username || post.user?.username || 'unknown',
+            displayName: post.author?.displayName || post.user?.displayName,
+            profilePicture: post.author?.profilePicture || post.user?.profilePicture
           },
           likesCount: post.likesCount || 0,
           commentsCount: post.commentsCount || 0,
           sharesCount: post.sharesCount || 0,
           createdDate: post.createdDate,
-          media: post.mediaUrls?.map((url, index) => ({
+          media: post.mediaUrls?.map((url: string, index: number) => ({
             id: index,
             mediaUrl: url,
             mediaType: url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? 'IMAGE' : 'VIDEO'
-          })) || []
+          })) || post.media || []
         }))
         .slice(0, 20); // Limit results
     } catch (error) {

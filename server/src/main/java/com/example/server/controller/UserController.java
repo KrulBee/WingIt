@@ -5,6 +5,8 @@ import com.example.server.dto.UpdateUserProfileRequest;
 import com.example.server.dto.ChangePasswordRequest;
 import com.example.server.service.UserService;
 import com.example.server.service.CloudinaryService;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +22,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
-public class UserController {
-
-    @Autowired
+public class UserController {    @Autowired
     private CloudinaryService cloudinaryService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
@@ -164,11 +167,13 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to delete profile picture: " + e.getMessage());
         }
-    }
-
-    // Helper method to extract user ID from authentication
+    }    // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {
-        // Placeholder - implement based on your JWT setup
-        return 1;
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

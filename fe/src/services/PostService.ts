@@ -43,39 +43,50 @@ interface MediaUploadResponse {
 interface CreatePostRequest {
   content: string;
   mediaUrls?: string[];
-  postTypeId?: number;
+  typeId?: number;
   locationId?: number;
 }
 
 interface PostData {
   id: number;
   content: string;
-  userId: number;
+  createdDate: string;
+  updatedAt?: string;
+  author: {
+    id: number;
+    username: string;
+    displayName?: string;
+    profilePicture?: string;
+    bio?: string;
+  };
+  type?: {
+    id: number;
+    typeName: string;
+  };
+  location?: {
+    id: number;
+    location: string;
+  };
+  media?: Array<{
+    id: number;
+    mediaUrl: string;
+    mediaType: string;
+  }>;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  liked: boolean;
+  // Legacy fields for backward compatibility
+  userId?: number;
   user?: {
     id: number;
     username: string;
     displayName?: string;
     profilePicture?: string;
   };
-  createdDate: string;
-  updatedDate?: string;
   mediaUrls?: string[];
-  location?: {
-    id: number;
-    name: string;
-  };
-  postType?: {
-    id: number;
-    name: string;
-  };
-  // Legacy fields (kept for backward compatibility)
   reactionCount?: number;
   commentCount?: number;
-  // New fields matching backend PostDTO
-  likesCount?: number;
-  commentsCount?: number;
-  sharesCount?: number;
-  liked?: boolean;
 }
 
 const PostService = {
@@ -235,6 +246,24 @@ const PostService = {
     } catch (error) {
       console.error('Get user posts error:', error);
       throw error;
+    }
+  },
+
+  getPostsByLocationId: async (locationId: number): Promise<PostData[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/posts/location/${locationId}`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts by location');
+      }
+
+      const posts: PostData[] = await response.json();
+      return posts;
+    } catch (error) {
+      console.error('Get posts by location error:', error);      throw error;
     }
   },
 };

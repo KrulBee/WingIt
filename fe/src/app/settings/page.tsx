@@ -67,7 +67,7 @@ export default function SettingsPage() {
       }));
     } catch (err) {
       console.error('Error fetching user settings:', err);
-      setError('Failed to load settings');
+      setError('Không thể tải cài đặt');
     } finally {
       setLoading(false);
     }
@@ -85,20 +85,22 @@ export default function SettingsPage() {
       setSaving(true);
       setError(null);
       setSuccessMessage(null);
-      
-      // Update profile information
+        // Update profile information
       await UserService.updateUserProfile({
         displayName: settings.displayName,
         bio: settings.bio,
       });
       
-      setSuccessMessage('Settings saved successfully!');
+      // Notify other components (like Sidebar) that profile was updated
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+      
+      setSuccessMessage('Đã lưu cài đặt thành công!');
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error saving settings:', err);
-      setError('Failed to save settings');
+      setError('Không thể lưu cài đặt');
     } finally {
       setSaving(false);
     }
@@ -106,12 +108,12 @@ export default function SettingsPage() {
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError('New passwords do not match');
+      setError('Mật khẩu mới không khớp');
       return;
     }
     
     if (passwordForm.newPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
+      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
       return;
     }
     
@@ -128,13 +130,13 @@ export default function SettingsPage() {
         confirmPassword: '',
       });
       
-      setSuccessMessage('Password changed successfully!');
+      setSuccessMessage('Đã đổi mật khẩu thành công!');
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error changing password:', err);
-      setError('Failed to change password. Please check your current password.');
+      setError('Không thể đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại.');
     } finally {
       setChangingPassword(false);
     }
@@ -158,7 +160,7 @@ export default function SettingsPage() {
       <Sidebar />
         {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 p-6">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold mb-6">Cài Đặt</h1>
         
         {/* Error Message */}
         {error && (
@@ -180,14 +182,12 @@ export default function SettingsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Profile Information */}
-          <Card className="w-full">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Profile Information</h2>
+          <Card className="w-full">            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold">Thông Tin Hồ Sơ</h2>
             </CardHeader>
             <CardBody className="space-y-4">
-              <div>
-                <Input 
-                  label="Display Name"
+              <div>                <Input 
+                  label="Tên Hiển Thị"
                   value={settings.displayName}
                   onChange={(e) => handleSettingChange('displayName', e.target.value)}
                   className="max-w-xs"
@@ -215,51 +215,47 @@ export default function SettingsPage() {
               </div>
             </CardBody>
           </Card>
-          
-          {/* Appearance */}
+            {/* Appearance */}
           <Card className="w-full">
             <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Appearance</h2>
+              <h2 className="text-xl font-semibold">Giao Diện</h2>
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Dark Mode</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Toggle dark mode on or off</p>
+                  <p className="font-medium">Chế Độ Tối</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Bật hoặc tắt chế độ tối</p>
                 </div>
                 <Switch 
                   isSelected={settings.darkMode}
                   onValueChange={(value) => handleSettingChange('darkMode', value)}
                 />
               </div>
-              
-              <div>
-                <p className="font-medium mb-2">Theme</p>
+                <div>
+                <p className="font-medium mb-2">Chủ Đề</p>
                 <Select 
-                  label="Choose theme" 
+                  label="Chọn chủ đề" 
                   selectedKeys={[settings.theme]}
                   onSelectionChange={(keys) => handleSettingChange('theme', Array.from(keys).join(""))}
                   className="max-w-xs"
                 >
-                  <SelectItem key="default" value="default">Default</SelectItem>
-                  <SelectItem key="modern" value="modern">Modern</SelectItem>
-                  <SelectItem key="classic" value="classic">Classic</SelectItem>
-                  <SelectItem key="minimal" value="minimal">Minimal</SelectItem>
+                  <SelectItem key="default" value="default">Mặc Định</SelectItem>
+                  <SelectItem key="modern" value="modern">Hiện Đại</SelectItem>
+                  <SelectItem key="classic" value="classic">Cổ Điển</SelectItem>
+                  <SelectItem key="minimal" value="minimal">Tối Giản</SelectItem>
                 </Select>
               </div>
             </CardBody>
           </Card>
           
           {/* Notifications */}
-          <Card className="w-full">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Notifications</h2>
-            </CardHeader>
-            <CardBody className="space-y-4">
+          <Card className="w-full">            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold">Thông Báo</h2>
+            </CardHeader>            <CardBody className="space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get email alerts</p>
+                  <p className="font-medium">Thông Báo Email</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận cảnh báo qua email</p>
                 </div>
                 <Switch 
                   isSelected={settings.emailNotifications}
@@ -269,8 +265,8 @@ export default function SettingsPage() {
               
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Push Notifications</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get push notifications</p>
+                  <p className="font-medium">Thông Báo Đẩy</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận thông báo đẩy</p>
                 </div>
                 <Switch 
                   isSelected={settings.pushNotifications}
@@ -280,8 +276,8 @@ export default function SettingsPage() {
               
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Message Notifications</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get notified for new messages</p>
+                  <p className="font-medium">Thông Báo Tin Nhắn</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận thông báo cho tin nhắn mới</p>
                 </div>
                 <Switch 
                   isSelected={settings.messageNotifications}
@@ -290,31 +286,30 @@ export default function SettingsPage() {
               </div>
             </CardBody>
           </Card>
-          
-          {/* Privacy */}
+            {/* Privacy */}
           <Card className="w-full">
             <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Privacy</h2>
+              <h2 className="text-xl font-semibold">Riêng Tư</h2>
             </CardHeader>
             <CardBody className="space-y-4">
               <div>
-                <p className="font-medium mb-2">Who can see your profile</p>
+                <p className="font-medium mb-2">Ai có thể xem hồ sơ của bạn</p>
                 <Select 
-                  label="Select privacy level" 
+                  label="Chọn mức độ riêng tư" 
                   selectedKeys={[settings.privacyLevel]}
                   onSelectionChange={(keys) => handleSettingChange('privacyLevel', Array.from(keys).join(""))}
                   className="max-w-xs"
                 >
-                  <SelectItem key="public" value="public">Everyone</SelectItem>
-                  <SelectItem key="friends" value="friends">Friends only</SelectItem>
-                  <SelectItem key="private" value="private">Only me</SelectItem>
+                  <SelectItem key="public" value="public">Mọi người</SelectItem>
+                  <SelectItem key="friends" value="friends">Chỉ bạn bè</SelectItem>
+                  <SelectItem key="private" value="private">Chỉ tôi</SelectItem>
                 </Select>
               </div>
               
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Show online status</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Allow others to see when you're online</p>
+                  <p className="font-medium">Hiển thị trạng thái trực tuyến</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Cho phép người khác biết khi bạn đang trực tuyến</p>
                 </div>
                 <Switch 
                   isSelected={settings.showOnlineStatus}
@@ -324,8 +319,8 @@ export default function SettingsPage() {
               
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Allow search engines</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Let search engines index your profile</p>
+                  <p className="font-medium">Cho phép công cụ tìm kiếm</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Để công cụ tìm kiếm lập chỉ mục hồ sơ của bạn</p>
                 </div>
                 <Switch 
                   isSelected={settings.allowSearchEngines}
@@ -334,33 +329,32 @@ export default function SettingsPage() {
               </div>
             </CardBody>
           </Card>
-          
-          {/* Account Security */}
+            {/* Account Security */}
           <Card className="w-full">
             <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Account Security</h2>
+              <h2 className="text-xl font-semibold">Bảo Mật Tài Khoản</h2>
             </CardHeader>
             <CardBody className="space-y-4">
               <div>
-                <p className="font-medium mb-2">Change Password</p>
+                <p className="font-medium mb-2">Đổi Mật Khẩu</p>
                 <div className="space-y-2">
                   <Input 
                     type="password" 
-                    label="Current password"
+                    label="Mật khẩu hiện tại"
                     value={passwordForm.currentPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
                     className="max-w-xs"
                   />
                   <Input 
                     type="password" 
-                    label="New password"
+                    label="Mật khẩu mới"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
                     className="max-w-xs"
                   />
                   <Input 
                     type="password" 
-                    label="Confirm new password"
+                    label="Xác nhận mật khẩu mới"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
                     className="max-w-xs"
@@ -372,7 +366,7 @@ export default function SettingsPage() {
                     isLoading={changingPassword}
                     isDisabled={!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
                   >
-                    Change Password
+                    Đổi Mật Khẩu
                   </Button>
                 </div>
               </div>
@@ -380,24 +374,23 @@ export default function SettingsPage() {
               <Divider className="my-4" />
               
               <div>
-                <p className="font-medium text-red-500">Danger Zone</p>
+                <p className="font-medium text-red-500">Vùng Nguy Hiểm</p>
                 <div className="flex gap-4 mt-2">
-                  <Button color="danger" variant="flat">Deactivate Account</Button>
-                  <Button color="danger">Delete Account</Button>
+                  <Button color="danger" variant="flat">Vô Hiệu Hóa Tài Khoản</Button>
+                  <Button color="danger">Xóa Tài Khoản</Button>
                 </div>
               </div>
             </CardBody>
           </Card>
         </div>
-        
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="flat" onClick={fetchUserSettings}>Reset</Button>
+          <div className="mt-6 flex justify-end gap-2">
+          <Button variant="flat" onClick={fetchUserSettings}>Đặt Lại</Button>
           <Button 
             color="primary" 
             onClick={handleSaveSettings}
             isLoading={saving}
           >
-            Save Changes
+            Lưu Thay Đổi
           </Button>
         </div>
       </main>

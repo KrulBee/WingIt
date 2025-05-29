@@ -12,4 +12,5 @@ public class CreatePostRequest {
     private String content;
     private Long typeId;
     private List<String> mediaUrls;
+    private Integer locationId;
 }

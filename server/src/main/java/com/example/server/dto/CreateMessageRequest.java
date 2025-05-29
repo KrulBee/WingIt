@@ -9,4 +9,5 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CreateMessageRequest {
     private String content;
+    private String messageType;
 }

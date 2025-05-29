@@ -125,13 +125,12 @@ const CommentService = {
     } catch (error) {
       console.error('Delete comment error:', error);
       throw error;
-    }
-  },
+    }  },
 
   // Comment Replies
   getRepliesByCommentId: async (commentId: number): Promise<CommentReply[]> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/comment-replies/comment/${commentId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/comments/${commentId}/replies`, {
         method: 'GET',
         headers: createAuthHeaders(),
       });
@@ -145,25 +144,43 @@ const CommentService = {
 
   createCommentReply: async (replyData: CreateCommentReplyData): Promise<CommentReply> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/comment-replies`, {
+      // Extract commentId from replyData and send content as 'text' to match backend DTO
+      const { commentId, content } = replyData;
+      console.log('Creating reply for comment:', commentId, 'with content:', content);
+      
+      const requestBody = { text: content };
+      console.log('Request body:', requestBody);
+      
+      const response = await fetch(`${API_BASE_URL}/api/v1/comments/${commentId}/replies`, {
         method: 'POST',
         headers: createAuthHeaders(),
-        body: JSON.stringify(replyData),
+        body: JSON.stringify(requestBody),
       });
-      if (!response.ok) throw new Error('Failed to create reply');
-      return await response.json();
+      
+      console.log('Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Reply creation failed with response:', errorText);
+        throw new Error(`Failed to create reply: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Reply created successfully:', result);
+      return result;
     } catch (error) {
       console.error('Create reply error:', error);
       throw error;
     }
   },
-
   updateCommentReply: async (replyId: number, replyData: UpdateCommentData): Promise<CommentReply> => {
     try {
+      // Convert content to text to match backend DTO
+      const requestBody = { text: replyData.content };
       const response = await fetch(`${API_BASE_URL}/api/v1/comment-replies/${replyId}`, {
         method: 'PUT',
         headers: createAuthHeaders(),
-        body: JSON.stringify(replyData),
+        body: JSON.stringify(requestBody),
       });
       if (!response.ok) throw new Error('Failed to update reply');
       return await response.json();

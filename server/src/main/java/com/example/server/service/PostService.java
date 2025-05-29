@@ -16,14 +16,17 @@ public class PostService {
     private final PostTypeRepository postTypeRepository;
     private final PostMediaRepository postMediaRepository;
     private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
 
     @Autowired
     public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
-                      PostMediaRepository postMediaRepository, UserRepository userRepository) {
+                      PostMediaRepository postMediaRepository, UserRepository userRepository,
+                      LocationRepository locationRepository) {
         this.postRepository = postRepository;
         this.postTypeRepository = postTypeRepository;
         this.postMediaRepository = postMediaRepository;
         this.userRepository = userRepository;
+        this.locationRepository = locationRepository;
     }
 
     public List<PostDTO> getAllPosts() {
@@ -45,10 +48,19 @@ public class PostService {
         PostType postType = postTypeRepository.findById(request.getTypeId())
                 .orElseThrow(() -> new RuntimeException("Post type not found"));
 
+        // Location is required for travel posts
+        if (request.getLocationId() == null) {
+            throw new RuntimeException("Location is required for posts");
+        }
+        
+        Location location = locationRepository.findById(request.getLocationId())
+                .orElseThrow(() -> new RuntimeException("Location not found"));
+
         Post post = new Post();
         post.setContent(request.getContent());
         post.setUser(user);
         post.setType(postType);
+        post.setLocation(location);
         post.setCreatedDate(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
 
@@ -92,6 +104,12 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    public List<PostDTO> getPostsByLocationId(Integer locationId) {
+        return postRepository.findByLocationIdOrderByCreatedDateDesc(locationId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     private PostDTO convertToDTO(Post post) {
         PostDTO dto = new PostDTO();
         dto.setId(post.getId());
@@ -115,6 +133,14 @@ public class PostService {
         typeDTO.setId(post.getType().getId());
         typeDTO.setTypeName(post.getType().getTypeName());
         dto.setType(typeDTO);
+
+        // Convert location if present
+        if (post.getLocation() != null) {
+            LocationDTO locationDTO = new LocationDTO();
+            locationDTO.setId(post.getLocation().getId());
+            locationDTO.setLocation(post.getLocation().getLocation());
+            dto.setLocation(locationDTO);
+        }
 
         // Convert media
         if (post.getMedia() != null) {

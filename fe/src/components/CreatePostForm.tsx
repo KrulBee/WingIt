@@ -1,31 +1,90 @@
 "use client";
 import React, { useState } from "react";
-import { Card, CardBody, Avatar, Button, Textarea } from "@nextui-org/react";
+import { Card, CardBody, Avatar, Button, Textarea, Select, SelectItem } from "@nextui-org/react";
 import { Image as ImageIcon, Smile, MapPin } from "react-feather";
 import MediaUpload from "./MediaUpload";
 import { PostService } from "@/services";
+import LocationService, { Location } from "@/services/LocationService";
+import PostTypeService, { PostType } from "@/services/PostTypeService";
+import { AuthService } from "@/services";
+import { avatarBase64 } from "@/static/images/avatarDefault";
 
 interface CreatePostFormProps {
   onPostCreated?: (post: any) => void;
 }
 
-export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
-  const [content, setContent] = useState("");
+interface UserData {
+  id: number;
+  username: string;
+  displayName?: string;
+  bio?: string;
+  profilePicture?: string;
+  dateOfBirth?: string;
+}
+
+export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {  const [content, setContent] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
-  const [showMediaUpload, setShowMediaUpload] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [selectedPostTypeId, setSelectedPostTypeId] = useState<number | null>(2); // Default to 'scenic'
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [postTypes, setPostTypes] = useState<PostType[]>([]);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);  const [isSubmitting, setIsSubmitting] = useState(false);  const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [postTypesLoaded, setPostTypesLoaded] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);const loadLocations = async () => {
+    if (!locationsLoaded) {
+      try {
+        const locationData = await LocationService.getAllLocations();
+        setLocations(locationData);
+        setLocationsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load locations:', error);
+      }
+    }
+  };  const loadPostTypes = async () => {
+    if (!postTypesLoaded) {
+      try {
+        const postTypeData = await PostTypeService.getAllPostTypes();
+        setPostTypes(postTypeData);
+        setPostTypesLoaded(true);
+      } catch (error) {
+        console.error('Failed to load post types:', error);
+      }
+    }
+  };
+  const loadCurrentUser = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Failed to load current user:', error);
+    }
+  };
+
+  // Load locations, post types, and current user when component mounts
+  React.useEffect(() => {
+    loadLocations();
+    loadPostTypes();
+    loadCurrentUser();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      if (!content.trim() && mediaUrls.length === 0) return;
+    if (!selectedLocationId) {
+      alert('Vui lòng chọn địa điểm cho bài viết của bạn');
+      return;
+    }
+    if (!selectedPostTypeId) {
+      alert('Vui lòng chọn loại bài viết');
+      return;
+    }
     
-    if (!content.trim() && mediaUrls.length === 0) return;
-    
-    setIsSubmitting(true);
-    
-    try {
+    setIsSubmitting(true);    try {
       const postData = {
         content,
-        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+        locationId: selectedLocationId,
+        typeId: selectedPostTypeId
       };
 
       const newPost = await PostService.createPost(postData);
@@ -33,15 +92,14 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       // Call the callback if provided
       if (onPostCreated) {
         onPostCreated(newPost);
-      }
-
-      // Reset form
+      }      // Reset form
       setContent("");
       setMediaUrls([]);
+      setSelectedLocationId(null);
       setShowMediaUpload(false);
     } catch (error) {
       console.error("Failed to create post:", error);
-      // You might want to show an error message to the user here
+      alert('Không thể tạo bài viết. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }
@@ -54,10 +112,13 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 
   return (
     <Card className="mb-4 border border-gray-200 dark:border-gray-700">
-      <CardBody>
-        <form onSubmit={handleSubmit}>
+      <CardBody>        <form onSubmit={handleSubmit}>
           <div className="flex gap-3">
-            <Avatar radius="full" size="md" src="https://i.pravatar.cc/150?u=example" />
+            <Avatar 
+              radius="full" 
+              size="md" 
+              src={currentUser?.profilePicture || avatarBase64}
+            />
             <Textarea
               placeholder="What's on your mind?"
               value={content}
@@ -68,10 +129,9 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               variant="bordered"
               classNames={{
                 input: "text-sm",
-              }}
-            />
-          </div>
-            {showMediaUpload && (
+              }}            />          </div>
+
+          {showMediaUpload && (
             <div className="mt-4">
               <MediaUpload 
                 type="post" 
@@ -80,6 +140,48 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               />
             </div>
           )}
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              label="Chọn địa điểm *"
+              placeholder="Bài viết này về địa điểm nào?"
+              selectedKeys={selectedLocationId ? [selectedLocationId.toString()] : []}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0];
+                setSelectedLocationId(selectedKey ? Number(selectedKey) : null);
+              }}
+              className="w-full"
+              size="sm"
+              isRequired
+              items={locations.map(location => ({
+                key: location.id.toString(),
+                label: location.location
+              }))}
+            >
+              {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+            </Select>
+
+            <Select
+              label="Loại bài viết *"
+              placeholder="Chọn loại bài viết"
+              selectedKeys={selectedPostTypeId ? [selectedPostTypeId.toString()] : []}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0];
+                setSelectedPostTypeId(selectedKey ? Number(selectedKey) : null);
+              }}
+              className="w-full"
+              size="sm"
+              isRequired
+              items={postTypes.map(postType => ({
+                key: postType.id.toString(),
+                label: postType.typeName === 'info' ? 'Thông tin' : 
+                       postType.typeName === 'scenic' ? 'Cảnh đẹp' :
+                       postType.typeName === 'discussion' ? 'Thảo luận' : postType.typeName
+              }))}
+            >
+              {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+            </Select>
+          </div>
           
           {mediaUrls.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-4">
@@ -104,9 +206,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               ))}
             </div>
           )}
-          
-          <div className="flex justify-between mt-4">
-            <div className="flex gap-2">
+            <div className="flex justify-between mt-4">            <div className="flex gap-2">
               <Button 
                 variant="light" 
                 size="sm" 
@@ -119,19 +219,16 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               <Button variant="light" size="sm" isIconOnly>
                 <Smile size={18} />
               </Button>
-              <Button variant="light" size="sm" isIconOnly>
-                <MapPin size={18} />
-              </Button>
             </div>
             
             <Button 
               color="primary" 
               size="sm" 
               type="submit" 
-              isDisabled={!content.trim()}
+              isDisabled={!content.trim() || !selectedLocationId}
               isLoading={isSubmitting}
             >
-              Post
+              Đăng bài
             </Button>
           </div>
         </form>

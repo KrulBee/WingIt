@@ -16,6 +16,7 @@ export { default as LocationService } from './LocationService';
 export { default as RequestStatusService } from './RequestStatusService';
 export { default as RoleService } from './RoleService';
 export { default as BlockService } from './BlockService';
+export { default as BookmarkService } from './BookmarkService';
 export { default as PostMediaService } from './PostMediaService';
 export { default as CommentReplyService } from './CommentReplyService';
 export { default as RoomUserService } from './RoomUserService';

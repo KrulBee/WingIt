@@ -16,5 +16,6 @@ public class CommentDTO {
     private String text;
     private LocalDateTime createdDate;
     private LocalDateTime updatedAt;
-    private List<CommentReplyDTO> replies;
+    private Boolean isReply;
+    private List<CommentDTO> replies; // Changed from CommentReplyDTO to CommentDTO
 }

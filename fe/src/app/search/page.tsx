@@ -5,6 +5,8 @@ import RightSidebar from "@/components/RightSidebar";
 import { Card, CardBody, Input, Avatar, Button, Chip, Tabs, Tab, Spinner } from "@nextui-org/react";
 import { Search as SearchIcon, User, Users, Hash, Calendar, Image } from "react-feather";
 import { SearchService, UserSearchResult, PostSearchResult, TagSearchResult, SearchResults } from "@/services/SearchService";
+import { useProfileNavigation } from "@/utils/profileNavigation";
+import { AuthService } from "@/services";
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
@@ -29,11 +31,22 @@ export default function SearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [suggestedUsers, setSuggestedUsers] = useState<UserSearchResult[]>([]);
   const [trendingTags, setTrendingTags] = useState<TagSearchResult[]>([]);
-
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { navigateToProfile } = useProfileNavigation();
   // Load initial data when component mounts
   useEffect(() => {
     loadInitialData();
+    getCurrentUser();
   }, []);
+
+  const getCurrentUser = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }
+  };
 
   const loadInitialData = async () => {
     try {
@@ -149,10 +162,9 @@ export default function SearchPage() {
           <h1 className="text-2xl font-bold mb-6">Search</h1>
           
           {/* Search form */}
-          <form onSubmit={handleSearch} className="mb-6">
-            <Input
+          <form onSubmit={handleSearch} className="mb-6">            <Input
               type="text"
-              placeholder="Search for users, posts, tags, or events..."
+              placeholder="Tìm kiếm người dùng, bài viết, thẻ, hoặc sự kiện..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               startContent={<SearchIcon size={20} />}
@@ -177,12 +189,11 @@ export default function SearchPage() {
             selectedKey={activeTab}
             onSelectionChange={(key) => handleTabChange(key as string)}
             className="mb-6"
-          >
-            <Tab key="all" title={<div className="flex items-center gap-1"><SearchIcon size={16} /> All</div>} />
-            <Tab key="people" title={<div className="flex items-center gap-1"><User size={16} /> People</div>} />
-            <Tab key="posts" title={<div className="flex items-center gap-1"><Users size={16} /> Posts</div>} />
-            <Tab key="tags" title={<div className="flex items-center gap-1"><Hash size={16} /> Tags</div>} />
-            <Tab key="photos" title={<div className="flex items-center gap-1"><Image size={16} /> Photos</div>} />
+          >            <Tab key="all" title={<div className="flex items-center gap-1"><SearchIcon size={16} /> Tất Cả</div>} />
+            <Tab key="people" title={<div className="flex items-center gap-1"><User size={16} /> Người</div>} />
+            <Tab key="posts" title={<div className="flex items-center gap-1"><Users size={16} /> Bài Viết</div>} />
+            <Tab key="tags" title={<div className="flex items-center gap-1"><Hash size={16} /> Thẻ</div>} />
+            <Tab key="photos" title={<div className="flex items-center gap-1"><Image size={16} /> Ảnh</div>} />
           </Tabs>
 
           {/* Loading indicator */}
@@ -212,14 +223,21 @@ export default function SearchPage() {
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold mb-4">
                     {hasSearched ? 'People' : 'Suggested Users'}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  </h2>                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {displayData.users.map(user => (
                       <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
                         <CardBody className="flex flex-row items-center gap-4">
                           <Avatar 
                             src={user.profilePicture || `https://i.pravatar.cc/150?u=${user.username}`} 
                             size="lg" 
+                            className="cursor-pointer hover:scale-105 transition-transform"
+                            onClick={() => {
+                              // Don't navigate if clicking on own avatar
+                              if (currentUser && currentUser.username === user.username) {
+                                return;
+                              }
+                              navigateToProfile(user.username);
+                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium truncate">
@@ -254,9 +272,8 @@ export default function SearchPage() {
 
               {/* Posts section */}
               {(activeTab === "all" || activeTab === "posts" || activeTab === "photos") && displayData.posts.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">
-                    {activeTab === "photos" ? "Photos & Videos" : "Posts"}
+                <div className="mb-8">                  <h2 className="text-xl font-semibold mb-4">
+                    {activeTab === "photos" ? "Ảnh & Video" : "Bài Viết"}
                   </h2>
                   <div className="space-y-4">
                     {displayData.posts.map(post => (
@@ -329,11 +346,10 @@ export default function SearchPage() {
                         </CardBody>
                       </Card>
                     ))}
-                  </div>
-                  {(activeTab === "posts" || activeTab === "photos") && displayData.posts.length >= 10 && (
+                  </div>                  {(activeTab === "posts" || activeTab === "photos") && displayData.posts.length >= 10 && (
                     <div className="mt-4 text-center">
                       <Button variant="flat" onClick={() => setSearchQuery(searchQuery + " ")}>
-                        Load More
+                        Tải Thêm
                       </Button>
                     </div>
                   )}
@@ -342,9 +358,8 @@ export default function SearchPage() {
 
               {/* Tags section */}
               {(activeTab === "all" || activeTab === "tags") && displayData.tags.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">
-                    {hasSearched ? 'Tags' : 'Trending Tags'}
+                <div className="mb-8">                  <h2 className="text-xl font-semibold mb-4">
+                    {hasSearched ? 'Thẻ' : 'Thẻ Xu Hướng'}
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {displayData.tags.map(tag => (
@@ -365,12 +380,11 @@ export default function SearchPage() {
               {/* No results message */}
               {hasSearched && displayData.totalResults === 0 && !loading && (
                 <div className="text-center py-12">
-                  <SearchIcon size={48} className="mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    No results found
+                  <SearchIcon size={48} className="mx-auto text-gray-400 mb-4" />                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Không tìm thấy kết quả
                   </h3>
                   <p className="text-gray-500 dark:text-gray-500">
-                    Try searching with different keywords or check your spelling.
+                    Hãy thử tìm kiếm với từ khóa khác hoặc kiểm tra lại chính tả.
                   </p>
                 </div>
               )}

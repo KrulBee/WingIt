@@ -51,6 +51,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll() // This covers all auth endpoints
+                .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

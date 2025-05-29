@@ -3,6 +3,8 @@ package com.example.server.controller;
 import com.example.server.service.PostService;
 import com.example.server.service.CloudinaryService;
 import com.example.server.dto.*;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,9 @@ public class PostController {
 
     private final PostService postService;
     private final CloudinaryService cloudinaryService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     public PostController(PostService postService, CloudinaryService cloudinaryService) {
@@ -86,6 +91,12 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<List<PostDTO>> getPostsByLocationId(@PathVariable Integer locationId) {
+        List<PostDTO> posts = postService.getPostsByLocationId(locationId);
+        return ResponseEntity.ok(posts);
+    }
+
     /**
      * Upload media files for a post
      * 
@@ -136,8 +147,11 @@ public class PostController {
 
     // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {
-        // This is a placeholder - you'll need to implement based on your JWT implementation
-        // For now, return a default user ID
-        return 1; // You should extract this from the JWT token
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

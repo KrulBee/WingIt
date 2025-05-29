@@ -19,27 +19,17 @@ public class CommentReply {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "comment_id", nullable = false)
-    private Comment comment;
+    @JoinColumn(name = "root_comment_id", nullable = false)
+    private Comment rootComment;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String text;
+    @JoinColumn(name = "reply_id", nullable = false)
+    private Comment reply;
 
     private LocalDateTime createdDate;
-    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         createdDate = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 }

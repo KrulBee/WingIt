@@ -2,6 +2,8 @@ package com.example.server.controller;
 
 import com.example.server.service.ChatRoomService;
 import com.example.server.dto.*;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,9 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     public ChatRoomController(ChatRoomService chatRoomService) {
@@ -101,10 +106,12 @@ public class ChatRoomController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    private Integer getUserIdFromAuth(Authentication auth) {
-        // Placeholder - implement based on your JWT setup
-        return 1;
+    }    private Integer getUserIdFromAuth(Authentication auth) {
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

@@ -150,12 +150,11 @@ public class ChatRoomService {
         }
 
         return dto;
-    }
-
-    private MessageDTO convertMessageToDTO(Message message) {
+    }    private MessageDTO convertMessageToDTO(Message message) {
         MessageDTO dto = new MessageDTO();
         dto.setId(message.getId());
         dto.setChatRoomId(message.getChatRoom().getId());
+        dto.setSenderId(message.getSender().getId());
         dto.setContent(message.getContent());
         dto.setTimestamp(message.getTimestamp());
 

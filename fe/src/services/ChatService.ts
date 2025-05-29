@@ -20,18 +20,17 @@ const createAuthHeaders = () => {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  return headers;
+    return headers;
 };
 
-interface User {
+export interface User {
   id: number;
   username: string;
   displayName?: string;
   profilePicture?: string;
 }
 
-interface ChatRoom {
+export interface ChatRoom {
   id: number;
   roomName: string;
   description?: string;
@@ -41,14 +40,14 @@ interface ChatRoom {
   participants?: User[];
 }
 
-interface Message {
+export interface Message {
   id: number;
   roomId: number;
   senderId: number;
   sender?: User;
   content: string;
   messageType: string;
-  createdDate: string;
+  timestamp: string;
   updatedDate?: string;
 }
 
@@ -164,14 +163,13 @@ const ChatService = {
       console.error('Get messages error:', error);
       throw error;
     }
-  },
-  sendMessage: async (messageData: CreateMessageData): Promise<Message> => {
+  },  sendMessage: async (messageData: CreateMessageData): Promise<Message> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/messages`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/messages/${messageData.roomId}`, {
         method: 'POST',
         headers: createAuthHeaders(),
         body: JSON.stringify({
-          ...messageData,
+          content: messageData.content,
           messageType: messageData.messageType || 'TEXT'
         }),
       });

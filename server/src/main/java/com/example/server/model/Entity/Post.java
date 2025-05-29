@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+        
 @Entity
 @Table(name = "posts")
 @Data
@@ -31,6 +31,10 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "type", nullable = false)
     private PostType type;
+
+    @ManyToOne
+    @JoinColumn(name = "location_id", nullable = false)
+    private Location location;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;

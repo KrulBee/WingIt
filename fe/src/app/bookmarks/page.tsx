@@ -17,10 +17,12 @@ interface BookmarkPost {
   content: string;
   image?: string;
   likes: number;
+  dislikes?: number;
   comments: number;
   shares: number;
   createdAt: Date;
   liked?: boolean;
+  disliked?: boolean;
   category?: string;
 }
 
@@ -34,9 +36,12 @@ const mockBookmarkedPosts: BookmarkPost[] = [
     content: "Just released a new design system for our product. Check it out and let me know what you think! #design #ux",
     image: "https://picsum.photos/800/500?random=1",
     likes: 245,
+    dislikes: 8,
     comments: 37,
     shares: 12,
     createdAt: new Date(2025, 4, 10),
+    liked: false,
+    disliked: false,
     category: "Design"
   },
   {
@@ -46,9 +51,12 @@ const mockBookmarkedPosts: BookmarkPost[] = [
     authorAvatar: "https://i.pravatar.cc/150?u=robertw",
     content: "10 tips for improving your productivity as a developer. I've been using these techniques for years and they've really helped me stay focused and efficient.",
     likes: 182,
+    dislikes: 5,
     comments: 29,
     shares: 24,
     createdAt: new Date(2025, 4, 12),
+    liked: true,
+    disliked: false,
     category: "Development"
   },
   {
@@ -59,9 +67,12 @@ const mockBookmarkedPosts: BookmarkPost[] = [
     content: "Our team just shipped a major feature that's been months in the making. So proud of everyone's hard work! #teamwork #milestone",
     image: "https://picsum.photos/800/500?random=3",
     likes: 348,
+    dislikes: 12,
     comments: 52,
     shares: 31,
     createdAt: new Date(2025, 4, 14),
+    liked: false,
+    disliked: false,
     category: "Work"
   }
 ];
@@ -105,10 +116,12 @@ export default function BookmarksPage() {
         content: bookmark.post?.content || '',
         image: bookmark.post?.mediaUrls?.[0],
         likes: bookmark.post?.likesCount || 0,
+        dislikes: bookmark.post?.dislikesCount || 0,
         comments: bookmark.post?.commentsCount || 0,
         shares: bookmark.post?.sharesCount || 0,
         createdAt: new Date(bookmark.createdDate),
         liked: false, // Would need to check user reactions
+        disliked: false, // Would need to check user reactions
         category: extractCategory(bookmark.post?.content || '')
       }));
 
@@ -196,11 +209,10 @@ export default function BookmarksPage() {
       <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       <Sidebar />
       <main className="flex-1 ml-0 md:ml-64 p-6 lg:pr-80">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Bookmarks</h1>          <div className="flex gap-2">
+        <div className="flex justify-between items-center mb-6">          <h1 className="text-2xl font-bold">Dấu Trang</h1>          <div className="flex gap-2">
             <Button color="primary" size="sm" onPress={onOpen}>
               <Plus size={16} />
-              New Collection
+              Bộ Sưu Tập Mới
             </Button>
           </div>
         </div>
@@ -210,9 +222,8 @@ export default function BookmarksPage() {
           <div className="lg:col-span-1">
             <Card className="w-full">
               <CardBody className="p-0">
-                <div className="p-4">
-                  <Input
-                    placeholder="Search bookmarks..."
+                <div className="p-4">                  <Input
+                    placeholder="Tìm kiếm dấu trang..."
                     startContent={<Search size={18} />}
                     value={searchTerm}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
@@ -303,11 +314,10 @@ export default function BookmarksPage() {
                       />
                     ))}
                   </div>
-                ) : (
-                  <div className="py-12 text-center">
-                    <p className="text-gray-500 dark:text-gray-400">No bookmarks found for this search.</p>
+                ) : (                  <div className="py-12 text-center">
+                    <p className="text-gray-500 dark:text-gray-400">Không tìm thấy dấu trang nào cho tìm kiếm này.</p>
                     <Button variant="flat" size="sm" className="mt-2" onClick={() => setSearchTerm("")}>
-                      Clear search
+                      Xóa tìm kiếm
                     </Button>
                   </div>
                 )}
@@ -322,20 +332,19 @@ export default function BookmarksPage() {
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
         <ModalContent>
           {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">Create New Collection</ModalHeader>
+            <>              <ModalHeader className="flex flex-col gap-1">Tạo Bộ Sưu Tập Mới</ModalHeader>
               <ModalBody>
                 <Input
                   autoFocus
-                  label="Collection Name"
-                  placeholder="Enter collection name"
+                  label="Tên Bộ Sưu Tập"
+                  placeholder="Nhập tên bộ sưu tập"
                   variant="bordered"
                   value={newCollectionName}
                   onChange={(e) => setNewCollectionName(e.target.value)}
                 />
                 <Textarea
-                  label="Description (Optional)"
-                  placeholder="Enter collection description"
+                  label="Mô Tả (Tùy Chọn)"
+                  placeholder="Nhập mô tả bộ sưu tập"
                   variant="bordered"
                   value={newCollectionDescription}
                   onChange={(e) => setNewCollectionDescription(e.target.value)}
@@ -343,7 +352,7 @@ export default function BookmarksPage() {
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="flat" onPress={onClose}>
-                  Cancel
+                  Hủy
                 </Button>
                 <Button 
                   color="primary" 
@@ -351,8 +360,8 @@ export default function BookmarksPage() {
                   isLoading={creatingCollection}
                   isDisabled={!newCollectionName.trim()}
                 >
-                  Create Collection
-                </Button>              </ModalFooter>
+                  Tạo Bộ Sưu Tập
+                </Button></ModalFooter>
             </>
           )}
         </ModalContent>

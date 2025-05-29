@@ -26,7 +26,7 @@ const createAuthHeaders = () => {
 
 export interface ReactionType {
   id: number;
-  typeName: string;
+  name: string;
   iconUrl?: string;
   description?: string;
 }
@@ -80,18 +80,16 @@ const ReactionTypeService = {
   clearCache: (): void => {
     ReactionTypeService._reactionTypesCache = null;
   },
-
   // Get reaction type by name
   getReactionTypeByName: async (typeName: string): Promise<ReactionType | null> => {
     try {
       const reactionTypes = await ReactionTypeService.getCachedReactionTypes();
-      return reactionTypes.find(type => type.typeName.toLowerCase() === typeName.toLowerCase()) || null;
+      return reactionTypes.find(type => type.name.toLowerCase() === typeName.toLowerCase()) || null;
     } catch (error) {
       console.error('Get reaction type by name error:', error);
       throw error;
     }
   },
-
   // Get default reaction types (commonly used ones)
   getDefaultReactionTypes: async (): Promise<ReactionType[]> => {
     try {
@@ -99,7 +97,7 @@ const ReactionTypeService = {
       // Assuming common reaction types like 'like', 'love', 'angry', etc.
       const defaultTypes = ['like', 'love', 'angry', 'sad', 'laugh'];
       return reactionTypes.filter(type => 
-        defaultTypes.includes(type.typeName.toLowerCase())
+        defaultTypes.includes(type.name.toLowerCase())
       );
     } catch (error) {
       console.error('Get default reaction types error:', error);

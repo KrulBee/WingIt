@@ -39,9 +39,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "user")
-    private List<CommentReply> commentReplies;
-
     @OneToMany(mappedBy = "user1")
     private List<Friend> friendsAsUser1;
 
@@ -68,4 +65,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<PostReaction> postReactions;
+
+    @OneToMany(mappedBy = "user")
+    private List<CommentReaction> commentReactions;
 }

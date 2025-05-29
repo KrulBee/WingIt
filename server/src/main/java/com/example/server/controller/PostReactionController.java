@@ -2,6 +2,8 @@ package com.example.server.controller;
 
 import com.example.server.dto.PostReactionDTO;
 import com.example.server.service.PostReactionService;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,9 @@ import java.util.Map;
 public class PostReactionController {
 
     private final PostReactionService postReactionService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     public PostReactionController(PostReactionService postReactionService) {
@@ -102,11 +107,13 @@ public class PostReactionController {
     public ResponseEntity<List<PostReactionDTO>> getUserReactions(@PathVariable Integer userId) {
         List<PostReactionDTO> reactions = postReactionService.getReactionsByUserId(userId);
         return ResponseEntity.ok(reactions);
-    }
-
-    // Helper method to extract user ID from authentication
+    }    // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {
-        // Placeholder - implement based on your JWT setup
-        return 1;
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

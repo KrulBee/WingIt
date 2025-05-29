@@ -6,6 +6,9 @@ import { Card, CardBody, Avatar, Tabs, Tab, Button } from "@nextui-org/react";
 import { User, UserCheck, UserPlus, UserX } from "react-feather";
 import FriendService from "@/services/FriendService";
 import UserService from "@/services/UserService";
+import { useProfileNavigation } from "@/utils/profileNavigation";
+import { AuthService } from "@/services";
+import { avatarBase64 } from "@/static/images/avatarDefault";
 
 // Types matching the backend API
 interface UserDTO {
@@ -80,17 +83,39 @@ const mockSuggestions: FriendProps[] = [
   },
 ];
 
-const FriendCard = ({ friend, onUnfriend }: { friend: FriendProps; onUnfriend: (friendId: string) => void }) => {
+// Generate a consistent avatar src with fallback
+const getAvatarSrc = (avatar?: string, username?: string) => {
+  if (avatar && avatar.trim() !== '') {
+    return avatar;
+  }
+  // Use the default avatar as fallback
+  return avatarBase64;
+};
+
+const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; onUnfriend: (friendId: string) => void; currentUser: any }) => {
+  const { navigateToProfile } = useProfileNavigation();
+
+  const handleAvatarClick = () => {
+    // Don't navigate if clicking on own avatar
+    if (currentUser && currentUser.username === friend.username) {
+      return;
+    }
+    navigateToProfile(friend.username);
+  };
+
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-      <div className="flex items-center mb-3">
-        <Avatar src={friend.avatar} className="mr-3" size="lg" />
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">      <div className="flex items-center mb-3">
+        <Avatar 
+          src={getAvatarSrc(friend.avatar, friend.username)} 
+          className="mr-3 cursor-pointer hover:scale-105 transition-transform" 
+          size="lg" 
+          onClick={handleAvatarClick}
+        />
         <div>
           <h3 className="font-medium">{friend.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>
-          {friend.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {friend.mutualFriends} mutual friends
+              {friend.mutualFriends} bạn chung
             </p>
           )}
         </div>
@@ -100,9 +125,8 @@ const FriendCard = ({ friend, onUnfriend }: { friend: FriendProps; onUnfriend: (
           size="sm" 
           color="primary"
           variant="flat"
-          startContent={<User size={16} />}
-        >
-          Profile
+          startContent={<User size={16} />}        >
+          Hồ Sơ
         </Button>
         <Button 
           size="sm" 
@@ -111,24 +135,37 @@ const FriendCard = ({ friend, onUnfriend }: { friend: FriendProps; onUnfriend: (
           startContent={<UserX size={16} />}
           onPress={() => onUnfriend(friend.id)}
         >
-          Unfriend
+          Hủy Kết Bạn
         </Button>
       </div>
     </div>
   );
 };
 
-const RequestCard = ({ request, onAccept, onReject }: { request: FriendProps; onAccept: (requestId: string) => void; onReject: (requestId: string) => void }) => {
+const RequestCard = ({ request, onAccept, onReject, currentUser }: { request: FriendProps; onAccept: (requestId: string) => void; onReject: (requestId: string) => void; currentUser: any }) => {
+  const { navigateToProfile } = useProfileNavigation();
+
+  const handleAvatarClick = () => {
+    // Don't navigate if clicking on own avatar
+    if (currentUser && currentUser.username === request.username) {
+      return;
+    }
+    navigateToProfile(request.username);
+  };
+
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-      <div className="flex items-center mb-3">
-        <Avatar src={request.avatar} className="mr-3" size="lg" />
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">      <div className="flex items-center mb-3">
+        <Avatar 
+          src={getAvatarSrc(request.avatar, request.username)} 
+          className="mr-3 cursor-pointer hover:scale-105 transition-transform" 
+          size="lg" 
+          onClick={handleAvatarClick}
+        />
         <div>
           <h3 className="font-medium">{request.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>
-          {request.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {request.mutualFriends} mutual friends
+              {request.mutualFriends} bạn chung
             </p>
           )}
         </div>
@@ -139,9 +176,8 @@ const RequestCard = ({ request, onAccept, onReject }: { request: FriendProps; on
           color="success"
           variant="flat"
           startContent={<UserCheck size={16} />}
-          onPress={() => onAccept(request.id)}
-        >
-          Accept
+          onPress={() => onAccept(request.id)}        >
+          Chấp Nhận
         </Button>
         <Button 
           size="sm" 
@@ -150,24 +186,37 @@ const RequestCard = ({ request, onAccept, onReject }: { request: FriendProps; on
           startContent={<UserX size={16} />}
           onPress={() => onReject(request.id)}
         >
-          Reject
+          Từ Chối
         </Button>
       </div>
     </div>
   );
 };
 
-const SuggestionCard = ({ suggestion, onAddFriend }: { suggestion: FriendProps; onAddFriend: (userId: string) => void }) => {
+const SuggestionCard = ({ suggestion, onAddFriend, currentUser }: { suggestion: FriendProps; onAddFriend: (userId: string) => void; currentUser: any }) => {
+  const { navigateToProfile } = useProfileNavigation();
+
+  const handleAvatarClick = () => {
+    // Don't navigate if clicking on own avatar
+    if (currentUser && currentUser.username === suggestion.username) {
+      return;
+    }
+    navigateToProfile(suggestion.username);
+  };
+
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-      <div className="flex items-center mb-3">
-        <Avatar src={suggestion.avatar} className="mr-3" size="lg" />
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">      <div className="flex items-center mb-3">
+        <Avatar 
+          src={getAvatarSrc(suggestion.avatar, suggestion.username)} 
+          className="mr-3 cursor-pointer hover:scale-105 transition-transform" 
+          size="lg" 
+          onClick={handleAvatarClick}
+        />
         <div>
           <h3 className="font-medium">{suggestion.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>
-          {suggestion.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>{suggestion.mutualFriends && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {suggestion.mutualFriends} mutual friends
+              {suggestion.mutualFriends} bạn chung
             </p>
           )}
         </div>
@@ -176,10 +225,9 @@ const SuggestionCard = ({ suggestion, onAddFriend }: { suggestion: FriendProps; 
         <Button 
           size="sm" 
           color="primary"
-          startContent={<UserPlus size={16} />}
-          onPress={() => onAddFriend(suggestion.id)}
+          startContent={<UserPlus size={16} />}          onPress={() => onAddFriend(suggestion.id)}
         >
-          Add Friend
+          Kết Bạn
         </Button>
       </div>
     </div>
@@ -192,18 +240,28 @@ export default function FriendsPage() {
   const [suggestions, setSuggestions] = useState<FriendProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Fetch data on component mount
   useEffect(() => {
     fetchFriendsData();
+    getCurrentUser();
   }, []);
+
+  const getCurrentUser = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }  };
 
   // Transform backend data to UI format
   const transformUserToFriendProps = (user: UserDTO, type: 'friend' | 'suggestion', originalId?: number): FriendProps => ({
     id: user.id.toString(),
     name: user.displayName || user.username,
     username: user.username,
-    avatar: user.profilePicture || `https://i.pravatar.cc/150?u=${user.username}`,
+    avatar: getAvatarSrc(user.profilePicture, user.username),
     mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
     originalId: originalId || user.id
   });
@@ -212,7 +270,7 @@ export default function FriendsPage() {
     id: friendDTO.id.toString(),
     name: friendDTO.friend.displayName || friendDTO.friend.username,
     username: friendDTO.friend.username,
-    avatar: friendDTO.friend.profilePicture || `https://i.pravatar.cc/150?u=${friendDTO.friend.username}`,
+    avatar: getAvatarSrc(friendDTO.friend.profilePicture, friendDTO.friend.username),
     mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
     originalId: friendDTO.friend.id
   });
@@ -221,7 +279,7 @@ export default function FriendsPage() {
     id: requestDTO.id.toString(),
     name: requestDTO.sender.displayName || requestDTO.sender.username,
     username: requestDTO.sender.username,
-    avatar: requestDTO.sender.profilePicture || `https://i.pravatar.cc/150?u=${requestDTO.sender.username}`,
+    avatar: getAvatarSrc(requestDTO.sender.profilePicture, requestDTO.sender.username),
     mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
     originalId: requestDTO.sender.id
   });
@@ -336,10 +394,9 @@ export default function FriendsPage() {
         <Sidebar />
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
           <div className="max-w-2xl mx-auto">
-            <div className="flex justify-center items-center h-64">
-              <div className="text-center">
+            <div className="flex justify-center items-center h-64">              <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading friends...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải bạn bè...</p>
               </div>
             </div>
           </div>
@@ -354,34 +411,30 @@ export default function FriendsPage() {
       {/* Left sidebar */}
       <Sidebar />
         {/* Main content */}
-      <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Friends</h1>
+      <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Bạn Bè</h1>
           
           {error && (
             <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded-lg">
               <p className="text-yellow-800 dark:text-yellow-200 text-sm">{error}</p>
             </div>
           )}
-          
-          <Tabs aria-label="Friend options" className="mb-6">
-            <Tab key="all-friends" title={`All Friends (${friends.length})`}>
+            <Tabs aria-label="Friend options" className="mb-6">            <Tab key="all-friends" title={`Tất Cả Bạn Bè (${friends.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {friends.map((friend) => (
                   <FriendCard 
                     key={friend.id} 
                     friend={friend} 
                     onUnfriend={handleUnfriend}
+                    currentUser={currentUser}
                   />
-                ))}
-                {friends.length === 0 && (
+                ))}{friends.length === 0 && (
                   <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
-                    No friends yet. Start connecting with people!
+                    Chưa có bạn bè nào. Hãy bắt đầu kết nối với mọi người!
                   </div>
                 )}
               </div>
-            </Tab>
-            <Tab key="requests" title={`Requests (${friendRequests.length})`}>
+            </Tab>            <Tab key="requests" title={`Lời Mời (${friendRequests.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {friendRequests.map((request) => (
                   <RequestCard 
@@ -389,27 +442,26 @@ export default function FriendsPage() {
                     request={request} 
                     onAccept={handleAcceptRequest}
                     onReject={handleRejectRequest}
+                    currentUser={currentUser}
                   />
-                ))}
-                {friendRequests.length === 0 && (
+                ))}{friendRequests.length === 0 && (
                   <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
-                    No pending friend requests.
+                    Không có lời mời kết bạn nào.
                   </div>
                 )}
               </div>
-            </Tab>
-            <Tab key="suggestions" title="Suggestions">
+            </Tab>            <Tab key="suggestions" title="Gợi Ý">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {suggestions.map((suggestion) => (
                   <SuggestionCard 
                     key={suggestion.id} 
                     suggestion={suggestion} 
                     onAddFriend={handleAddFriend}
+                    currentUser={currentUser}
                   />
-                ))}
-                {suggestions.length === 0 && (
+                ))}{suggestions.length === 0 && (
                   <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
-                    No friend suggestions available.
+                    Không có gợi ý kết bạn nào.
                   </div>
                 )}
               </div>

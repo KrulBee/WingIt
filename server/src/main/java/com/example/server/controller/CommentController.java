@@ -2,6 +2,8 @@ package com.example.server.controller;
 
 import com.example.server.service.CommentService;
 import com.example.server.dto.*;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,16 +18,37 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
-    }
-
-    @GetMapping("/post/{postId}")
+    }    @GetMapping("/post/{postId}")
     public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
         List<CommentDTO> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(comments);
+    }
+
+    // New endpoint to match frontend API call: POST /api/v1/comments
+    @PostMapping
+    public ResponseEntity<CommentDTO> createCommentFromBody(@RequestBody CreateCommentRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+            
+            // Extract postId from request body
+            Long postId = request.getPostId();
+            if (postId == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            CommentDTO createdComment = commentService.createComment(postId, request, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping("/post/{postId}")
@@ -59,15 +82,13 @@ public class CommentController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @PostMapping("/{commentId}/replies")
-    public ResponseEntity<CommentReplyDTO> createReply(@PathVariable Long commentId, @RequestBody CreateCommentRequest request) {
+    }    @PostMapping("/{commentId}/replies")
+    public ResponseEntity<CommentDTO> createReply(@PathVariable Long commentId, @RequestBody CreateCommentRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Integer userId = getUserIdFromAuth(auth);
             
-            CommentReplyDTO createdReply = commentService.createReply(commentId, request, userId);
+            CommentDTO createdReply = commentService.createReply(commentId, request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdReply);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -75,13 +96,15 @@ public class CommentController {
     }
 
     @GetMapping("/{commentId}/replies")
-    public ResponseEntity<List<CommentReplyDTO>> getRepliesByCommentId(@PathVariable Long commentId) {
-        List<CommentReplyDTO> replies = commentService.getRepliesByCommentId(commentId);
+    public ResponseEntity<List<CommentDTO>> getRepliesByCommentId(@PathVariable Long commentId) {
+        List<CommentDTO> replies = commentService.getRepliesByCommentId(commentId);
         return ResponseEntity.ok(replies);
-    }
-
-    private Integer getUserIdFromAuth(Authentication auth) {
-        // Placeholder - implement based on your JWT setup
-        return 1;
+    }private Integer getUserIdFromAuth(Authentication auth) {
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

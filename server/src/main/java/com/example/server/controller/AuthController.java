@@ -1,6 +1,6 @@
 package com.example.server.controller;
 
-import com.example.server.config.JwtConfig;
+import com.example.server.config.JwtService;
 import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.UserData;
 import com.example.server.repository.UserRepository;
@@ -30,7 +30,7 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private JwtConfig jwtConfig;
+    private JwtService jwtService;
 
     @Autowired
     private UserRepository userRepository;
@@ -59,7 +59,7 @@ public class AuthController {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtConfig.generateToken((UserDetails) authentication.getPrincipal());
+            String jwt = jwtService.generateToken((UserDetails) authentication.getPrincipal());
             System.out.println("Login successful for user: " + loginRequest.getUsername());
             
             return ResponseEntity.ok(new AuthResponse(jwt));
@@ -117,7 +117,7 @@ public class AuthController {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.replace("Bearer ", "");
-            jwtConfig.blacklistToken(token);
+            jwtService.blacklistToken(token);
         }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Logged out successfully");

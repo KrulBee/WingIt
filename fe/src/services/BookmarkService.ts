@@ -29,8 +29,7 @@ export interface BookmarkData {
   id: number;
   postId: number;
   userId: number;
-  createdDate: string;
-  post?: {
+  createdDate: string;  post?: {
     id: number;
     content: string;
     userId: number;
@@ -44,6 +43,7 @@ export interface BookmarkData {
     updatedDate?: string;
     mediaUrls?: string[];
     likesCount?: number;
+    dislikesCount?: number;
     commentsCount?: number;
     sharesCount?: number;
   };

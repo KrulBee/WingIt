@@ -25,8 +25,11 @@ public class CommentService {
         this.commentReplyRepository = commentReplyRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
-    }    public List<CommentDTO> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPostIdOrderByCreatedDateDesc(postId).stream()
+    }
+    
+    public List<CommentDTO> getCommentsByPostId(Long postId) {
+        // Only get root comments (non-replies)
+        return commentRepository.findByPostIdAndIsReplyFalseOrderByCreatedDateDesc(postId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -41,19 +44,19 @@ public class CommentService {
         Comment comment = new Comment();
         comment.setPost(post);
         comment.setUser(user);
-        comment.setText(request.getText());
+        comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
+        comment.setIsReply(false); // Root comment
         comment.setCreatedDate(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
-        return convertToDTO(savedComment);
-    }
+        return convertToDTO(savedComment);    }
 
     public CommentDTO updateComment(Long id, CreateCommentRequest request) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
         
-        comment.setText(request.getText());
+        comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
         comment.setUpdatedAt(LocalDateTime.now());
         
         Comment updatedComment = commentRepository.save(comment);
@@ -64,30 +67,41 @@ public class CommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
         commentRepository.delete(comment);
-    }
-
-    public CommentReplyDTO createReply(Long commentId, CreateCommentRequest request, Integer userId) {
-        Comment comment = commentRepository.findById(commentId)
+    }    public CommentDTO createReply(Long commentId, CreateCommentRequest request, Integer userId) {
+        Comment rootComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        CommentReply reply = new CommentReply();
-        reply.setComment(comment);
-        reply.setUser(user);
-        reply.setText(request.getText());
-        reply.setCreatedDate(LocalDateTime.now());
-        reply.setUpdatedAt(LocalDateTime.now());
+        // Create the reply as a comment with isReply = true
+        Comment replyComment = new Comment();
+        replyComment.setPost(rootComment.getPost()); // Same post as root comment
+        replyComment.setUser(user);
+        replyComment.setText(request.getActualText());
+        replyComment.setIsReply(true); // Mark as reply
+        replyComment.setCreatedDate(LocalDateTime.now());
+        replyComment.setUpdatedAt(LocalDateTime.now());
 
-        CommentReply savedReply = commentReplyRepository.save(reply);
-        return convertReplyToDTO(savedReply);
-    }    public List<CommentReplyDTO> getRepliesByCommentId(Long commentId) {
-        return commentReplyRepository.findByCommentIdOrderByCreatedDateAsc(commentId).stream()
-                .map(this::convertReplyToDTO)
-                .collect(Collectors.toList());
+        Comment savedReply = commentRepository.save(replyComment);
+        
+        // Create the relationship in comment_replies table
+        CommentReply relationship = new CommentReply();
+        relationship.setRootComment(rootComment);
+        relationship.setReply(savedReply);
+        relationship.setCreatedDate(LocalDateTime.now());
+        
+        commentReplyRepository.save(relationship);
+        return convertToDTO(savedReply);
     }
 
+    public List<CommentDTO> getRepliesByCommentId(Long commentId) {
+        List<CommentReply> relationships = commentReplyRepository.findByRootCommentIdOrderByCreatedDateAsc(commentId);
+        return relationships.stream()
+                .map(relationship -> convertToDTO(relationship.getReply()))
+                .collect(Collectors.toList());
+    }
+    
     private CommentDTO convertToDTO(Comment comment) {
         CommentDTO dto = new CommentDTO();
         dto.setId(comment.getId());
@@ -95,6 +109,7 @@ public class CommentService {
         dto.setText(comment.getText());
         dto.setCreatedDate(comment.getCreatedDate());
         dto.setUpdatedAt(comment.getUpdatedAt());
+        dto.setIsReply(comment.getIsReply());
         
         // Convert author
         UserDTO authorDTO = new UserDTO();
@@ -104,28 +119,12 @@ public class CommentService {
             authorDTO.setDisplayName(comment.getUser().getUserData().getDisplayName());
             authorDTO.setProfilePicture(comment.getUser().getUserData().getProfilePicture());
         }
-        dto.setAuthor(authorDTO);
-
-        return dto;
-    }
-
-    private CommentReplyDTO convertReplyToDTO(CommentReply reply) {
-        CommentReplyDTO dto = new CommentReplyDTO();
-        dto.setId(reply.getId());
-        dto.setCommentId(reply.getComment().getId());
-        dto.setText(reply.getText());
-        dto.setCreatedDate(reply.getCreatedDate());
-        dto.setUpdatedAt(reply.getUpdatedAt());
-        
-        // Convert author
-        UserDTO authorDTO = new UserDTO();
-        authorDTO.setId(reply.getUser().getId());
-        authorDTO.setUsername(reply.getUser().getUsername());
-        if (reply.getUser().getUserData() != null) {
-            authorDTO.setDisplayName(reply.getUser().getUserData().getDisplayName());
-            authorDTO.setProfilePicture(reply.getUser().getUserData().getProfilePicture());
-        }
-        dto.setAuthor(authorDTO);
+        dto.setAuthor(authorDTO);        // Load and convert replies for any comment (root or reply)
+        List<CommentReply> replyRelationships = commentReplyRepository.findByRootCommentIdOrderByCreatedDateAsc(comment.getId());
+        List<CommentDTO> replyDTOs = replyRelationships.stream()
+                .map(relationship -> convertToDTO(relationship.getReply()))
+                .collect(Collectors.toList());
+        dto.setReplies(replyDTOs);
 
         return dto;
     }

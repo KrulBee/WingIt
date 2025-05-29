@@ -16,6 +16,7 @@ public class PostDTO {
     private LocalDateTime updatedAt;
     private UserDTO author;
     private PostTypeDTO type;
+    private LocationDTO location;
     private List<PostMediaDTO> media;
     private List<CommentDTO> comments;
     private List<PostReactionDTO> reactions;

@@ -1,9 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
 import { Card, CardBody, Avatar, Tabs, Tab, Button, Spinner } from "@nextui-org/react";
 import { NotificationService } from "@/services";
+import { webSocketService } from "@/services/WebSocketService";
+import { useProfileNavigation } from "@/utils/profileNavigation";
+import { AuthService } from "@/services";
 
 interface NotificationProps {
   id: string;
@@ -135,15 +138,28 @@ const transformNotification = (backendNotification: any): NotificationProps => {
 
 const NotificationItem = ({ 
   notification, 
-  onMarkAsRead 
+  onMarkAsRead,
+  currentUser,
+  navigateToProfile
 }: { 
   notification: NotificationProps;
   onMarkAsRead?: (id: string) => void;
+  currentUser: any;
+  navigateToProfile: (username: string) => void;
 }) => {
   const handleClick = () => {
     if (!notification.read && onMarkAsRead) {
       onMarkAsRead(notification.id);
     }
+  };
+
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the notification click
+    // Don't navigate if clicking on own avatar
+    if (currentUser && currentUser.username === notification.user.username) {
+      return;
+    }
+    navigateToProfile(notification.user.username);
   };
 
   return (
@@ -152,7 +168,11 @@ const NotificationItem = ({
       onClick={handleClick}
     >
       <div className="flex items-start gap-3">
-        <Avatar src={notification.user.avatar} className="flex-shrink-0" />
+        <Avatar 
+          src={notification.user.avatar} 
+          className="flex-shrink-0 cursor-pointer hover:scale-105 transition-transform" 
+          onClick={handleAvatarClick}
+        />
         <div className="flex-1 min-w-0">
           <p className="text-sm">
             <span className="font-medium">{notification.user.name}</span> {notification.content}
@@ -172,10 +192,54 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markingAllAsRead, setMarkingAllAsRead] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { navigateToProfile } = useProfileNavigation();
 
+  // Real-time notification handler
+  const handleNewNotification = useCallback((notificationData: any) => {
+    try {
+      const newNotification = transformNotification(notificationData);
+      setNotifications(prev => [newNotification, ...prev]);
+    } catch (err) {
+      console.error('Error processing new notification:', err);
+    }
+  }, []);
   useEffect(() => {
     fetchNotifications();
-  }, []);
+    getCurrentUser();
+    
+    // Initialize WebSocket connection for real-time notifications
+    const wsService = webSocketService;
+    
+    wsService.connect()
+      .then(() => {
+        console.log('WebSocket connected for notifications');
+        setWsConnected(true);
+        
+        // Subscribe to real-time notifications
+        wsService.subscribeToNotifications(handleNewNotification);
+      })
+      .catch((err: any) => {
+        console.error('WebSocket connection failed:', err);
+        setWsConnected(false);
+      });
+
+    // Cleanup WebSocket on unmount
+    return () => {
+      if (wsService.isConnected()) {
+        wsService.disconnect();
+      }
+    };  }, [handleNewNotification]);
+
+  const getCurrentUser = async () => {
+    try {
+      const user = await AuthService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -255,12 +319,11 @@ export default function NotificationsPage() {
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
           <div className="max-w-2xl mx-auto">
             <div className="text-center text-red-500 p-4">
-              <p>{error}</p>
-              <button 
+              <p>{error}</p>              <button 
                 onClick={handleRetry}
                 className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                Retry
+                Thử Lại
               </button>
             </div>
           </div>
@@ -276,9 +339,16 @@ export default function NotificationsPage() {
       <Sidebar />
         {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Notifications</h1>
+        <div className="max-w-2xl mx-auto">          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold">Thông Báo</h1>
+              {wsConnected && (
+                <div className="flex items-center gap-1 text-green-600 text-sm">
+                  <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+                  <span>Trực tuyến</span>
+                </div>
+              )}
+            </div>
             <Button 
               size="sm" 
               variant="light"
@@ -286,44 +356,42 @@ export default function NotificationsPage() {
               isLoading={markingAllAsRead}
               isDisabled={unreadNotifications.length === 0}
             >
-              Mark all as read
+              Đánh dấu tất cả đã đọc
             </Button>
           </div>
-          
-          <Tabs aria-label="Notification options">
-            <Tab key="all" title={`All (${notifications.length})`}>
+            <Tabs aria-label="Notification options">
+            <Tab key="all" title={`Tất Cả (${notifications.length})`}>
               <Card>
-                <CardBody className="p-0">
-                  {notifications.length > 0 ? (
+                <CardBody className="p-0">                  {notifications.length > 0 ? (
                     notifications.map((notification) => (
                       <NotificationItem 
                         key={notification.id} 
                         notification={notification}
                         onMarkAsRead={handleMarkAsRead}
+                        currentUser={currentUser}
+                        navigateToProfile={navigateToProfile}
                       />
-                    ))
-                  ) : (
+                    ))) : (
                     <div className="p-8 text-center text-gray-500">
-                      No notifications yet
+                      Chưa có thông báo nào
                     </div>
                   )}
                 </CardBody>
               </Card>
-            </Tab>
-            <Tab key="unread" title={`Unread (${unreadNotifications.length})`}>
+            </Tab>            <Tab key="unread" title={`Chưa Đọc (${unreadNotifications.length})`}>
               <Card>
-                <CardBody className="p-0">
-                  {unreadNotifications.length > 0 ? (
+                <CardBody className="p-0">                  {unreadNotifications.length > 0 ? (
                     unreadNotifications.map((notification) => (
                       <NotificationItem 
                         key={notification.id} 
                         notification={notification}
                         onMarkAsRead={handleMarkAsRead}
+                        currentUser={currentUser}
+                        navigateToProfile={navigateToProfile}
                       />
-                    ))
-                  ) : (
+                    ))) : (
                     <div className="p-8 text-center text-gray-500">
-                      No unread notifications
+                      Không có thông báo chưa đọc
                     </div>
                   )}
                 </CardBody>

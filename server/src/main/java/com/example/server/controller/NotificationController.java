@@ -2,6 +2,8 @@ package com.example.server.controller;
 
 import com.example.server.dto.NotificationDTO;
 import com.example.server.service.NotificationService;
+import com.example.server.repository.UserRepository;
+import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,9 @@ public class NotificationController {
 
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<NotificationDTO>> getCurrentUserNotifications() {
@@ -97,7 +102,11 @@ public class NotificationController {
 
     // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {
-        // Placeholder - implement based on your JWT setup
-        return 1;
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return user.getId();
+        }
+        throw new RuntimeException("User not found in authentication context");
     }
 }

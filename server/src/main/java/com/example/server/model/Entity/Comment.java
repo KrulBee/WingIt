@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "comments")
@@ -28,6 +29,12 @@ public class Comment {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String text;
+
+    @Column(name = "is_reply", nullable = false)
+    private Boolean isReply = false;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CommentReaction> reactions;
 
     private LocalDateTime createdDate;
     private LocalDateTime updatedAt;

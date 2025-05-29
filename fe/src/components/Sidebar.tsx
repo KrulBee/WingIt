@@ -1,15 +1,25 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Home, User, Settings, Search, Bell, MessageCircle, Users, Bookmark, LogOut } from "react-feather";
+import { Avatar } from "@nextui-org/react";
 import ThemeToggle from "./ThemeToggle";
+import { UserService } from "@/services";
+import { avatarBase64 } from "@/static/images/avatarDefault";
 
 interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
   href: string;
   active?: boolean;
+}
+
+interface UserData {
+  id: number;
+  username: string;
+  displayName?: string;
+  profilePicture?: string;
 }
 
 const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
@@ -35,53 +45,95 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  // Listen for profile updates (when user updates profile from settings/profile page)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'profile-updated') {
+        fetchUserData();
+      }
+    };
+
+    const handleCustomEvent = () => {
+      fetchUserData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('profile-updated', handleCustomEvent);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profile-updated', handleCustomEvent);
+    };
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const user = await UserService.getCurrentUserProfile();
+      setUserData(user);
+    } catch (error) {
+      console.error('Error fetching user data in sidebar:', error);
+      // Don't show error in sidebar, just use fallback
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleLogout = () => {
     // Clear user data from localStorage
     localStorage.removeItem('user');
+    localStorage.removeItem('auth-token');
     // Redirect to auth page
     router.push('/auth');
   };
-  
-  const sidebarItems = [
+    const sidebarItems = [
     {
       icon: <Home size={20} />,
-      label: "Home",
+      label: "Trang Chủ",
       href: "/home",
     },
     {
       icon: <User size={20} />,
-      label: "Profile",
+      label: "Hồ Sơ",
       href: "/profile",
     },
     {
       icon: <MessageCircle size={20} />,
-      label: "Messages",
+      label: "Tin Nhắn",
       href: "/messages",
     },
     {
       icon: <Bell size={20} />,
-      label: "Notifications",
+      label: "Thông Báo",
       href: "/notifications",
     },
     {
       icon: <Users size={20} />,
-      label: "Friends",
+      label: "Bạn Bè",
       href: "/friends",
     },
     {
       icon: <Search size={20} />,
-      label: "Search",
+      label: "Tìm Kiếm",
       href: "/search",
     },
     {
       icon: <Bookmark size={20} />,
-      label: "Bookmarks",
+      label: "Dấu Trang",
       href: "/bookmarks",
     },
     {
       icon: <Settings size={20} />,
-      label: "Settings",
+      label: "Cài Đặt",
       href: "/settings",
     },
   ];
@@ -105,13 +157,19 @@ export default function Sidebar() {
           ))}
         </nav>
       </div>
-      
-      <div className="pt-4 pb-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="pt-4 pb-2 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between px-3 mb-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+            <Avatar
+              src={userData?.profilePicture || avatarBase64}
+              alt={userData?.displayName || userData?.username || "User"}
+              className="w-8 h-8"
+              isBordered
+            />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">User Name</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {loading ? "Đang tải..." : (userData?.displayName || userData?.username || "Người dùng")}
+              </p>
             </div>
           </div>
           <ThemeToggle />
@@ -123,9 +181,8 @@ export default function Sidebar() {
         >
           <div className="text-gray-700 dark:text-gray-300">
             <LogOut size={20} />
-          </div>
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Logout
+          </div>          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Đăng Xuất
           </div>
         </button>
       </div>

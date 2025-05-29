@@ -53,10 +53,12 @@ interface PostProps {
   content: string;
   image?: string;
   likes: number;
+  dislikes?: number;
   comments: number;
   shares: number;
   createdAt: Date;
   liked: boolean;
+  disliked?: boolean;
 }
 
 export default function ProfilePage() {
@@ -103,8 +105,7 @@ export default function ProfilePage() {
       
       // Fetch user posts
       const userPosts = await PostService.getPostsByUserId(user.id);
-      
-      // Transform backend post data to component format
+        // Transform backend post data to component format
       const transformedPosts: PostProps[] = userPosts.map(post => ({
         id: post.id.toString(),
         authorName: user.displayName || user.username,
@@ -113,10 +114,12 @@ export default function ProfilePage() {
         content: post.content,
         image: post.mediaUrls?.[0],
         likes: post.reactionCount || 0,
+        dislikes: 0, // Will need backend support for dislike count
         comments: post.commentCount || 0,
         shares: 0, // Not available in backend yet
         createdAt: new Date(post.createdDate),
-        liked: false // Will need to check user reactions
+        liked: false, // Will need to check user reactions
+        disliked: false // Will need to check user reactions
       }));
       
       setPosts(transformedPosts);
@@ -131,8 +134,7 @@ export default function ProfilePage() {
         displayName: 'John Doe',
         bio: 'Web Developer | JavaScript Enthusiast | React & Next.js | Creating beautiful user experiences'
       });
-      
-      // Mock posts as fallback
+        // Mock posts as fallback
       const mockPosts: PostProps[] = [
         {
           id: "p1",
@@ -141,10 +143,12 @@ export default function ProfilePage() {
           authorAvatar: profilePicture,
           content: "Just updated my portfolio site with some new projects. Check it out!",
           likes: 24,
+          dislikes: 1,
           comments: 3,
           shares: 2,
           createdAt: new Date(Date.now() - 86400000),
-          liked: false
+          liked: false,
+          disliked: false
         }
       ];
       setPosts(mockPosts);
@@ -165,11 +169,13 @@ export default function ProfilePage() {
       
       setProfilePicture(newProfilePicture);
       setShowUpload(false);
-      
-      // Update userData state
+        // Update userData state
       if (userData) {
         setUserData({ ...userData, profilePicture: newProfilePicture });
       }
+      
+      // Notify other components (like Sidebar) that profile was updated
+      window.dispatchEvent(new CustomEvent('profile-updated'));
       
       console.log("Profile picture updated:", newProfilePicture);
     } catch (err) {
@@ -196,8 +202,7 @@ export default function ProfilePage() {
       setUpdating(true);
       
       await UserService.updateUserProfile(editForm);
-      
-      // Update local state
+        // Update local state
       if (userData) {
         setUserData({
           ...userData,
@@ -206,6 +211,9 @@ export default function ProfilePage() {
           dateOfBirth: editForm.dateOfBirth
         });
       }
+      
+      // Notify other components (like Sidebar) that profile was updated
+      window.dispatchEvent(new CustomEvent('profile-updated'));
       
       onOpenChange();
     } catch (err) {
@@ -222,10 +230,9 @@ export default function ProfilePage() {
         <Sidebar />
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
           <div className="max-w-2xl mx-auto">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
+            <div className="flex items-center justify-center h-64">              <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+                <p className="text-gray-600 dark:text-gray-400">Đang tải hồ sơ...</p>
               </div>
             </div>
           </div>
@@ -299,45 +306,39 @@ export default function ProfilePage() {
                 </div>
                 <Button 
                   className="mt-4 md:mt-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white"
-                  startContent={<Edit3 size={16} />}
-                  onClick={handleEditProfile}
+                  startContent={<Edit3 size={16} />}                  onClick={handleEditProfile}
                 >
-                  Edit Profile
+                  Chỉnh Sửa Hồ Sơ
                 </Button>
-              </div>
-                <p className="mt-4 text-gray-700 dark:text-gray-300">
-                {userData?.bio || 'No bio available'}
+              </div>                <p className="mt-4 text-gray-700 dark:text-gray-300">
+                {userData?.bio || 'Chưa có mô tả'}
               </p>
-              
-              <div className="flex gap-4 mt-4">
+                <div className="flex gap-4 mt-4">
                 <div>
-                  <span className="font-bold">{posts.length}</span> <span className="text-gray-500 dark:text-gray-400">Posts</span>
+                  <span className="font-bold">{posts.length}</span> <span className="text-gray-500 dark:text-gray-400">Bài Viết</span>
                 </div>
                 <div>
-                  <span className="font-bold">532</span> <span className="text-gray-500 dark:text-gray-400">Followers</span>
+                  <span className="font-bold">532</span> <span className="text-gray-500 dark:text-gray-400">Người Theo Dõi</span>
                 </div>
                 <div>
-                  <span className="font-bold">319</span> <span className="text-gray-500 dark:text-gray-400">Following</span>
+                  <span className="font-bold">319</span> <span className="text-gray-500 dark:text-gray-400">Đang Theo Dõi</span>
                 </div>
               </div>
             </CardBody>
           </Card>
-          
-          <Tabs aria-label="Profile tabs" className="mb-6">
-            <Tab key="posts" title="Posts">
+            <Tabs aria-label="Profile tabs" className="mb-6">
+            <Tab key="posts" title="Bài Viết">
               <div className="space-y-4 mt-4">
                 {posts.length > 0 ? (
                   posts.map(post => (
                     <Post key={post.id} {...post} />
-                  ))
-                ) : (
+                  ))                ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">No posts yet</p>
+                    <p className="text-gray-500 dark:text-gray-400">Chưa có bài viết nào</p>
                   </div>
                 )}
               </div>
-            </Tab>
-            <Tab key="photos" title="Photos">
+            </Tab>            <Tab key="photos" title="Ảnh">
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {posts
                   .filter(post => post.image)
@@ -357,18 +358,16 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-            </Tab>
-            <Tab key="likes" title="Likes">
+            </Tab>            <Tab key="likes" title="Yêu Thích">
               <div className="space-y-4 mt-4">
                 {posts
                   .filter(post => post.liked)
                   .map(post => (
                     <Post key={post.id} {...post} />
                   ))
-                }
-                {posts.filter(post => post.liked).length === 0 && (
+                }                {posts.filter(post => post.liked).length === 0 && (
                   <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">No liked posts yet</p>
+                    <p className="text-gray-500 dark:text-gray-400">Chưa có bài viết yêu thích nào</p>
                   </div>
                 )}
               </div>
@@ -380,43 +379,40 @@ export default function ProfilePage() {
         <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
           <ModalContent>
             {(onClose) => (
-              <>
-                <ModalHeader className="flex flex-col gap-1">
-                  Edit Profile
+              <>                <ModalHeader className="flex flex-col gap-1">
+                  Chỉnh Sửa Hồ Sơ
                 </ModalHeader>
                 <ModalBody>
-                  <div className="space-y-4">
-                    <Input
-                      label="Display Name"
-                      placeholder="Enter your display name"
+                  <div className="space-y-4">                    <Input
+                      label="Tên Hiển Thị"
+                      placeholder="Nhập tên hiển thị của bạn"
                       value={editForm.displayName}
                       onChange={(e) => setEditForm({...editForm, displayName: e.target.value})}
                     />
                     <Textarea
-                      label="Bio"
-                      placeholder="Tell us about yourself"
+                      label="Mô Tả"
+                      placeholder="Hãy kể về bản thân bạn"
                       value={editForm.bio}
                       onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
                       minRows={3}
                     />
                     <Input
-                      label="Date of Birth"
+                      label="Ngày Sinh"
                       type="date"
                       value={editForm.dateOfBirth}
                       onChange={(e) => setEditForm({...editForm, dateOfBirth: e.target.value})}
                     />
                   </div>
-                </ModalBody>
-                <ModalFooter>
+                </ModalBody>                <ModalFooter>
                   <Button color="danger" variant="light" onPress={onClose}>
-                    Cancel
+                    Hủy
                   </Button>
                   <Button 
                     color="primary" 
                     onPress={handleSaveProfile}
                     isLoading={updating}
                   >
-                    Save Changes
+                    Lưu Thay Đổi
                   </Button>
                 </ModalFooter>
               </>
