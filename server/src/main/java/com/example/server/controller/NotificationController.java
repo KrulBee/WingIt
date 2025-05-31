@@ -49,13 +49,56 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<NotificationDTO> createNotification(@RequestParam Integer userId, 
-                                                              @RequestParam Long postId, 
-                                                              @RequestParam String type) {
+    @GetMapping("/count/unread")
+    public ResponseEntity<Long> getUnreadNotificationCount() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = getUserIdFromAuth(auth);
+        
+        long count = notificationService.getUnreadNotificationCount(userId);
+        return ResponseEntity.ok(count);
+    }
+
+    @PostMapping("/friend-post")
+    public ResponseEntity<NotificationDTO> createFriendPostNotification(@RequestParam Integer postAuthorId, 
+                                                                        @RequestParam Long postId) {
         try {
-            NotificationDTO notification = notificationService.createNotification(userId, postId, type);
-            return ResponseEntity.status(HttpStatus.CREATED).body(notification);
+            NotificationDTO notification = notificationService.createFriendPostNotification(postAuthorId, postId);
+            if (notification != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(notification);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/comment")
+    public ResponseEntity<NotificationDTO> createCommentNotification(@RequestParam Integer commentAuthorId,
+                                                                     @RequestParam Long postId,
+                                                                     @RequestParam Long commentId) {
+        try {
+            NotificationDTO notification = notificationService.createCommentNotification(commentAuthorId, postId, commentId);
+            if (notification != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(notification);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/like")
+    public ResponseEntity<NotificationDTO> createLikeNotification(@RequestParam Integer likerId,
+                                                                  @RequestParam Long postId) {
+        try {
+            NotificationDTO notification = notificationService.createLikeNotification(likerId, postId);
+            if (notification != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(notification);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

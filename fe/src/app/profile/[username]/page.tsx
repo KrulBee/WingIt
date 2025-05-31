@@ -6,7 +6,7 @@ import RightSidebar from "@/components/RightSidebar";
 import { Card, CardHeader, CardBody, Avatar, Tabs, Tab, Button, Spinner } from "@nextui-org/react";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import Post from "@/components/Post";
-import { UserPlus, MessageCircle, MoreHorizontal } from "react-feather";
+import { UserPlus, MessageCircle, MoreHorizontal, UserCheck } from "react-feather";
 import UserService from "@/services/UserService";
 import PostService from "@/services/PostService";
 import FriendService from "@/services/FriendService";
@@ -20,6 +20,7 @@ interface UserData {
   displayName?: string;
   bio?: string;
   profilePicture?: string;
+  coverPhoto?: string;
   dateOfBirth?: string;
 }
 
@@ -305,83 +306,98 @@ export default function UserProfilePage() {
         <Sidebar />
         
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
-          <div className="max-w-2xl mx-auto">
-            {/* Profile Header */}
+          <div className="max-w-2xl mx-auto">            {/* Profile Header */}
             <Card className="mb-6">
-              <CardHeader className="flex gap-3">
-                <Avatar
-                  src={userData.profilePicture || avatarBase64}
-                  alt={userData.displayName || userData.username}
-                  className="w-20 h-20"
-                  isBordered
-                />
-                <div className="flex flex-col flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xl font-bold">
-                        {userData.displayName || userData.username}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        @{userData.username}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {!isFriend && !friendRequestSent && (
-                        <Button
-                          color="primary"
-                          startContent={<UserPlus size={16} />}
-                          onClick={handleAddFriend}
-                          isLoading={addingFriend}
-                          size="sm"
-                        >
-                          Add Friend
-                        </Button>
-                      )}
-                      {friendRequestSent && (
-                        <Button
-                          color="default"
-                          variant="flat"
-                          size="sm"
-                          disabled
-                        >
-                          Request Sent
-                        </Button>
-                      )}
-                      {isFriend && (
-                        <Button
-                          color="success"
-                          variant="flat"
-                          size="sm"
-                          disabled
-                        >
-                          Friends
-                        </Button>
-                      )}
+              <div className="relative">
+                <CardHeader className="relative h-40 bg-gradient-to-r from-blue-600 to-blue-400 overflow-hidden p-0">
+                  {userData.coverPhoto && (
+                    <img 
+                      src={userData.coverPhoto}
+                      alt="Cover photo" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}                
+                </CardHeader>
+                
+                {/* Avatar positioned relative to the card container, not the header */}
+                <div className="absolute -bottom-16 left-4 z-10">
+                  <Avatar
+                    src={userData.profilePicture || avatarBase64}
+                    alt={userData.displayName || userData.username}
+                    className="w-32 h-32 border-4 border-white shadow-lg"
+                    radius="full"
+                  />
+                </div>
+              </div>
+              
+              <CardBody className="pt-20 px-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h1 className="text-2xl font-bold">
+                      {userData.displayName || userData.username}
+                    </h1>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      @{userData.username}
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 mt-4 md:mt-0">
+                    {!isFriend && !friendRequestSent && (
                       <Button
                         color="primary"
-                        variant="flat"
-                        startContent={<MessageCircle size={16} />}
-                        onClick={handleMessage}
+                        startContent={<UserPlus size={16} />}
+                        onClick={handleAddFriend}
+                        isLoading={addingFriend}
                         size="sm"
                       >
-                        Message
+                        Add Friend
                       </Button>
+                    )}
+                    {friendRequestSent && (
                       <Button
-                        isIconOnly
+                        color="default"
                         variant="flat"
                         size="sm"
+                        disabled
                       >
-                        <MoreHorizontal size={16} />
+                        Request Sent
                       </Button>
-                    </div>
+                    )}
+                    {isFriend && (
+                      <Button
+                        color="success"
+                        variant="flat"
+                        size="sm"
+                        disabled
+                      >
+                        Friends
+                      </Button>
+                    )}
+                    <Button
+                      color="primary"
+                      variant="flat"
+                      startContent={<MessageCircle size={16} />}
+                      onClick={handleMessage}
+                      size="sm"
+                    >
+                      Message
+                    </Button>
+                    <Button
+                      isIconOnly
+                      variant="flat"
+                      size="sm"
+                    >
+                      <MoreHorizontal size={16} />
+                    </Button>
                   </div>
-                  {userData.bio && (
-                    <p className="text-sm mt-2 text-gray-600 dark:text-gray-300">
-                      {userData.bio}
-                    </p>
-                  )}
                 </div>
-              </CardHeader>
+                
+                {userData.bio && (
+                  <p className="mt-4 text-gray-700 dark:text-gray-300">
+                    {userData.bio}
+                  </p>
+                )}
+              </CardBody>
             </Card>
 
             {/* Profile Tabs */}

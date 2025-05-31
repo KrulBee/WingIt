@@ -126,6 +126,9 @@ public class UserService {
         if (request.getProfilePicture() != null) {
             userData.setProfilePicture(request.getProfilePicture());
         }
+        if (request.getCoverPhoto() != null) {
+            userData.setCoverPhoto(request.getCoverPhoto());
+        }
         if (request.getDateOfBirth() != null) {
             try {
                 LocalDate dateOfBirth = LocalDate.parse(request.getDateOfBirth(), DATE_FORMATTER);
@@ -178,6 +181,7 @@ public class UserService {
             userDTO.setDisplayName(userData.getDisplayName());
             userDTO.setBio(userData.getBio());
             userDTO.setProfilePicture(userData.getProfilePicture());
+            userDTO.setCoverPhoto(userData.getCoverPhoto());
             if (userData.getDateOfBirth() != null) {
                 userDTO.setDateOfBirth(userData.getDateOfBirth().toString());
             }

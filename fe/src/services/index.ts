@@ -20,6 +20,7 @@ export { default as BookmarkService } from './BookmarkService';
 export { default as PostMediaService } from './PostMediaService';
 export { default as CommentReplyService } from './CommentReplyService';
 export { default as RoomUserService } from './RoomUserService';
+export { default as ViewService, viewService } from './ViewService';
 
 // Re-export types for convenience
 export type { MediaType } from './MediaService';

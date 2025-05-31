@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll() // This covers all auth endpoints
                 .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
+                .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

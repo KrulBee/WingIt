@@ -52,6 +52,7 @@ interface PostData {
   content: string;
   createdDate: string;
   updatedAt?: string;
+  viewCount?: number;
   author: {
     id: number;
     username: string;

@@ -27,14 +27,13 @@ const createFileUploadHeaders = () => {
 export const useMediaUpload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   /**
    * Upload media files to Cloudinary through your backend API
    * @param files - The files to upload
-   * @param type - The type of media ('post' or 'profile')
+   * @param type - The type of media ('post', 'profile', or 'cover')
    * @returns The URLs of the uploaded media
    */
-  const uploadMedia = async (files: File[], type: 'post' | 'profile'): Promise<string[]> => {
+  const uploadMedia = async (files: File[], type: 'post' | 'profile' | 'cover'): Promise<string[]> => {
     setIsLoading(true);
     setError(null);
     
@@ -44,7 +43,7 @@ export const useMediaUpload = () => {
       if (type === 'profile') {
         // For profile pictures, we only handle a single file
         formData.append('file', files[0]);
-          const response = await fetch(`${API_BASE_URL}/api/v1/users/profile-picture`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/profile-picture`, {
           method: 'POST',
           headers: createFileUploadHeaders(),
           body: formData,
@@ -56,12 +55,27 @@ export const useMediaUpload = () => {
         
         const data = await response.json();
         return [data.url];
+      } else if (type === 'cover') {
+        // For cover photos, we only handle a single file
+        formData.append('file', files[0]);
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/cover-photo`, {
+          method: 'POST',
+          headers: createFileUploadHeaders(),
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload cover photo');
+        }
+        
+        const data = await response.json();
+        return [data.url];
       } else {
         // For post media, we can handle multiple files
         files.forEach(file => {
           formData.append('files', file);
         });
-          const response = await fetch(`${API_BASE_URL}/api/v1/posts/upload-media`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/posts/upload-media`, {
           method: 'POST',
           headers: createFileUploadHeaders(),
           body: formData,
@@ -85,16 +99,23 @@ export const useMediaUpload = () => {
   /**
    * Delete media from Cloudinary through your backend API
    * @param url - The URL of the media to delete
-   * @param type - The type of media ('post' or 'profile')
+   * @param type - The type of media ('post', 'profile', or 'cover')
    */
-  const deleteMedia = async (url: string, type: 'post' | 'profile'): Promise<boolean> => {
+  const deleteMedia = async (url: string, type: 'post' | 'profile' | 'cover'): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     
-    try {      const endpoint = type === 'profile' 
-        ? `${API_BASE_URL}/api/v1/users/profile-picture` 
-        : `${API_BASE_URL}/api/v1/posts/delete-media`;
-        const response = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
+    try {
+      let endpoint: string;
+      if (type === 'profile') {
+        endpoint = `${API_BASE_URL}/api/v1/users/profile-picture`;
+      } else if (type === 'cover') {
+        endpoint = `${API_BASE_URL}/api/v1/users/cover-photo`;
+      } else {
+        endpoint = `${API_BASE_URL}/api/v1/posts/delete-media`;
+      }
+      
+      const response = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`, {
         method: 'DELETE',
         headers: createFileUploadHeaders(),
       });

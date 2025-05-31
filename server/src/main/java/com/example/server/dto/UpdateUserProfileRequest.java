@@ -11,5 +11,6 @@ public class UpdateUserProfileRequest {
     private String displayName;
     private String bio;
     private String profilePicture;
+    private String coverPhoto;
     private String dateOfBirth; // ISO format: YYYY-MM-DD
 }

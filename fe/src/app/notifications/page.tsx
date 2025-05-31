@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
 import { Card, CardBody, Avatar, Tabs, Tab, Button, Spinner } from "@nextui-org/react";
@@ -7,6 +8,7 @@ import { NotificationService } from "@/services";
 import { webSocketService } from "@/services/WebSocketService";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
+import { avatarBase64 } from "@/static/images/avatarDefault";
 
 interface NotificationProps {
   id: string;
@@ -19,6 +21,8 @@ interface NotificationProps {
   content: string;
   time: string;
   read: boolean;
+  postId?: number;
+  commentId?: number;
 }
 
 // Mock data for fallback
@@ -29,7 +33,7 @@ const MOCK_NOTIFICATIONS: NotificationProps[] = [
     user: {
       name: "Jane Smith",
       username: "janesmith",
-      avatar: "https://i.pravatar.cc/150?u=janesmith",
+      avatar: avatarBase64,
     },
     content: "liked your post",
     time: "2 minutes ago",
@@ -41,7 +45,7 @@ const MOCK_NOTIFICATIONS: NotificationProps[] = [
     user: {
       name: "Alice Johnson",
       username: "alicej",
-      avatar: "https://i.pravatar.cc/150?u=alicej",
+      avatar: avatarBase64,
     },
     content: "commented on your post: \"Great article, thanks for sharing!\"",
     time: "1 hour ago",
@@ -53,19 +57,18 @@ const MOCK_NOTIFICATIONS: NotificationProps[] = [
     user: {
       name: "Robert Wilson",
       username: "robertw",
-      avatar: "https://i.pravatar.cc/150?u=robertw",
+      avatar: avatarBase64,
     },
     content: "started following you",
     time: "3 hours ago",
     read: true,
-  },
-  {
+  },  {
     id: "n4",
     type: "mention",
     user: {
       name: "Emily Davis",
       username: "emilyd",
-      avatar: "https://i.pravatar.cc/150?u=emilyd",
+      avatar: avatarBase64,
     },
     content: "mentioned you in a comment: \"@johndoe what do you think about this?\"",
     time: "1 day ago",
@@ -77,7 +80,7 @@ const MOCK_NOTIFICATIONS: NotificationProps[] = [
     user: {
       name: "Michael Brown",
       username: "michaelb",
-      avatar: "https://i.pravatar.cc/150?u=michaelb",
+      avatar: avatarBase64,
     },
     content: "liked your photo",
     time: "2 days ago",
@@ -94,6 +97,7 @@ const transformNotification = (backendNotification: any): NotificationProps => {
         return 'like';
       case 'comment':
         return 'comment';
+      case 'friend_post':
       case 'follow':
         return 'follow';
       case 'mention':
@@ -120,19 +124,19 @@ const transformNotification = (backendNotification: any): NotificationProps => {
       const days = Math.floor(diffInSeconds / 86400);
       return `${days} day${days > 1 ? 's' : ''} ago`;
     }
-  };
-
-  return {
+  };  return {
     id: backendNotification.id.toString(),
     type: getNotificationType(backendNotification.type),
     user: {
-      name: backendNotification.userDisplayName || backendNotification.userName || 'Unknown User',
-      username: backendNotification.userName || 'unknown',
-      avatar: backendNotification.userProfilePicture || `https://i.pravatar.cc/150?u=${backendNotification.userName}`,
+      name: backendNotification.actorDisplayName || backendNotification.actorUserName || 'Unknown User',
+      username: backendNotification.actorUserName || 'unknown',
+      avatar: backendNotification.actorProfilePicture || avatarBase64,
     },
     content: backendNotification.content || '',
     time: formatTime(backendNotification.createdAt),
     read: backendNotification.readStatus || false,
+    postId: backendNotification.postId || undefined,
+    commentId: backendNotification.commentId || undefined,
   };
 };
 
@@ -147,9 +151,24 @@ const NotificationItem = ({
   currentUser: any;
   navigateToProfile: (username: string) => void;
 }) => {
+  const router = useRouter();
+
   const handleClick = () => {
+    // Mark as read first
     if (!notification.read && onMarkAsRead) {
       onMarkAsRead(notification.id);
+    }
+
+    // Navigate based on notification type and data
+    if (notification.postId) {
+      // Navigate to home page with post highlight
+      router.push(`/home?postId=${notification.postId}&highlight=true`);
+    } else if (notification.type === 'follow') {
+      // Navigate to the user's profile who followed
+      navigateToProfile(notification.user.username);
+    } else {
+      // Default fallback - just mark as read
+      console.log('Notification clicked but no specific action defined');
     }
   };
 

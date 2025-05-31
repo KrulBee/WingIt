@@ -29,18 +29,18 @@ export interface BookmarkData {
   id: number;
   postId: number;
   userId: number;
-  createdDate: string;  post?: {
+  createdAt: string;
+  post?: {
     id: number;
     content: string;
     userId: number;
+    createdDate: string;
     user?: {
       id: number;
       username: string;
       displayName?: string;
       profilePicture?: string;
     };
-    createdDate: string;
-    updatedDate?: string;
     mediaUrls?: string[];
     likesCount?: number;
     dislikesCount?: number;
@@ -58,15 +58,12 @@ export interface BookmarkCollectionData {
   bookmarkCount?: number;
 }
 
-// Bookmark service using PostReactions API with bookmark reaction type
-// Note: This assumes there's a reaction type for bookmarks (e.g., reactionTypeId = 3 for bookmarks)
-const BOOKMARK_REACTION_TYPE_ID = 3; // This should be configured based on your backend setup
-
+// Bookmark service using dedicated bookmark API endpoints
 const BookmarkService = {
-  // Add a bookmark (using post reactions)
+  // Add a bookmark
   addBookmark: async (postId: number): Promise<void> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/post-reactions/posts/${postId}/react?reactionTypeId=${BOOKMARK_REACTION_TYPE_ID}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/bookmarks/posts/${postId}`, {
         method: 'POST',
         headers: createAuthHeaders(),
       });
@@ -80,10 +77,10 @@ const BookmarkService = {
     }
   },
 
-  // Remove a bookmark (using post reactions)
+  // Remove a bookmark
   removeBookmark: async (postId: number): Promise<void> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/post-reactions/posts/${postId}/react`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/bookmarks/posts/${postId}`, {
         method: 'DELETE',
         headers: createAuthHeaders(),
       });
@@ -97,10 +94,10 @@ const BookmarkService = {
     }
   },
 
-  // Get user's bookmarked posts (using post reactions)
+  // Get user's bookmarked posts
   getUserBookmarks: async (): Promise<BookmarkData[]> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/post-reactions/user`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/bookmarks/user`, {
         method: 'GET',
         headers: createAuthHeaders(),
       });
@@ -109,19 +106,7 @@ const BookmarkService = {
         throw new Error('Failed to fetch bookmarks');
       }
 
-      const reactions = await response.json();
-      
-      // Filter only bookmark reactions and transform to BookmarkData
-      const bookmarks = reactions
-        .filter((reaction: any) => reaction.reactionType?.id === BOOKMARK_REACTION_TYPE_ID)
-        .map((reaction: any): BookmarkData => ({
-          id: reaction.id,
-          postId: reaction.post.id,
-          userId: reaction.user.id,
-          createdDate: reaction.createdDate,
-          post: reaction.post
-        }));
-
+      const bookmarks = await response.json();
       return bookmarks;
     } catch (error) {
       console.error('Get bookmarks error:', error);
@@ -132,21 +117,17 @@ const BookmarkService = {
   // Check if a post is bookmarked by current user
   isPostBookmarked: async (postId: number): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/post-reactions/posts/${postId}/user`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/bookmarks/posts/${postId}/status`, {
         method: 'GET',
         headers: createAuthHeaders(),
       });
-
-      if (response.status === 404) {
-        return false; // No reaction found
-      }
 
       if (!response.ok) {
         throw new Error('Failed to check bookmark status');
       }
 
-      const reaction = await response.json();
-      return reaction.reactionType?.id === BOOKMARK_REACTION_TYPE_ID;
+      const result = await response.json();
+      return result.isBookmarked || false;
     } catch (error) {
       console.error('Check bookmark status error:', error);
       return false; // Default to not bookmarked on error
@@ -156,7 +137,7 @@ const BookmarkService = {
   // Get bookmark count for a post
   getBookmarkCount: async (postId: number): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/post-reactions/posts/${postId}/count/${BOOKMARK_REACTION_TYPE_ID}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/bookmarks/posts/${postId}/count`, {
         method: 'GET',
         headers: createAuthHeaders(),
       });

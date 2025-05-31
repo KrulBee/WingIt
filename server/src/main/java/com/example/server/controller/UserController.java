@@ -146,9 +146,7 @@ public class UserController {    @Autowired
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upload profile picture: " + e.getMessage());
         }
-    }
-
-    /**
+    }    /**
      * Delete a profile picture from Cloudinary
      * 
      * @param url The URL of the profile picture to delete
@@ -167,7 +165,52 @@ public class UserController {    @Autowired
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to delete profile picture: " + e.getMessage());
         }
-    }    // Helper method to extract user ID from authentication
+    }
+
+    /**
+     * Upload a cover photo
+     * 
+     * @param file The image file to upload
+     * @return The URL of the uploaded cover photo
+     */
+    @PostMapping("/cover-photo")
+    public ResponseEntity<?> uploadCoverPhoto(@RequestParam("file") MultipartFile file) {
+        try {
+            // Upload to the "covers" folder in Cloudinary
+            String mediaUrl = cloudinaryService.uploadFile(file, "wingit/covers");
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("url", mediaUrl);
+            
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload cover photo: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Delete a cover photo from Cloudinary
+     * 
+     * @param url The URL of the cover photo to delete
+     * @return Success or error message
+     */
+    @DeleteMapping("/cover-photo")
+    public ResponseEntity<?> deleteCoverPhoto(@RequestParam("url") String url) {
+        try {
+            cloudinaryService.deleteFile(url);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Cover photo deleted successfully");
+            
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete cover photo: " + e.getMessage());
+        }
+    }
+
+    // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {
         String username = auth.getName();
         User user = userRepository.findByUsername(username);

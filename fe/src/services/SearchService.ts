@@ -131,15 +131,17 @@ const extractHashtags = (content: string): string[] => {
 };
 
 // Helper function to search users by query
-const searchUsers = (users: UserData[], query: string): UserSearchResult[] => {
+const searchUsers = (users: UserData[], query: string, currentUserId?: number): UserSearchResult[] => {
   if (!query.trim()) return [];
   
   const searchTerm = query.toLowerCase();
   return users
     .filter(user => 
-      user.username?.toLowerCase().includes(searchTerm) ||
+      // Filter out current user from search results
+      (currentUserId ? user.id !== currentUserId : true) &&
+      (user.username?.toLowerCase().includes(searchTerm) ||
       user.displayName?.toLowerCase().includes(searchTerm) ||
-      user.bio?.toLowerCase().includes(searchTerm)
+      user.bio?.toLowerCase().includes(searchTerm))
     )
     .map((user: UserData) => ({
       id: user.id,
@@ -207,7 +209,7 @@ const searchTags = (posts: PostData[], query: string): TagSearchResult[] => {
 
 export const SearchService = {
   // Comprehensive search across all content types
-  searchAll: async (query: string): Promise<SearchResults> => {
+  searchAll: async (query: string, currentUserId?: number): Promise<SearchResults> => {
     try {
       // Get all data in parallel
       const [users, posts] = await Promise.all([
@@ -216,7 +218,7 @@ export const SearchService = {
       ]);
 
       // Perform searches
-      const userResults = searchUsers(users, query);
+      const userResults = searchUsers(users, query, currentUserId);
       const postResults = searchPosts(posts, query);
       const tagResults = searchTags(posts, query);
 
@@ -239,10 +241,10 @@ export const SearchService = {
   },
 
   // Search only users
-  searchUsers: async (query: string): Promise<UserSearchResult[]> => {
+  searchUsers: async (query: string, currentUserId?: number): Promise<UserSearchResult[]> => {
     try {
       const users = await UserService.getAllUsers();
-      return searchUsers(users, query);
+      return searchUsers(users, query, currentUserId);
     } catch (error) {
       console.error('Search users error:', error);
       return [];
@@ -293,15 +295,15 @@ export const SearchService = {
       return [];
     }
   },
-
   // Get suggested users (most active or recently joined)
-  getSuggestedUsers: async (limit: number = 10): Promise<UserSearchResult[]> => {
+  getSuggestedUsers: async (limit: number = 10, currentUserId?: number): Promise<UserSearchResult[]> => {
     try {
       const users = await UserService.getAllUsers();
       
-      // For now, return random users
+      // For now, return random users excluding current user
       // In the future, this could be based on mutual friends, activity, etc.
       return users
+        .filter(user => currentUserId ? user.id !== currentUserId : true) // Filter out current user
         .map(user => ({
           id: user.id,
           username: user.username,
@@ -316,7 +318,7 @@ export const SearchService = {
       console.error('Get suggested users error:', error);
       return [];
     }
-  },  // Search posts with media (photos/videos)
+  },// Search posts with media (photos/videos)
   searchMedia: async (query: string): Promise<PostSearchResult[]> => {
     try {
       const posts = await PostService.getAllPosts();

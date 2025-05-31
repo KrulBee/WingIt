@@ -17,16 +17,18 @@ public class PostService {
     private final PostMediaRepository postMediaRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
+    private final NotificationService notificationService;
 
     @Autowired
     public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
                       PostMediaRepository postMediaRepository, UserRepository userRepository,
-                      LocationRepository locationRepository) {
+                      LocationRepository locationRepository, NotificationService notificationService) {
         this.postRepository = postRepository;
         this.postTypeRepository = postTypeRepository;
         this.postMediaRepository = postMediaRepository;
         this.userRepository = userRepository;
         this.locationRepository = locationRepository;
+        this.notificationService = notificationService;
     }
 
     public List<PostDTO> getAllPosts() {
@@ -76,6 +78,14 @@ public class PostService {
                 media.setUploadedAt(LocalDateTime.now());
                 postMediaRepository.save(media);
             }
+        }
+
+        // Create notifications for friends when a new post is created
+        try {
+            notificationService.createFriendPostNotification(userId, savedPost.getId());
+        } catch (Exception e) {
+            // Log the error but don't fail the post creation
+            System.err.println("Failed to create friend post notifications: " + e.getMessage());
         }
 
         return convertToDTO(savedPost);

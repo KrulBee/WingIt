@@ -3,7 +3,6 @@ package com.example.server.service;
 import com.example.server.dto.*;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,20 +10,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class FriendService {
-
-    private final FriendRepository friendRepository;
+public class FriendService {    private final FriendRepository friendRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final UserRepository userRepository;
     private final RequestStatusRepository requestStatusRepository;
+    private final ChatRoomService chatRoomService;    private final RoomUserRepository roomUserRepository;
 
-    @Autowired
     public FriendService(FriendRepository friendRepository, FriendRequestRepository friendRequestRepository,
-                        UserRepository userRepository, RequestStatusRepository requestStatusRepository) {
+                        UserRepository userRepository, RequestStatusRepository requestStatusRepository,
+                        ChatRoomService chatRoomService, RoomUserRepository roomUserRepository) {
         this.friendRepository = friendRepository;
         this.friendRequestRepository = friendRequestRepository;
         this.userRepository = userRepository;
         this.requestStatusRepository = requestStatusRepository;
+        this.chatRoomService = chatRoomService;
+        this.roomUserRepository = roomUserRepository;
     }
 
     public List<FriendDTO> getFriendsByUserId(Integer userId) {
@@ -131,9 +131,7 @@ public class FriendService {
                 .filter(request -> request.getReceiver().getId().equals(userId))
                 .map(this::convertRequestToDTO)
                 .collect(Collectors.toList());
-    }
-
-    public FriendDTO acceptFriendRequest(Long requestId) {
+    }    public FriendDTO acceptFriendRequest(Long requestId) {
         FriendRequest request = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found"));
 
@@ -153,6 +151,10 @@ public class FriendService {
         friendship.setFriendshipDate(LocalDateTime.now());
 
         Friend savedFriendship = friendRepository.save(friendship);
+        
+        // Automatically create a private chat room between the two users
+        createPrivateChatRoomBetweenUsers(request.getSender().getId(), request.getReceiver().getId());
+        
         return convertToDTO(savedFriendship, request.getReceiver().getId());
     }
 
@@ -177,9 +179,66 @@ public class FriendService {
                     (friend.getUser1().getId().equals(friendId) && friend.getUser2().getId().equals(userId))
                 )
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Friendship not found"));
+                .orElseThrow(() -> new RuntimeException("Friendship not found"));        friendRepository.delete(friendship);
+    }
 
-        friendRepository.delete(friendship);
+    /**
+     * Creates a private chat room between two users if one doesn't already exist
+     */
+    private void createPrivateChatRoomBetweenUsers(Integer userId1, Integer userId2) {
+        // Check if a private chat room already exists between these two users
+        if (privateChatRoomExists(userId1, userId2)) {
+            System.out.println("Private chat room already exists between users " + userId1 + " and " + userId2);
+            return;
+        }        try {
+            // Verify both users exist
+            userRepository.findById(userId1)
+                    .orElseThrow(() -> new RuntimeException("User 1 not found"));
+            userRepository.findById(userId2)
+                    .orElseThrow(() -> new RuntimeException("User 2 not found"));
+
+            // Create chat room request - we'll use a generic name that can be personalized by frontend
+            CreateChatRoomRequest chatRoomRequest = new CreateChatRoomRequest();
+            // The room name will be dynamically displayed based on who's viewing it
+            chatRoomRequest.setRoomName("Private Chat"); 
+            
+            // Add both users as participants
+            chatRoomRequest.setParticipantIds(List.of(userId2)); // userId1 will be added as creator
+
+            // Create the chat room with user1 as creator
+            chatRoomService.createChatRoom(chatRoomRequest, userId1);
+            
+            System.out.println("Successfully created private chat room between users " + userId1 + " and " + userId2);
+        } catch (Exception e) {
+            System.err.println("Failed to create private chat room between users " + userId1 + " and " + userId2 + ": " + e.getMessage());
+            // Don't throw exception here to avoid breaking friend acceptance if chat creation fails
+        }
+    }    /**
+     * Checks if a private chat room already exists between two users
+     */
+    private boolean privateChatRoomExists(Integer userId1, Integer userId2) {
+        // Get all chat rooms for user1
+        List<RoomUser> user1Rooms = roomUserRepository.findByUserId(userId1);
+        
+        for (RoomUser roomUser1 : user1Rooms) {
+            // Get all participants in this room
+            List<RoomUser> roomParticipants = roomUserRepository
+                    .findByChatRoomId(roomUser1.getChatRoom().getId());
+            
+            // Check if this is a 2-person room containing both users
+            if (roomParticipants.size() == 2) {
+                boolean containsUser1 = roomParticipants.stream()
+                        .anyMatch(ru -> ru.getUser().getId().equals(userId1));
+                boolean containsUser2 = roomParticipants.stream()
+                        .anyMatch(ru -> ru.getUser().getId().equals(userId2));
+                
+                if (containsUser1 && containsUser2) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 
     private FriendDTO convertToDTO(Friend friend, Integer currentUserId) {

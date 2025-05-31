@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardBody, Avatar, Button } from '@nextui-org/react';
 import { X, MessageCircle, UserPlus, Heart } from 'react-feather';
 import { webSocketService } from '@/services/WebSocketService';
+import { avatarBase64 } from '@/static/images/avatarDefault';
 
 export interface NotificationData {
   id: number;
@@ -82,9 +83,17 @@ export default function RealTimeNotification({
       setNotifications(prev => prev.filter(n => n.id !== notification.id));
     }, 300);
   };
-
   const handleDismiss = (notificationId: number) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
+
+  // Generate a consistent avatar src with fallback
+  const getAvatarSrc = (avatar?: string) => {
+    if (avatar && avatar.trim() !== '') {
+      return avatar;
+    }
+    // Use the default avatar as fallback
+    return avatarBase64;
   };
 
   const getNotificationIcon = (type: string) => {
@@ -94,8 +103,15 @@ export default function RealTimeNotification({
       case 'friend_request':
         return <UserPlus size={16} className="text-green-500" />;
       case 'post_reaction':
-      case 'comment':
+      case 'like':
+      case 'LIKE':
         return <Heart size={16} className="text-red-500" />;
+      case 'comment':
+      case 'COMMENT':
+        return <MessageCircle size={16} className="text-blue-500" />;
+      case 'friend_post':
+      case 'FRIEND_POST':
+        return <UserPlus size={16} className="text-green-500" />;
       default:
         return <MessageCircle size={16} className="text-gray-500" />;
     }
@@ -126,16 +142,12 @@ export default function RealTimeNotification({
           isPressable
           onPress={() => handleNotificationClick(notification)}
         >
-          <CardBody className="p-3">
-            <div className="flex items-start gap-3">
+          <CardBody className="p-3">            <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                {notification.avatar ? (
-                  <Avatar src={notification.avatar} size="sm" />
-                ) : (
-                  <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                )}
+                <Avatar 
+                  src={getAvatarSrc(notification.avatar)} 
+                  size="sm" 
+                />
               </div>
               
               <div className="flex-1 min-w-0">

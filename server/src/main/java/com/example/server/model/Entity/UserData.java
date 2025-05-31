@@ -31,6 +31,9 @@ public class UserData {
     @Column(name = "profile_picture")
     private String profilePicture;
 
+    @Column(name = "cover_photo")
+    private String coverPhoto;
+
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 

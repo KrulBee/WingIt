@@ -1,42 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardBody, Avatar } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Avatar, Button } from "@nextui-org/react";
 import Link from "next/link";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
+import FollowService from "@/services/FollowService";
+import ViewAnalytics from "./ViewAnalytics";
+import LocationViewStats from "./LocationViewStats";
 
-const TrendingTopics = () => {  const trends = [
-    { id: 1, topic: "Công Nghệ", posts: 1234 },
-    { id: 2, topic: "Thể Thao", posts: 890 },
-    { id: 3, topic: "Giải Trí", posts: 567 },
-    { id: 4, topic: "Chính Trị", posts: 456 },
-    { id: 5, topic: "Khoa Học", posts: 345 },
-  ];
 
-  return (
-    <Card className="mb-4 border border-gray-200 dark:border-gray-700">      <CardHeader className="pb-0">
-        <h3 className="text-lg font-medium">Chủ Đề Xu Hướng</h3>
-      </CardHeader>
-      <CardBody>
-        <div className="space-y-3">
-          {trends.map((trend) => (
-            <div key={trend.id}>
-              <Link href={`/search?q=${trend.topic}`}>
-                <p className="text-sm font-medium hover:text-primary transition-colors">
-                  #{trend.topic}
-                </p>
-              </Link>
-              <p className="text-xs text-gray-500">{trend.posts} bài viết</p>
-            </div>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
-  );
-};
 
 const SuggestedUsers = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [followingUsers, setFollowingUsers] = useState<Set<number>>(new Set());
+  const [followLoading, setFollowLoading] = useState<Set<number>>(new Set());
   const { navigateToProfile } = useProfileNavigation();
 
   useEffect(() => {
@@ -47,8 +24,51 @@ const SuggestedUsers = () => {
     try {
       const user = await AuthService.getCurrentUser();
       setCurrentUser(user);
+      
+      // Load following status
+      await loadFollowingStatus();
     } catch (error) {
       console.error('Error getting current user:', error);
+    }
+  };
+
+  const loadFollowingStatus = async () => {
+    try {
+      const following = await FollowService.getFollowing();
+      const followingIds = new Set(following.map(f => f.following.id));
+      setFollowingUsers(followingIds);
+    } catch (error) {
+      console.error('Error loading following status:', error);
+    }
+  };
+
+  const handleFollowToggle = async (userId: number) => {
+    if (!currentUser || currentUser.id === userId) return;
+
+    try {
+      setFollowLoading(prev => new Set([...prev, userId]));
+      
+      const isCurrentlyFollowing = followingUsers.has(userId);
+      
+      if (isCurrentlyFollowing) {
+        await FollowService.unfollowUser(userId);
+        setFollowingUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(userId);
+          return newSet;
+        });
+      } else {
+        await FollowService.followUser(userId);
+        setFollowingUsers(prev => new Set([...prev, userId]));
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+    } finally {
+      setFollowLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
     }
   };
 
@@ -84,9 +104,20 @@ const SuggestedUsers = () => {
                   <p className="text-sm font-medium">{user.name}</p>
                   <p className="text-xs text-gray-500">@{user.username}</p>
                 </div>
-              </div><button className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors">
-                Theo Dõi
-              </button>
+              </div>
+
+              {currentUser && currentUser.id !== user.id && (
+                <Button
+                  size="sm"
+                  color={followingUsers.has(user.id) ? "default" : "primary"}
+                  variant={followingUsers.has(user.id) ? "flat" : "solid"}
+                  onClick={() => handleFollowToggle(user.id)}
+                  isLoading={followLoading.has(user.id)}
+                  className="text-xs px-3 py-1"
+                >
+                  {followingUsers.has(user.id) ? "Following" : "Follow"}
+                </Button>
+              )}
             </div>
           ))}
         </div>
@@ -118,10 +149,9 @@ export default function RightSidebar() {
               strokeWidth={2}
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-          </svg>
-        </div>
-        
-        <TrendingTopics />
+          </svg>        </div>
+        <LocationViewStats />
+        <ViewAnalytics />
         <SuggestedUsers />
       </div>
     </div>

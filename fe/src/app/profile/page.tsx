@@ -9,6 +9,7 @@ import MediaUpload from "@/components/MediaUpload";
 import { Camera, Edit3, Calendar } from "react-feather";
 import UserService from "@/services/UserService";
 import PostService from "@/services/PostService";
+import FollowService from "@/services/FollowService";
 
 // Types matching the backend API
 interface UserData {
@@ -17,6 +18,7 @@ interface UserData {
   displayName?: string;
   bio?: string;
   profilePicture?: string;
+  coverPhoto?: string;
   dateOfBirth?: string;
 }
 
@@ -66,10 +68,13 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<PostProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [profilePicture, setProfilePicture] = useState(avatarBase64);
+  const [coverPhoto, setCoverPhoto] = useState<string>('');
   const [showUpload, setShowUpload] = useState(false);
+  const [showCoverUpload, setShowCoverUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 });
+
   // Edit profile modal
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [editForm, setEditForm] = useState({
@@ -88,24 +93,26 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch current user profile
       const user = await UserService.getCurrentUserProfile();
       setUserData(user);
-      
       // Set profile picture
       setProfilePicture(user.profilePicture || avatarBase64);
-      
+
+      // Set cover photo
+      setCoverPhoto(user.coverPhoto || '');
+
       // Set edit form initial values
       setEditForm({
         displayName: user.displayName || '',
         bio: user.bio || '',
         dateOfBirth: user.dateOfBirth || ''
       });
-      
+
       // Fetch user posts
       const userPosts = await PostService.getPostsByUserId(user.id);
-        // Transform backend post data to component format
+      // Transform backend post data to component format
       const transformedPosts: PostProps[] = userPosts.map(post => ({
         id: post.id.toString(),
         authorName: user.displayName || user.username,
@@ -121,12 +128,14 @@ export default function ProfilePage() {
         liked: false, // Will need to check user reactions
         disliked: false // Will need to check user reactions
       }));
-      
       setPosts(transformedPosts);
+
+      // Fetch follow statistics
+      await fetchFollowStats();
     } catch (err) {
       console.error('Error fetching user data:', err);
       setError('Failed to load profile data. Please try again.');
-      
+
       // Fallback to mock data if API fails
       setUserData({
         id: 1,
@@ -134,7 +143,7 @@ export default function ProfilePage() {
         displayName: 'John Doe',
         bio: 'Web Developer | JavaScript Enthusiast | React & Next.js | Creating beautiful user experiences'
       });
-        // Mock posts as fallback
+      // Mock posts as fallback
       const mockPosts: PostProps[] = [
         {
           id: "p1",
@@ -157,30 +166,90 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchFollowStats = async () => {
+    try {
+      const stats = await FollowService.getFollowStats();
+      setFollowStats(stats);
+    } catch (err) {
+      console.error('Error fetching follow stats:', err);
+      // Keep default stats on error
+    }
+  };
+
   const handleProfilePictureUpload = async (urls: string[]) => {
     if (urls.length === 0) return;
-    
+
     try {
       setUploading(true);
       const newProfilePicture = urls[0];
-      
+
       // Update profile picture via API
       await UserService.updateUserProfile({ profilePicture: newProfilePicture });
-      
+
       setProfilePicture(newProfilePicture);
       setShowUpload(false);
-        // Update userData state
+      // Update userData state
       if (userData) {
         setUserData({ ...userData, profilePicture: newProfilePicture });
       }
-      
+
       // Notify other components (like Sidebar) that profile was updated
       window.dispatchEvent(new CustomEvent('profile-updated'));
-      
       console.log("Profile picture updated:", newProfilePicture);
     } catch (err) {
       console.error('Error updating profile picture:', err);
       setError('Failed to update profile picture. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCoverPhotoUpload = async (urls: string[]) => {
+    if (urls.length === 0) return;
+
+    try {
+      setUploading(true);
+      const newCoverPhoto = urls[0];
+
+      // Update cover photo via API
+      await UserService.updateUserProfile({ coverPhoto: newCoverPhoto });
+
+      setCoverPhoto(newCoverPhoto);
+      setShowCoverUpload(false);
+
+      // Update userData state
+      if (userData) {
+        setUserData({ ...userData, coverPhoto: newCoverPhoto });
+      }
+
+      console.log("Cover photo updated:", newCoverPhoto);
+    } catch (err) {
+      console.error('Error updating cover photo:', err);
+      setError('Failed to update cover photo. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleRemoveCoverPhoto = async () => {
+    if (!coverPhoto) return;
+
+    try {
+      setUploading(true);
+
+      // Remove cover photo via API
+      await UserService.deleteCoverPhoto(coverPhoto);
+
+      setCoverPhoto('');
+
+      // Update userData state
+      if (userData) {
+        setUserData({ ...userData, coverPhoto: undefined });
+      }
+
+      console.log("Cover photo removed");
+    } catch (err) {
+      console.error('Error removing cover photo:', err);
+      setError('Failed to remove cover photo. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -200,9 +269,9 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     try {
       setUpdating(true);
-      
+
       await UserService.updateUserProfile(editForm);
-        // Update local state
+      // Update local state
       if (userData) {
         setUserData({
           ...userData,
@@ -211,10 +280,10 @@ export default function ProfilePage() {
           dateOfBirth: editForm.dateOfBirth
         });
       }
-      
+
       // Notify other components (like Sidebar) that profile was updated
       window.dispatchEvent(new CustomEvent('profile-updated'));
-      
+
       onOpenChange();
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -231,9 +300,9 @@ export default function ProfilePage() {
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center justify-center h-64">              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-400">Đang tải hồ sơ...</p>
-              </div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Đang tải hồ sơ...</p>
+            </div>
             </div>
           </div>
         </main>        <RightSidebar />
@@ -245,7 +314,7 @@ export default function ProfilePage() {
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Left sidebar */}
       <Sidebar />
-        {/* Main content */}
+      {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
         <div className="max-w-2xl mx-auto">
           {error && (
@@ -254,15 +323,51 @@ export default function ProfilePage() {
                 <p className="text-red-600 dark:text-red-400">{error}</p>
               </CardBody>
             </Card>
-          )}
-          
-          <Card className="mb-6">
-            <CardHeader className="relative h-40 bg-gradient-to-r from-blue-600 to-blue-400">
-              <div className="absolute -bottom-16 left-4">
+          )}          <Card className="mb-6">
+            <div className="relative">
+              <CardHeader className="relative h-40 bg-gradient-to-r from-blue-600 to-blue-400 overflow-hidden">
+                {coverPhoto && (
+                  <img
+                    src={coverPhoto}
+                    alt="Cover photo"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
+
+                {/* Cover photo upload button */}
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="flat"
+                  color="default"
+                  className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 rounded-full backdrop-blur-sm"
+                  onClick={() => setShowCoverUpload(!showCoverUpload)}
+                  isDisabled={uploading}
+                >
+                  <Camera size={16} />
+                </Button>
+
+                {/* Remove cover photo button */}
+                {coverPhoto && (
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    color="danger"
+                    className="absolute top-2 right-12 bg-white/80 dark:bg-gray-800/80 rounded-full backdrop-blur-sm"
+                    onClick={handleRemoveCoverPhoto}
+                    isDisabled={uploading}
+                  >
+                    ✕
+                  </Button>                )}
+              </CardHeader>
+              
+              {/* Avatar positioned relative to the card container, not the header */}
+              <div className="absolute -bottom-16 left-4 z-10">
                 <div className="relative">
-                  <Avatar 
+                  <Avatar
                     src={profilePicture}
-                    className="w-32 h-32 border-4 border-white"
+                    className="w-32 h-32 border-4 border-white shadow-lg"
                     radius="full"
                   />
                   <Button
@@ -270,7 +375,7 @@ export default function ProfilePage() {
                     size="sm"
                     variant="flat"
                     color="default"
-                    className="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full"
+                    className="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full shadow-md"
                     onClick={() => setShowUpload(!showUpload)}
                     isDisabled={uploading}
                   >
@@ -278,15 +383,30 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               </div>
-            </CardHeader>
+            </div>
+            
             <CardBody className="pt-20 px-6">
+              {showCoverUpload && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium mb-2">Upload Cover Photo</h3>                  
+                  <MediaUpload
+                    type="cover"
+                    onUploadComplete={handleCoverPhotoUpload}
+                    enableCropping={true}
+                  />
+                  {uploading && <p className="text-sm text-gray-500 mt-2">Uploading cover photo...</p>}
+                </div>
+              )}
+
               {showUpload && (
                 <div className="mb-6">
-                  <MediaUpload 
-                    type="profile" 
-                    onUploadComplete={handleProfilePictureUpload} 
+                  <h3 className="text-sm font-medium mb-2">Upload Profile Picture</h3>                  
+                  <MediaUpload
+                    type="profile"
+                    onUploadComplete={handleProfilePictureUpload}
+                    enableCropping={true}
                   />
-                  {uploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
+                  {uploading && <p className="text-sm text-gray-500 mt-2">Uploading profile picture...</p>}
                 </div>
               )}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -304,35 +424,34 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
-                <Button 
+                <Button
                   className="mt-4 md:mt-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white"
-                  startContent={<Edit3 size={16} />}                  onClick={handleEditProfile}
+                  startContent={<Edit3 size={16} />} onClick={handleEditProfile}
                 >
                   Chỉnh Sửa Hồ Sơ
                 </Button>
               </div>                <p className="mt-4 text-gray-700 dark:text-gray-300">
                 {userData?.bio || 'Chưa có mô tả'}
-              </p>
-                <div className="flex gap-4 mt-4">
+              </p>                <div className="flex gap-4 mt-4">
                 <div>
                   <span className="font-bold">{posts.length}</span> <span className="text-gray-500 dark:text-gray-400">Bài Viết</span>
                 </div>
                 <div>
-                  <span className="font-bold">532</span> <span className="text-gray-500 dark:text-gray-400">Người Theo Dõi</span>
+                  <span className="font-bold">{followStats.followersCount}</span> <span className="text-gray-500 dark:text-gray-400">Người Theo Dõi</span>
                 </div>
                 <div>
-                  <span className="font-bold">319</span> <span className="text-gray-500 dark:text-gray-400">Đang Theo Dõi</span>
+                  <span className="font-bold">{followStats.followingCount}</span> <span className="text-gray-500 dark:text-gray-400">Đang Theo Dõi</span>
                 </div>
               </div>
             </CardBody>
           </Card>
-            <Tabs aria-label="Profile tabs" className="mb-6">
+          <Tabs aria-label="Profile tabs" className="mb-6">
             <Tab key="posts" title="Bài Viết">
               <div className="space-y-4 mt-4">
                 {posts.length > 0 ? (
                   posts.map(post => (
                     <Post key={post.id} {...post} />
-                  ))                ) : (
+                  ))) : (
                   <div className="text-center py-8">
                     <p className="text-gray-500 dark:text-gray-400">Chưa có bài viết nào</p>
                   </div>
@@ -344,11 +463,11 @@ export default function ProfilePage() {
                   .filter(post => post.image)
                   .slice(0, 6)
                   .map(post => (
-                    <img 
-                      key={post.id} 
-                      src={post.image} 
-                      alt="Post media" 
-                      className="aspect-square object-cover rounded" 
+                    <img
+                      key={post.id}
+                      src={post.image}
+                      alt="Post media"
+                      className="aspect-square object-cover rounded"
                     />
                   ))
                 }
@@ -380,35 +499,35 @@ export default function ProfilePage() {
           <ModalContent>
             {(onClose) => (
               <>                <ModalHeader className="flex flex-col gap-1">
-                  Chỉnh Sửa Hồ Sơ
-                </ModalHeader>
+                Chỉnh Sửa Hồ Sơ
+              </ModalHeader>
                 <ModalBody>
                   <div className="space-y-4">                    <Input
-                      label="Tên Hiển Thị"
-                      placeholder="Nhập tên hiển thị của bạn"
-                      value={editForm.displayName}
-                      onChange={(e) => setEditForm({...editForm, displayName: e.target.value})}
-                    />
+                    label="Tên Hiển Thị"
+                    placeholder="Nhập tên hiển thị của bạn"
+                    value={editForm.displayName}
+                    onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                  />
                     <Textarea
                       label="Mô Tả"
                       placeholder="Hãy kể về bản thân bạn"
                       value={editForm.bio}
-                      onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                      onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                       minRows={3}
                     />
                     <Input
                       label="Ngày Sinh"
                       type="date"
                       value={editForm.dateOfBirth}
-                      onChange={(e) => setEditForm({...editForm, dateOfBirth: e.target.value})}
+                      onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
                     />
                   </div>
                 </ModalBody>                <ModalFooter>
                   <Button color="danger" variant="light" onPress={onClose}>
                     Hủy
                   </Button>
-                  <Button 
-                    color="primary" 
+                  <Button
+                    color="primary"
                     onPress={handleSaveProfile}
                     isLoading={updating}
                   >
@@ -420,7 +539,7 @@ export default function ProfilePage() {
           </ModalContent>
         </Modal>
       </main>
-      
+
       {/* Right sidebar */}
       <RightSidebar />
     </div>

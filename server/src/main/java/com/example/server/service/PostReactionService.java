@@ -24,17 +24,17 @@ public class PostReactionService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ReactionTypeRepository reactionTypeRepository;
-
-    @Autowired
-    public PostReactionService(PostReactionRepository postReactionRepository,
+    private final NotificationService notificationService;    public PostReactionService(PostReactionRepository postReactionRepository,
                               PostRepository postRepository,
                               UserRepository userRepository,
-                              ReactionTypeRepository reactionTypeRepository) {
+                              ReactionTypeRepository reactionTypeRepository,
+                              NotificationService notificationService) {
         this.postReactionRepository = postReactionRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.reactionTypeRepository = reactionTypeRepository;
-    }    public PostReactionDTO addReaction(Long postId, Integer userId, Long reactionTypeId) {
+        this.notificationService = notificationService;
+    }public PostReactionDTO addReaction(Long postId, Integer userId, Long reactionTypeId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         User user = userRepository.findById(userId)
@@ -46,6 +46,7 @@ public class PostReactionService {
         Optional<PostReaction> existingReaction = postReactionRepository.findByPostIdAndUserId(postId, userId);
 
         PostReaction reaction;
+        boolean isNewReaction = false;
         if (existingReaction.isPresent()) {
             // Update existing reaction
             reaction = existingReaction.get();
@@ -58,9 +59,23 @@ public class PostReactionService {
             reaction.setUser(user);
             reaction.setReactionType(reactionType);
             reaction.setTimestamp(LocalDateTime.now());
+            isNewReaction = true;
         }
 
         PostReaction savedReaction = postReactionRepository.save(reaction);
+          // Trigger like notification if it's a "like" reaction and user is not the post author
+        try {
+            if (isNewReaction && reactionTypeId == 1L && !post.getUser().getId().equals(userId)) { // 1 = "like"
+                notificationService.createLikeNotification(
+                    savedReaction.getUser().getId(), 
+                    savedReaction.getPost().getId()
+                );
+            }
+        } catch (Exception e) {
+            // Log error but don't fail reaction creation
+            System.err.println("Failed to create like notification: " + e.getMessage());
+        }
+        
         return convertToDTO(savedReaction);
     }    public void removeReaction(Long postId, Integer userId) {
         PostReaction reaction = postReactionRepository.findByPostIdAndUserId(postId, userId)

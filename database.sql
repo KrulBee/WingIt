@@ -3,6 +3,8 @@ CREATE SCHEMA IF NOT EXISTS db;
 USE db;
 
 -- Drop tables if they exist
+DROP TABLE IF EXISTS bookmarks;
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS room_user;
 DROP TABLE IF EXISTS chat_room;
@@ -73,6 +75,7 @@ CREATE TABLE user_data (
     display_name VARCHAR(50) NOT NULL,
     bio TEXT,
     profile_picture VARCHAR(255),
+    cover_photo VARCHAR(255),
     date_of_birth DATE,
     created_at DATE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
@@ -225,6 +228,49 @@ CREATE TABLE messages (
     FOREIGN KEY (chat_room_id) REFERENCES chat_room(id)
 );
 
+-- Create notifications table
+CREATE TABLE notifications (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    recipient_user_id INT NOT NULL,
+    actor_user_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    post_id BIGINT NULL,
+    comment_id BIGINT NULL,
+    content TEXT NULL,
+    read_status BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (recipient_user_id) REFERENCES user(id),
+    FOREIGN KEY (actor_user_id) REFERENCES user(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    FOREIGN KEY (comment_id) REFERENCES comments(id)
+);
+
+-- Create bookmarks table
+CREATE TABLE bookmarks (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    post_id BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    CONSTRAINT unique_bookmark UNIQUE (user_id, post_id)
+);
+
+-- Create post_views table for tracking post views
+CREATE TABLE post_views (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    post_id BIGINT NOT NULL,
+    user_id INT NULL, -- NULL for anonymous views
+    view_source ENUM('feed', 'modal', 'profile', 'search', 'bookmark', 'notification') NOT NULL,
+    duration_ms BIGINT NULL, -- For modal views (duration in milliseconds)
+    viewed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    session_id VARCHAR(255) NULL, -- For tracking view sessions
+    ip_address VARCHAR(45) NULL, -- For anonymous tracking
+    user_agent TEXT NULL,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
+);
+
 -- Add indexes for performance
 CREATE INDEX idx_friend_user1 ON friends(user1_id);
 CREATE INDEX idx_friend_user2 ON friends(user2_id);
@@ -239,6 +285,18 @@ CREATE INDEX idx_room_user_user ON room_user(user_id);
 CREATE INDEX idx_room_user_room ON room_user(chat_room_id);
 CREATE INDEX idx_message_sender ON messages(sender_id);
 CREATE INDEX idx_message_room ON messages(chat_room_id);
+CREATE INDEX idx_notification_recipient ON notifications(recipient_user_id);
+CREATE INDEX idx_notification_actor ON notifications(actor_user_id);
+CREATE INDEX idx_notification_post ON notifications(post_id);
+CREATE INDEX idx_notification_read_status ON notifications(read_status);
+CREATE INDEX idx_notification_created_at ON notifications(created_at);
+CREATE INDEX idx_bookmark_user ON bookmarks(user_id);
+CREATE INDEX idx_bookmark_post ON bookmarks(post_id);
+CREATE INDEX idx_bookmark_created_at ON bookmarks(created_at);
+CREATE INDEX idx_post_views_post ON post_views(post_id);
+CREATE INDEX idx_post_views_user ON post_views(user_id);
+CREATE INDEX idx_post_views_source ON post_views(view_source);
+CREATE INDEX idx_post_views_date ON post_views(viewed_at);
 
 -- Insert some initial data for lookup tables (optional)
 INSERT INTO role (id, role) VALUES

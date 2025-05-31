@@ -5,6 +5,7 @@ import RightSidebar from "@/components/RightSidebar";
 import { Card, CardBody, Input, Avatar, Button, Chip, Tabs, Tab, Spinner } from "@nextui-org/react";
 import { Search as SearchIcon, User, Users, Hash, Calendar, Image } from "react-feather";
 import { SearchService, UserSearchResult, PostSearchResult, TagSearchResult, SearchResults } from "@/services/SearchService";
+import FollowService from "@/services/FollowService";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 
@@ -28,31 +29,79 @@ export default function SearchPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [suggestedUsers, setSuggestedUsers] = useState<UserSearchResult[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);  const [suggestedUsers, setSuggestedUsers] = useState<UserSearchResult[]>([]);
   const [trendingTags, setTrendingTags] = useState<TagSearchResult[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { navigateToProfile } = useProfileNavigation();
-  // Load initial data when component mounts
+  const [followingUsers, setFollowingUsers] = useState<Set<number>>(new Set());
+  const [followLoading, setFollowLoading] = useState<Set<number>>(new Set());
+  const { navigateToProfile } = useProfileNavigation();  // Load initial data when component mounts
   useEffect(() => {
     loadInitialData();
     getCurrentUser();
   }, []);
 
+  // Reload suggested users when current user changes
+  useEffect(() => {
+    if (currentUser) {
+      loadInitialData();
+    }
+  }, [currentUser?.id]);
   const getCurrentUser = async () => {
     try {
       const user = await AuthService.getCurrentUser();
       setCurrentUser(user);
+      
+      // Load following status for suggested users
+      await loadFollowingStatus();
     } catch (error) {
       console.error('Error getting current user:', error);
     }
   };
 
+  const loadFollowingStatus = async () => {
+    try {
+      const following = await FollowService.getFollowing();
+      const followingIds = new Set(following.map(f => f.following.id));
+      setFollowingUsers(followingIds);
+    } catch (error) {
+      console.error('Error loading following status:', error);
+    }
+  };
+
+  const handleFollowToggle = async (userId: number) => {
+    if (!currentUser || currentUser.id === userId) return;
+
+    try {
+      setFollowLoading(prev => new Set([...prev, userId]));
+      
+      const isCurrentlyFollowing = followingUsers.has(userId);
+      
+      if (isCurrentlyFollowing) {
+        await FollowService.unfollowUser(userId);
+        setFollowingUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(userId);
+          return newSet;
+        });
+      } else {
+        await FollowService.followUser(userId);
+        setFollowingUsers(prev => new Set([...prev, userId]));
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+    } finally {
+      setFollowLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+    }
+  };
   const loadInitialData = async () => {
     try {
       setLoading(true);
       const [suggested, trending] = await Promise.all([
-        SearchService.getSuggestedUsers(6),
+        SearchService.getSuggestedUsers(6, currentUser?.id),
         SearchService.getTrendingTags(8)
       ]);
       setSuggestedUsers(suggested);
@@ -79,10 +128,9 @@ export default function SearchPage() {
         setError(null);
         
         let results: SearchResults;
-        
-        switch (activeTab) {
+          switch (activeTab) {
           case 'people':
-            const users = await SearchService.searchUsers(query);
+            const users = await SearchService.searchUsers(query, currentUser?.id);
             results = { users, posts: [], tags: [], totalResults: users.length };
             break;
           case 'posts':
@@ -98,7 +146,7 @@ export default function SearchPage() {
             results = { users: [], posts: media, tags: [], totalResults: media.length };
             break;
           default:
-            results = await SearchService.searchAll(query);
+            results = await SearchService.searchAll(query, currentUser?.id);
         }
         
         setSearchResults(results);
@@ -223,12 +271,13 @@ export default function SearchPage() {
                 <div className="mb-8">
                   <h2 className="text-xl font-semibold mb-4">
                     {hasSearched ? 'People' : 'Suggested Users'}
-                  </h2>                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {displayData.users.map(user => (
+                  </h2>                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (
                       <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
                         <CardBody className="flex flex-row items-center gap-4">
                           <Avatar 
-                            src={user.profilePicture || `https://i.pravatar.cc/150?u=${user.username}`} 
+                            src={user.profilePicture} 
+                            showFallback
+                            name={user.displayName || user.username}
                             size="lg" 
                             className="cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => {
@@ -252,10 +301,19 @@ export default function SearchPage() {
                             {user.followersCount !== undefined && (
                               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {user.followersCount.toLocaleString()} followers
-                              </p>
-                            )}
+                              </p>                            )}
                           </div>
-                          <Button size="sm" color="primary">Follow</Button>
+                          {currentUser && currentUser.id !== user.id && (
+                            <Button 
+                              size="sm" 
+                              color={followingUsers.has(user.id) ? "default" : "primary"}
+                              variant={followingUsers.has(user.id) ? "flat" : "solid"}
+                              onClick={() => handleFollowToggle(user.id)}
+                              isLoading={followLoading.has(user.id)}
+                            >
+                              {followingUsers.has(user.id) ? "Following" : "Follow"}
+                            </Button>
+                          )}
                         </CardBody>
                       </Card>
                     ))}
@@ -278,10 +336,11 @@ export default function SearchPage() {
                   <div className="space-y-4">
                     {displayData.posts.map(post => (
                       <Card key={post.id} className="w-full hover:shadow-lg transition-shadow">
-                        <CardBody>
-                          <div className="flex items-start gap-3 mb-3">
+                        <CardBody>                          <div className="flex items-start gap-3 mb-3">
                             <Avatar 
-                              src={post.author.profilePicture || `https://i.pravatar.cc/150?u=${post.author.username}`}
+                              src={post.author.profilePicture}
+                              showFallback
+                              name={post.author.displayName || post.author.username}
                               size="sm"
                             />
                             <div className="flex-1 min-w-0">

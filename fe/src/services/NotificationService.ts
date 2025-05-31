@@ -27,12 +27,14 @@ const createAuthHeaders = () => {
 // TypeScript interfaces matching backend DTOs
 interface NotificationDTO {
   id: number;
-  userId: number;
-  userName: string;
-  userDisplayName: string;
-  userProfilePicture: string;
-  postId: number;
+  recipientUserId: number;
+  actorUserId: number;
+  actorUserName: string;
+  actorDisplayName: string;
+  actorProfilePicture: string;
   type: string;
+  postId: number;
+  commentId: number;
   content: string;
   readStatus: boolean;
   createdAt: string; // ISO date string
@@ -108,8 +110,87 @@ const NotificationService = {
       throw error;
     }
   },
+  // Get unread notification count
+  getUnreadNotificationCount: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/count/unread`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
 
-  // Create notification
+      if (!response.ok) {
+        throw new Error('Failed to fetch unread notification count');
+      }
+
+      const result = await response.json();
+      return result.count || 0;
+    } catch (error) {
+      console.error('Get unread notification count error:', error);
+      throw error;
+    }
+  },
+
+  // Create friend post notification
+  createFriendPostNotification: async (userId: number, postId: number): Promise<NotificationDTO> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/friend-post?userId=${userId}&postId=${postId}`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create friend post notification');
+      }
+
+      const notification: NotificationDTO = await response.json();
+      return notification;
+    } catch (error) {
+      console.error('Create friend post notification error:', error);
+      throw error;
+    }
+  },
+
+  // Create comment notification
+  createCommentNotification: async (commentAuthorId: number, postId: number, commentId: number): Promise<NotificationDTO> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/comment?commentAuthorId=${commentAuthorId}&postId=${postId}&commentId=${commentId}`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create comment notification');
+      }
+
+      const notification: NotificationDTO = await response.json();
+      return notification;
+    } catch (error) {
+      console.error('Create comment notification error:', error);
+      throw error;
+    }
+  },
+
+  // Create like notification
+  createLikeNotification: async (likerId: number, postId: number): Promise<NotificationDTO> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/like?likerId=${likerId}&postId=${postId}`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create like notification');
+      }
+
+      const notification: NotificationDTO = await response.json();
+      return notification;
+    } catch (error) {
+      console.error('Create like notification error:', error);
+      throw error;
+    }
+  },
+
+  // Generic create notification (for backward compatibility)
   createNotification: async (userId: number, postId: number, type: string): Promise<NotificationDTO> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/notifications/create?userId=${userId}&postId=${postId}&type=${encodeURIComponent(type)}`, {

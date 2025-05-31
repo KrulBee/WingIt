@@ -10,6 +10,7 @@ public class UserDTO {
     private String displayName;
     private String bio;
     private String profilePicture;
+    private String coverPhoto;
     private String dateOfBirth;
 
     // Add fields that represent a User for data transfer

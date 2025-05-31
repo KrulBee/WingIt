@@ -1,14 +1,31 @@
 package com.example.server.dto;
 
-// import java.time.LocalDateTime; // Example import
-
 public class FollowDTO {
-    // Add fields that represent a Follow for data transfer
-    // Example:
-    // private Long id;
-    // private UserDTO follower;
-    // private UserDTO following;
-    // private LocalDateTime timestamp;
+    private Long id;
+    private UserDTO follower;
+    private UserDTO following;
+    private String followDate;
 
-    // Constructors, getters, and setters
+    // Constructors
+    public FollowDTO() {}
+
+    public FollowDTO(Long id, UserDTO follower, UserDTO following, String followDate) {
+        this.id = id;
+        this.follower = follower;
+        this.following = following;
+        this.followDate = followDate;
+    }
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public UserDTO getFollower() { return follower; }
+    public void setFollower(UserDTO follower) { this.follower = follower; }
+
+    public UserDTO getFollowing() { return following; }
+    public void setFollowing(UserDTO following) { this.following = following; }
+
+    public String getFollowDate() { return followDate; }
+    public void setFollowDate(String followDate) { this.followDate = followDate; }
 }

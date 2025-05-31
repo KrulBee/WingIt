@@ -105,9 +105,7 @@ export default function BookmarksPage() {
       const [bookmarksData, collectionsData] = await Promise.all([
         BookmarkService.getUserBookmarks().catch(() => []),
         BookmarkService.getUserCollections().catch(() => [])
-      ]);
-
-      // Transform bookmark data to UI format
+      ]);      // Transform bookmark data to UI format
       const transformedBookmarks: BookmarkPost[] = bookmarksData.map(bookmark => ({
         id: bookmark.postId.toString(),
         authorName: bookmark.post?.user?.displayName || bookmark.post?.user?.username || 'Unknown User',
@@ -119,7 +117,7 @@ export default function BookmarksPage() {
         dislikes: bookmark.post?.dislikesCount || 0,
         comments: bookmark.post?.commentsCount || 0,
         shares: bookmark.post?.sharesCount || 0,
-        createdAt: new Date(bookmark.createdDate),
+        createdAt: new Date(bookmark.createdAt),
         liked: false, // Would need to check user reactions
         disliked: false, // Would need to check user reactions
         category: extractCategory(bookmark.post?.content || '')

@@ -44,6 +44,7 @@ interface UserData {
   displayName?: string;
   bio?: string;
   profilePicture?: string;
+  coverPhoto?: string;
   dateOfBirth?: string; // ISO format: YYYY-MM-DD
 }
 
@@ -51,6 +52,7 @@ interface UpdateUserProfileRequest {
   displayName?: string;
   bio?: string;
   profilePicture?: string;
+  coverPhoto?: string;
   dateOfBirth?: string; // ISO format: YYYY-MM-DD
 }
 
@@ -232,7 +234,6 @@ const UserService = {
       throw error;
     }
   },
-
   // Delete profile picture
   deleteProfilePicture: async (url: string): Promise<{ message: string }> => {
     try {
@@ -249,6 +250,50 @@ const UserService = {
       return result;
     } catch (error) {
       console.error('Delete profile picture error:', error);
+      throw error;
+    }
+  },
+
+  // Upload cover photo
+  uploadCoverPhoto: async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/cover-photo`, {
+        method: 'POST',
+        headers: createFileUploadHeaders(),
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload cover photo');
+      }
+
+      const result = await response.json();
+      return result.url;
+    } catch (error) {
+      console.error('Upload cover photo error:', error);
+      throw error;
+    }
+  },
+
+  // Delete cover photo
+  deleteCoverPhoto: async (url: string): Promise<{ message: string }> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/cover-photo?url=${encodeURIComponent(url)}`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete cover photo');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Delete cover photo error:', error);
       throw error;
     }
   },

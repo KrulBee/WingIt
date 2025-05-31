@@ -17,14 +17,17 @@ public class CommentService {
     private final CommentReplyRepository commentReplyRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Autowired
     public CommentService(CommentRepository commentRepository, CommentReplyRepository commentReplyRepository, 
-                         PostRepository postRepository, UserRepository userRepository) {
+                         PostRepository postRepository, UserRepository userRepository,
+                         NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.commentReplyRepository = commentReplyRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
     
     public List<CommentDTO> getCommentsByPostId(Long postId) {
@@ -50,6 +53,20 @@ public class CommentService {
         comment.setUpdatedAt(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
+          // Trigger comment notification if commenter is not the post author
+        try {
+            if (!post.getUser().getId().equals(userId)) {
+                notificationService.createCommentNotification(
+                    savedComment.getUser().getId(), 
+                    savedComment.getPost().getId(), 
+                    savedComment.getId()
+                );
+            }
+        } catch (Exception e) {
+            // Log error but don't fail comment creation
+            System.err.println("Failed to create comment notification: " + e.getMessage());
+        }
+        
         return convertToDTO(savedComment);    }
 
     public CommentDTO updateComment(Long id, CreateCommentRequest request) {
@@ -92,6 +109,20 @@ public class CommentService {
         relationship.setCreatedDate(LocalDateTime.now());
         
         commentReplyRepository.save(relationship);
+          // Trigger comment notification if replier is not the original commenter
+        try {
+            if (!rootComment.getUser().getId().equals(userId)) {
+                notificationService.createCommentNotification(
+                    savedReply.getUser().getId(), 
+                    savedReply.getPost().getId(), 
+                    savedReply.getId()
+                );
+            }
+        } catch (Exception e) {
+            // Log error but don't fail reply creation
+            System.err.println("Failed to create reply notification: " + e.getMessage());
+        }
+        
         return convertToDTO(savedReply);
     }
 
