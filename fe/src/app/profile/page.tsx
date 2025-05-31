@@ -5,11 +5,13 @@ import RightSidebar from "@/components/RightSidebar";
 import { Card, CardHeader, CardBody, Avatar, Tabs, Tab, Button, Input, Textarea, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import Post from "@/components/Post";
-import MediaUpload from "@/components/MediaUpload";
+import DirectImageCrop from "@/components/DirectImageCrop";
+import CropConfirmationModal from "@/components/CropConfirmationModal";
 import { Camera, Edit3, Calendar } from "react-feather";
 import UserService from "@/services/UserService";
 import PostService from "@/services/PostService";
 import FollowService from "@/services/FollowService";
+import { useMediaUpload } from "@/hooks/useMediaUpload";
 
 // Types matching the backend API
 interface UserData {
@@ -69,11 +71,21 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [profilePicture, setProfilePicture] = useState(avatarBase64);
   const [coverPhoto, setCoverPhoto] = useState<string>('');
-  const [showUpload, setShowUpload] = useState(false);
-  const [showCoverUpload, setShowCoverUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [followStats, setFollowStats] = useState({ followersCount: 0, followingCount: 0 });
+
+  // New crop workflow states
+  const [showProfileCrop, setShowProfileCrop] = useState(false);
+  const [showCoverCrop, setShowCoverCrop] = useState(false);
+  const [showProfileConfirm, setShowProfileConfirm] = useState(false);
+  const [showCoverConfirm, setShowCoverConfirm] = useState(false);
+  const [croppedProfileImage, setCroppedProfileImage] = useState<string>('');
+  const [croppedCoverImage, setCroppedCoverImage] = useState<string>('');
+  const [croppedProfileFile, setCroppedProfileFile] = useState<File | null>(null);
+  const [croppedCoverFile, setCroppedCoverFile] = useState<File | null>(null);
+  
+  const { uploadMedia } = useMediaUpload();
 
   // Edit profile modal
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -165,7 +177,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-
   const fetchFollowStats = async () => {
     try {
       const stats = await FollowService.getFollowStats();
@@ -176,60 +187,88 @@ export default function ProfilePage() {
     }
   };
 
-  const handleProfilePictureUpload = async (urls: string[]) => {
-    if (urls.length === 0) return;
+  // New streamlined crop workflow handlers
+  const handleProfileCropComplete = (croppedImageUrl: string, croppedFile: File) => {
+    setCroppedProfileImage(croppedImageUrl);
+    setCroppedProfileFile(croppedFile);
+    setShowProfileCrop(false);
+    setShowProfileConfirm(true);
+  };
+
+  const handleCoverCropComplete = (croppedImageUrl: string, croppedFile: File) => {
+    setCroppedCoverImage(croppedImageUrl);
+    setCroppedCoverFile(croppedFile);
+    setShowCoverCrop(false);
+    setShowCoverConfirm(true);
+  };
+
+  const handleProfileConfirm = async () => {
+    if (!croppedProfileFile) return;
 
     try {
       setUploading(true);
-      const newProfilePicture = urls[0];
-
-      // Update profile picture via API
-      await UserService.updateUserProfile({ profilePicture: newProfilePicture });
-
-      setProfilePicture(newProfilePicture);
-      setShowUpload(false);
-      // Update userData state
-      if (userData) {
-        setUserData({ ...userData, profilePicture: newProfilePicture });
+      const urls = await uploadMedia([croppedProfileFile], 'profile');
+      if (urls.length > 0) {
+        const newProfilePicture = urls[0];
+        await UserService.updateUserProfile({ profilePicture: newProfilePicture });
+        
+        setProfilePicture(newProfilePicture);
+        if (userData) {
+          setUserData({ ...userData, profilePicture: newProfilePicture });
+        }
+        
+        // Notify other components
+        window.dispatchEvent(new CustomEvent('profile-updated'));
+        console.log("Profile picture updated:", newProfilePicture);
       }
-
-      // Notify other components (like Sidebar) that profile was updated
-      window.dispatchEvent(new CustomEvent('profile-updated'));
-      console.log("Profile picture updated:", newProfilePicture);
     } catch (err) {
       console.error('Error updating profile picture:', err);
       setError('Failed to update profile picture. Please try again.');
     } finally {
       setUploading(false);
+      setShowProfileConfirm(false);
+      setCroppedProfileImage('');
+      setCroppedProfileFile(null);
     }
   };
 
-  const handleCoverPhotoUpload = async (urls: string[]) => {
-    if (urls.length === 0) return;
+  const handleCoverConfirm = async () => {
+    if (!croppedCoverFile) return;
 
     try {
       setUploading(true);
-      const newCoverPhoto = urls[0];
-
-      // Update cover photo via API
-      await UserService.updateUserProfile({ coverPhoto: newCoverPhoto });
-
-      setCoverPhoto(newCoverPhoto);
-      setShowCoverUpload(false);
-
-      // Update userData state
-      if (userData) {
-        setUserData({ ...userData, coverPhoto: newCoverPhoto });
+      const urls = await uploadMedia([croppedCoverFile], 'cover');
+      if (urls.length > 0) {
+        const newCoverPhoto = urls[0];
+        await UserService.updateUserProfile({ coverPhoto: newCoverPhoto });
+        
+        setCoverPhoto(newCoverPhoto);
+        if (userData) {
+          setUserData({ ...userData, coverPhoto: newCoverPhoto });
+        }
+        
+        console.log("Cover photo updated:", newCoverPhoto);
       }
-
-      console.log("Cover photo updated:", newCoverPhoto);
     } catch (err) {
       console.error('Error updating cover photo:', err);
       setError('Failed to update cover photo. Please try again.');
     } finally {
       setUploading(false);
+      setShowCoverConfirm(false);
+      setCroppedCoverImage('');
+      setCroppedCoverFile(null);
     }
   };
+
+  const handleProfileRetry = () => {
+    setShowProfileConfirm(false);
+    setShowProfileCrop(true);
+  };
+  const handleCoverRetry = () => {
+    setShowCoverConfirm(false);
+    setShowCoverCrop(true);
+  };
+
   const handleRemoveCoverPhoto = async () => {
     if (!coverPhoto) return;
 
@@ -332,16 +371,14 @@ export default function ProfilePage() {
                     alt="Cover photo"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-                )}
-
-                {/* Cover photo upload button */}
+                )}                {/* Cover photo upload button */}
                 <Button
                   isIconOnly
                   size="sm"
                   variant="flat"
                   color="default"
                   className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 rounded-full backdrop-blur-sm"
-                  onClick={() => setShowCoverUpload(!showCoverUpload)}
+                  onClick={() => setShowCoverCrop(true)}
                   isDisabled={uploading}
                 >
                   <Camera size={16} />
@@ -376,7 +413,7 @@ export default function ProfilePage() {
                     variant="flat"
                     color="default"
                     className="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full shadow-md"
-                    onClick={() => setShowUpload(!showUpload)}
+                    onClick={() => setShowProfileCrop(true)}
                     isDisabled={uploading}
                   >
                     <Camera size={16} />
@@ -386,29 +423,6 @@ export default function ProfilePage() {
             </div>
             
             <CardBody className="pt-20 px-6">
-              {showCoverUpload && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-2">Upload Cover Photo</h3>                  
-                  <MediaUpload
-                    type="cover"
-                    onUploadComplete={handleCoverPhotoUpload}
-                    enableCropping={true}
-                  />
-                  {uploading && <p className="text-sm text-gray-500 mt-2">Uploading cover photo...</p>}
-                </div>
-              )}
-
-              {showUpload && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-2">Upload Profile Picture</h3>                  
-                  <MediaUpload
-                    type="profile"
-                    onUploadComplete={handleProfilePictureUpload}
-                    enableCropping={true}
-                  />
-                  {uploading && <p className="text-sm text-gray-500 mt-2">Uploading profile picture...</p>}
-                </div>
-              )}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h1 className="text-2xl font-bold">
@@ -536,8 +550,44 @@ export default function ProfilePage() {
                 </ModalFooter>
               </>
             )}
-          </ModalContent>
-        </Modal>
+          </ModalContent>        </Modal>
+
+        {/* New Crop Modals */}
+        <DirectImageCrop
+          isOpen={showProfileCrop}
+          onOpenChange={setShowProfileCrop}
+          onCropComplete={handleProfileCropComplete}
+          cropType="profile"
+          title="Crop Profile Picture"
+        />
+
+        <DirectImageCrop
+          isOpen={showCoverCrop}
+          onOpenChange={setShowCoverCrop}
+          onCropComplete={handleCoverCropComplete}
+          cropType="cover"
+          title="Crop Cover Photo"
+        />
+
+        <CropConfirmationModal
+          isOpen={showProfileConfirm}
+          onOpenChange={setShowProfileConfirm}
+          croppedImageUrl={croppedProfileImage}
+          onConfirm={handleProfileConfirm}
+          onRetry={handleProfileRetry}
+          cropType="profile"
+          isUploading={uploading}
+        />
+
+        <CropConfirmationModal
+          isOpen={showCoverConfirm}
+          onOpenChange={setShowCoverConfirm}
+          croppedImageUrl={croppedCoverImage}
+          onConfirm={handleCoverConfirm}
+          onRetry={handleCoverRetry}
+          cropType="cover"
+          isUploading={uploading}
+        />
       </main>
 
       {/* Right sidebar */}

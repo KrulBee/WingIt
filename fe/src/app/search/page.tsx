@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
-import { Card, CardBody, Input, Avatar, Button, Chip, Tabs, Tab, Spinner } from "@nextui-org/react";
+import LocationFilter from "@/components/LocationFilter";
+import { Card, CardBody, Input, Avatar, Button, Chip, Tabs, Tab, Spinner, Select, SelectItem } from "@nextui-org/react";
 import { Search as SearchIcon, User, Users, Hash, Calendar, Image } from "react-feather";
 import { SearchService, UserSearchResult, PostSearchResult, TagSearchResult, SearchResults } from "@/services/SearchService";
 import FollowService from "@/services/FollowService";
@@ -19,6 +21,7 @@ function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (.
 }
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [searchResults, setSearchResults] = useState<SearchResults>({
@@ -29,12 +32,28 @@ export default function SearchPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);  const [suggestedUsers, setSuggestedUsers] = useState<UserSearchResult[]>([]);
-  const [trendingTags, setTrendingTags] = useState<TagSearchResult[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [suggestedUsers, setSuggestedUsers] = useState<UserSearchResult[]>([]);
+  const [trendingTags, setTrendingTags] = useState<TagSearchResult[]>([]);  const [currentUser, setCurrentUser] = useState<any>(null);
   const [followingUsers, setFollowingUsers] = useState<Set<number>>(new Set());
   const [followLoading, setFollowLoading] = useState<Set<number>>(new Set());
-  const { navigateToProfile } = useProfileNavigation();  // Load initial data when component mounts
+  
+  // Post filtering states (for post tab only)
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'latest' | 'most_viewed' | 'most_loved' | 'most_commented'>('latest');
+    // Posts you might want to see for "all" tab
+  const [randomPosts, setRandomPosts] = useState<PostSearchResult[]>([]);
+  
+  const { navigateToProfile } = useProfileNavigation();
+
+  // Load search query from URL parameters on mount
+  useEffect(() => {
+    const queryParam = searchParams.get('q');
+    if (queryParam) {
+      setSearchQuery(queryParam);
+      setHasSearched(true);
+    }
+  }, [searchParams]);// Load initial data when component mounts
   useEffect(() => {
     loadInitialData();
     getCurrentUser();
@@ -96,16 +115,16 @@ export default function SearchPage() {
         return newSet;
       });
     }
-  };
-  const loadInitialData = async () => {
+  };  const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [suggested, trending] = await Promise.all([
-        SearchService.getSuggestedUsers(6, currentUser?.id),
-        SearchService.getTrendingTags(8)
+      const [suggested, trending, randomPostsData] = await Promise.all([        SearchService.getSuggestedUsers(5, currentUser?.id), // Get 5 friend-of-friend suggestions
+        SearchService.getTrendingTags(8),
+        SearchService.getRandomPosts(5) // Get 5 posts you might want to see for "all" tab
       ]);
       setSuggestedUsers(suggested);
       setTrendingTags(trending);
+      setRandomPosts(randomPostsData);
     } catch (err) {
       console.error('Error loading initial data:', err);
       setError('Failed to load initial data');
@@ -113,7 +132,6 @@ export default function SearchPage() {
       setLoading(false);
     }
   };
-
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
@@ -128,24 +146,38 @@ export default function SearchPage() {
         setError(null);
         
         let results: SearchResults;
-          switch (activeTab) {
+        switch (activeTab) {
           case 'people':
             const users = await SearchService.searchUsers(query, currentUser?.id);
             results = { users, posts: [], tags: [], totalResults: users.length };
-            break;
-          case 'posts':
-            const posts = await SearchService.searchPosts(query);
+            break;          case 'post':
+            let posts = await SearchService.searchPosts(query);
+            
+            // Apply location filter if selected
+            if (selectedLocationId !== null) {
+              posts = posts.filter(post => post.location?.id === selectedLocationId);
+            }
+            
+            // Apply sorting
+            posts = [...posts].sort((a, b) => {
+              switch (sortBy) {
+                case 'most_viewed':
+                  return (b.viewCount ?? 0) - (a.viewCount ?? 0);
+                case 'most_loved':
+                  return (b.likesCount ?? 0) - (a.likesCount ?? 0);
+                case 'most_commented':
+                  return (b.commentsCount ?? 0) - (a.commentsCount ?? 0);
+                case 'latest':
+                default:
+                  return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+              }
+            });
+            
             results = { users: [], posts, tags: [], totalResults: posts.length };
             break;
-          case 'tags':
-            const tags = await SearchService.searchTags(query);
-            results = { users: [], posts: [], tags, totalResults: tags.length };
-            break;
-          case 'photos':
-            const media = await SearchService.searchMedia(query);
-            results = { users: [], posts: media, tags: [], totalResults: media.length };
-            break;
+          case 'all':
           default:
+            // Search across all content types
             results = await SearchService.searchAll(query, currentUser?.id);
         }
         
@@ -157,15 +189,18 @@ export default function SearchPage() {
         setSearchResults({ users: [], posts: [], tags: [], totalResults: 0 });
       } finally {
         setLoading(false);
-      }
-    }, 300),
-    [activeTab]
+      }    }, 300),
+    [activeTab, selectedLocationId, sortBy, currentUser?.id]
   );
-
   // Effect to trigger search when query or tab changes
   useEffect(() => {
     debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+  }, [searchQuery, debouncedSearch]);  // Effect to trigger search when location or sort filters change (for post tab only)
+  useEffect(() => {
+    if (activeTab === "post" && searchQuery.trim()) {
+      debouncedSearch(searchQuery);
+    }
+  }, [selectedLocationId, sortBy, activeTab, searchQuery, debouncedSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +219,6 @@ export default function SearchPage() {
     setSearchQuery(`#${tagName}`);
     setActiveTab('posts');
   };
-
   // Get display data based on current state
   const getDisplayData = () => {
     if (hasSearched) {
@@ -192,12 +226,27 @@ export default function SearchPage() {
     }
     
     // Show initial data when no search has been performed
-    return {
-      users: suggestedUsers,
-      posts: [],
-      tags: trendingTags,
-      totalResults: suggestedUsers.length + trendingTags.length
-    };
+    if (activeTab === "all") {      return {
+        users: suggestedUsers,
+        posts: randomPosts, // Show posts you might want to see in "all" tab
+        tags: trendingTags,
+        totalResults: suggestedUsers.length + randomPosts.length + trendingTags.length
+      };
+    } else if (activeTab === "people") {      return {
+        users: suggestedUsers,
+        posts: randomPosts, // Show some posts you might want to see in "people" tab too
+        tags: [],
+        totalResults: suggestedUsers.length + randomPosts.length
+      };
+    } else {
+      // Post tab - no initial data, only show results when searching
+      return {
+        users: [],
+        posts: [],
+        tags: [],
+        totalResults: 0
+      };
+    }
   };
 
   const displayData = getDisplayData();  return (
@@ -212,7 +261,7 @@ export default function SearchPage() {
           {/* Search form */}
           <form onSubmit={handleSearch} className="mb-6">            <Input
               type="text"
-              placeholder="Tìm kiếm người dùng, bài viết, thẻ, hoặc sự kiện..."
+              placeholder="Tìm kiếm người dùng, bài viết..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               startContent={<SearchIcon size={20} />}
@@ -230,19 +279,40 @@ export default function SearchPage() {
               </CardBody>
             </Card>
           )}
-        
           {/* Tabs */}
           <Tabs 
             aria-label="Search categories" 
             selectedKey={activeTab}
             onSelectionChange={(key) => handleTabChange(key as string)}
             className="mb-6"
-          >            <Tab key="all" title={<div className="flex items-center gap-1"><SearchIcon size={16} /> Tất Cả</div>} />
+          >
+            <Tab key="all" title={<div className="flex items-center gap-1"><SearchIcon size={16} /> Tất Cả</div>} />
             <Tab key="people" title={<div className="flex items-center gap-1"><User size={16} /> Người</div>} />
-            <Tab key="posts" title={<div className="flex items-center gap-1"><Users size={16} /> Bài Viết</div>} />
-            <Tab key="tags" title={<div className="flex items-center gap-1"><Hash size={16} /> Thẻ</div>} />
-            <Tab key="photos" title={<div className="flex items-center gap-1"><Image size={16} /> Ảnh</div>} />
-          </Tabs>
+            <Tab key="post" title={<div className="flex items-center gap-1"><Users size={16} /> Bài Viết</div>} />
+          </Tabs>          {/* Post filtering controls - only show when post tab is active */}
+          {activeTab === "post" && (
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <LocationFilter 
+                selectedLocationId={selectedLocationId}
+                onLocationChange={setSelectedLocationId}
+                className="flex-1"
+              />
+              
+              <Select
+                label="Sắp xếp theo"
+                placeholder="Chọn cách sắp xếp..."
+                selectedKeys={new Set([sortBy])}
+                onSelectionChange={(keys) => setSortBy(Array.from(keys)[0] as any)}
+                className="flex-1 max-w-xs"
+                size="sm"
+              >
+                <SelectItem key="latest">Mới nhất</SelectItem>
+                <SelectItem key="most_viewed">Xem nhiều nhất</SelectItem>
+                <SelectItem key="most_loved">Yêu thích nhất</SelectItem>
+                <SelectItem key="most_commented">Bình luận nhiều nhất</SelectItem>
+              </Select>
+            </div>
+          )}
 
           {/* Loading indicator */}
           {loading && (
@@ -264,14 +334,14 @@ export default function SearchPage() {
                     }
                   </p>
                 </div>
-              )}
-
-              {/* People/Users section */}
+              )}              {/* People/Users section */}
               {(activeTab === "all" || activeTab === "people") && displayData.users.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">
-                    {hasSearched ? 'People' : 'Suggested Users'}
-                  </h2>                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (
+                <div className="mb-8">                  <div className="flex items-center gap-2 mb-4">
+                    <User size={20} className="text-blue-600 dark:text-blue-400" />
+                    <h2 className="text-xl font-semibold">
+                      {hasSearched ? 'People' : 'Những người bạn có thể biết'}
+                    </h2>
+                  </div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (
                       <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
                         <CardBody className="flex flex-row items-center gap-4">
                           <Avatar 
@@ -326,13 +396,13 @@ export default function SearchPage() {
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Posts section */}
-              {(activeTab === "all" || activeTab === "posts" || activeTab === "photos") && displayData.posts.length > 0 && (
-                <div className="mb-8">                  <h2 className="text-xl font-semibold mb-4">
-                    {activeTab === "photos" ? "Ảnh & Video" : "Bài Viết"}
-                  </h2>
+              )}              {/* Posts section */}
+              {(activeTab === "all" || activeTab === "post") && displayData.posts.length > 0 && (                <div className="mb-8">                  <div className="flex items-center gap-2 mb-4">
+                    <Hash size={20} className="text-green-600 dark:text-green-400" />
+                    <h2 className="text-xl font-semibold">
+                      {hasSearched ? 'Posts' : (activeTab === "all" ? 'Bài viết bạn có thể muốn xem' : 'Posts')}
+                    </h2>
+                  </div>
                   <div className="space-y-4">
                     {displayData.posts.map(post => (
                       <Card key={post.id} className="w-full hover:shadow-lg transition-shadow">
@@ -405,7 +475,7 @@ export default function SearchPage() {
                         </CardBody>
                       </Card>
                     ))}
-                  </div>                  {(activeTab === "posts" || activeTab === "photos") && displayData.posts.length >= 10 && (
+                  </div>                  {activeTab === "post" && displayData.posts.length >= 10 && (
                     <div className="mt-4 text-center">
                       <Button variant="flat" onClick={() => setSearchQuery(searchQuery + " ")}>
                         Tải Thêm
@@ -413,30 +483,7 @@ export default function SearchPage() {
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Tags section */}
-              {(activeTab === "all" || activeTab === "tags") && displayData.tags.length > 0 && (
-                <div className="mb-8">                  <h2 className="text-xl font-semibold mb-4">
-                    {hasSearched ? 'Thẻ' : 'Thẻ Xu Hướng'}
-                  </h2>
-                  <div className="flex flex-wrap gap-3">
-                    {displayData.tags.map(tag => (
-                      <Chip 
-                        key={tag.name} 
-                        variant="flat" 
-                        color="primary"
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => handleTagClick(tag.name)}
-                      >
-                        #{tag.name} ({tag.postsCount})
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* No results message */}
+              )}              {/* No results message */}
               {hasSearched && displayData.totalResults === 0 && !loading && (
                 <div className="text-center py-12">
                   <SearchIcon size={48} className="mx-auto text-gray-400 mb-4" />                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">

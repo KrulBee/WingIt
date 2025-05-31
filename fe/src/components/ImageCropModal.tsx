@@ -103,7 +103,6 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
       }, 'image/jpeg', 0.95);
     });
   }, [completedCrop]);
-
   const handleCropSave = async () => {
     const croppedImageUrl = await generateCroppedImage();
     if (croppedImageUrl) {
@@ -111,16 +110,6 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
       onOpenChange(false);
     }
   };
-
-  const getCropDimensions = () => {
-    if (cropType === 'profile') {
-      return { minWidth: 150, minHeight: 150, maxWidth: 400, maxHeight: 400 };
-    } else {
-      return { minWidth: 600, minHeight: 200, maxWidth: 1200, maxHeight: 400 };
-    }
-  };
-
-  const cropDimensions = getCropDimensions();
 
   return (
     <Modal 
@@ -130,20 +119,19 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
       scrollBehavior="inside"
       classNames={{
         body: "py-6",
-        backdrop: "bg-[#292f46]/50 backdrop-opacity-40",
-        base: "border-[#292f46] bg-[#19172c] dark:bg-[#19172c] text-[#a8b0d3]",
-        header: "border-b-[1px] border-[#292f46]",
-        footer: "border-t-[1px] border-[#292f46]",
+        backdrop: "bg-black/50 backdrop-opacity-40",
+        base: "border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900",
+        header: "border-b border-gray-200 dark:border-gray-700",
+        footer: "border-t border-gray-200 dark:border-gray-700",
       }}
     >
       <ModalContent>
         {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-bold">
+          <>            <ModalHeader className="flex flex-col gap-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 Crop {cropType === 'profile' ? 'Profile Picture' : 'Cover Photo'}
               </h2>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {cropType === 'profile' 
                   ? 'Adjust your profile picture to fit perfectly'
                   : 'Adjust your cover photo to fit the banner area'
@@ -152,10 +140,9 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
             </ModalHeader>
             <ModalBody>
               <div className="space-y-4">
-                {/* Crop Controls */}
-                <div className="space-y-3">
+                {/* Crop Controls */}                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Scale</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Scale</label>
                     <Slider 
                       size="sm"
                       step={0.1}
@@ -164,10 +151,15 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                       value={scale}
                       onChange={(value) => setScale(Array.isArray(value) ? value[0] : value)}
                       className="max-w-md"
+                      classNames={{
+                        track: "bg-gray-200 dark:bg-gray-700",
+                        filler: "bg-blue-500 dark:bg-blue-400",
+                        thumb: "bg-blue-500 dark:bg-blue-400 border-white dark:border-gray-800"
+                      }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Rotate</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Rotate</label>
                     <Slider 
                       size="sm"
                       step={1}
@@ -176,21 +168,25 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                       value={rotate}
                       onChange={(value) => setRotate(Array.isArray(value) ? value[0] : value)}
                       className="max-w-md"
+                      classNames={{
+                        track: "bg-gray-200 dark:bg-gray-700",
+                        filler: "bg-blue-500 dark:bg-blue-400",
+                        thumb: "bg-blue-500 dark:bg-blue-400 border-white dark:border-gray-800"
+                      }}
                     />
                   </div>
-                </div>
-
-                {/* Crop Area */}
-                <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                </div>                {/* Crop Area - Full width container */}
+                <div className="w-full border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800">
                   <ReactCrop
                     crop={crop}
                     onChange={(pixelCrop, percentCrop) => setCrop(percentCrop)}
                     onComplete={(c) => setCompletedCrop(c)}
                     aspect={aspectRatio}
-                    minWidth={cropDimensions.minWidth}
-                    minHeight={cropDimensions.minHeight}
-                    maxWidth={cropDimensions.maxWidth}
-                    maxHeight={cropDimensions.maxHeight}
+                    className="w-full"
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
                   >
                     <img
                       ref={imgRef}
@@ -198,8 +194,10 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                       src={imageSrc}
                       style={{ 
                         transform: `scale(${scale}) rotate(${rotate}deg)`,
-                        maxHeight: '400px',
-                        maxWidth: '100%'
+                        width: '100%',
+                        height: 'auto',
+                        maxHeight: '500px',
+                        objectFit: 'contain'
                       }}
                       onLoad={onImageLoad}
                     />

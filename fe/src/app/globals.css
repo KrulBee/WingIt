@@ -34,3 +34,45 @@ body {
     @apply bg-blue-600 dark:bg-blue-800;
   }
 }
+
+/* React Image Crop Dark Theme Support */
+@layer components {
+  .ReactCrop {
+    @apply w-full;
+  }
+  
+  .ReactCrop__crop-selection {
+    @apply border-blue-500 dark:border-blue-400;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .dark .ReactCrop__crop-selection {
+    box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.7) !important;
+  }
+  
+  .ReactCrop__drag-handle {
+    @apply bg-blue-500 dark:bg-blue-400 border-white dark:border-gray-800;
+    width: 12px !important;
+    height: 12px !important;
+    border-width: 2px !important;
+  }
+  
+  .ReactCrop__drag-handle:after {
+    @apply bg-blue-500 dark:bg-blue-400;
+  }
+  
+  .ReactCrop__drag-bar {
+    @apply bg-blue-500/30 dark:bg-blue-400/30;
+  }
+  
+  .ReactCrop__drag-bar.ord-n,
+  .ReactCrop__drag-bar.ord-s {
+    height: 6px !important;
+  }
+  
+  .ReactCrop__drag-bar.ord-e,
+  .ReactCrop__drag-bar.ord-w {
+    width: 6px !important;
+  }
+}
