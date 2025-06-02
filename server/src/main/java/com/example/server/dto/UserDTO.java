@@ -12,6 +12,7 @@ public class UserDTO {
     private String profilePicture;
     private String coverPhoto;
     private String dateOfBirth;
+    private String provider; // OAuth2 provider (null for regular users)
 
     // Add fields that represent a User for data transfer
     // Example:

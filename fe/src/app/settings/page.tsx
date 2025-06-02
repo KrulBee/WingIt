@@ -40,7 +40,8 @@ import {
   LockClosedIcon,
   CogIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  AtSymbolIcon
 } from "@heroicons/react/24/outline";
 
 interface UserProfile {
@@ -50,6 +51,7 @@ interface UserProfile {
   bio: string;
   profilePicture?: string;
   isOnline?: boolean;
+  provider?: string;
 }
 
 interface CombinedSettings extends UserProfile {
@@ -62,24 +64,30 @@ interface CombinedSettings extends UserProfile {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();  const [settings, setSettings] = useState<CombinedSettings>({    displayName: '',
+  const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();  const [settings, setSettings] = useState<CombinedSettings>({
+    displayName: '',
     email: '',
     bio: '',
     profilePicture: '',
+    provider: undefined,
     privacyLevel: 'friends',
     showOnlineStatus: true,
     allowSearchEngines: false,
   });
-  
-  const [passwordForm, setPasswordForm] = useState({
+    const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
   
-  const [loading, setLoading] = useState(true);
+  const [emailForm, setEmailForm] = useState({
+    newEmail: '',
+    password: '',
+  });
+    const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [changingEmail, setChangingEmail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -111,6 +119,7 @@ export default function SettingsPage() {
           email: userData.username || '', // Assuming username is email
           bio: userData.bio || '',
           profilePicture: userData.profilePicture || '',
+          provider: userData.provider,
           privacyLevel: dbSettings.privacyLevel,
           showOnlineStatus: dbSettings.showOnlineStatus,          allowSearchEngines: dbSettings.allowSearchEngines,
         });
@@ -195,9 +204,44 @@ export default function SettingsPage() {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Error changing password:', err);
-      setError('Không thể đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại.');
-    } finally {
+      setError('Không thể đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại.');    } finally {
       setChangingPassword(false);
+    }
+  };
+  const handleChangeEmail = async () => {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailForm.newEmail)) {
+      setError('Vui lòng nhập địa chỉ email hợp lệ');
+      return;
+    }
+
+    if (emailForm.newEmail === settings.email) {
+      setError('Email mới phải khác email hiện tại');
+      return;
+    }
+
+    try {
+      setChangingEmail(true);
+      setError(null);
+      setSuccessMessage(null);
+
+      await UserService.requestEmailChange(emailForm.newEmail, emailForm.password);
+
+      setEmailForm({
+        newEmail: '',
+        password: '',
+      });
+
+      setSuccessMessage('Đã gửi email xác nhận đến địa chỉ email mới. Vui lòng kiểm tra hộp thư và nhấp vào liên kết xác nhận để hoàn tất thay đổi.');
+
+      // Clear success message after 10 seconds (longer since user needs to check email)
+      setTimeout(() => setSuccessMessage(null), 10000);
+    } catch (err) {
+      console.error('Error requesting email change:', err);
+      setError('Không thể gửi email xác nhận. Vui lòng kiểm tra mật khẩu và thử lại.');
+    } finally {
+      setChangingEmail(false);
     }
   };
   const getPrivacyIcon = (level: string) => {
@@ -440,9 +484,47 @@ export default function SettingsPage() {
                   <span>Bảo Mật</span>
                 </div>
               }
-            >
-              {/* Security Tab Content */}
+            >              {/* Security Tab Content */}
               <div className="py-6 space-y-6">
+                {/* Email Change Section */}
+                <Card>                  <CardHeader className="pb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <AtSymbolIcon className="w-5 h-5 text-primary" />
+                      Đổi email
+                    </h3>
+                  </CardHeader>
+                  <CardBody className="pt-0">
+                    <div className="grid grid-cols-1 gap-4 max-w-md">
+                      <Input
+                        type="email"
+                        label="Email mới"
+                        placeholder="Nhập email mới"
+                        value={emailForm.newEmail}
+                        onChange={(e) => setEmailForm({...emailForm, newEmail: e.target.value})}
+                        variant="bordered"
+                        description="Email hiện tại sẽ được thay thế"
+                      />
+                      <Input
+                        type="password"
+                        label="Mật khẩu hiện tại"
+                        placeholder="Nhập mật khẩu để xác nhận"
+                        value={emailForm.password}
+                        onChange={(e) => setEmailForm({...emailForm, password: e.target.value})}
+                        variant="bordered"
+                        description="Xác nhận mật khẩu để đổi email"
+                      />
+                      <Button
+                        color="primary"
+                        onClick={handleChangeEmail}
+                        isLoading={changingEmail}
+                        isDisabled={!emailForm.newEmail || !emailForm.password || emailForm.newEmail === settings.email}
+                        className="w-fit"
+                      >
+                        Cập nhật email
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>                {/* Password Change Section - Available for ALL users */}
                 <Card>
                   <CardHeader className="pb-3">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -490,9 +572,7 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                   </CardBody>
-                </Card>
-
-                <Card className="border-red-200 dark:border-red-800">
+                </Card>                <Card className="border-red-200 dark:border-red-800">
                   <CardHeader className="pb-3">
                     <h3 className="text-lg font-semibold flex items-center gap-2 text-red-600 dark:text-red-400">
                       <ExclamationTriangleIcon className="w-5 h-5" />

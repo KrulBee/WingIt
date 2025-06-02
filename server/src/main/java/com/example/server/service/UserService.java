@@ -155,26 +155,38 @@ public class UserService {
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             return false; // Current password is incorrect
-        }
-
-        // Update to new password
+        }        // Update to new password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         
         return true;
     }
 
-    public void deleteUser(Integer userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found");
-        }
-        userRepository.deleteById(userId);
+    public User findByEmail(String email) {
+        User user = userRepository.findByEmail(email.toLowerCase().trim());
+        return user;
     }
 
-    private UserDTO convertToUserDTO(User user) {
+    public void deleteUser(Integer userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        
+        User user = userOpt.get();
+        
+        // Delete associated user data first
+        if (user.getUserData() != null) {
+            userDataRepository.delete(user.getUserData());
+        }
+        
+        // Delete the user
+        userRepository.delete(user);
+    }    private UserDTO convertToUserDTO(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
         userDTO.setUsername(user.getUsername());
+        userDTO.setProvider(user.getProvider()); // Include OAuth2 provider info
         
         if (user.getUserData() != null) {
             UserData userData = user.getUserData();

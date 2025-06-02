@@ -3,7 +3,10 @@ package com.example.server.controller;
 import com.example.server.dto.UserDTO;
 import com.example.server.dto.UpdateUserProfileRequest;
 import com.example.server.dto.ChangePasswordRequest;
+import com.example.server.dto.RequestEmailChangeRequest;
+import com.example.server.dto.VerifyEmailChangeRequest;
 import com.example.server.service.UserService;
+import com.example.server.service.EmailChangeService;
 import com.example.server.service.CloudinaryService;
 import com.example.server.repository.UserRepository;
 import com.example.server.model.Entity.User;
@@ -27,6 +30,9 @@ public class UserController {    @Autowired
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailChangeService emailChangeService;
 
     @Autowired
     private UserRepository userRepository;
@@ -109,6 +115,37 @@ public class UserController {    @Autowired
                 response.put("error", "Current password is incorrect");
                 return ResponseEntity.badRequest().body(response);
             }
+        } catch (RuntimeException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }    @PostMapping("/request-email-change")
+    public ResponseEntity<?> requestEmailChange(@RequestBody RequestEmailChangeRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+            
+            emailChangeService.requestEmailChange(userId, request);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Verification email sent to your new email address");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/verify-email-change")
+    public ResponseEntity<?> verifyEmailChange(@RequestBody VerifyEmailChangeRequest request) {
+        try {
+            emailChangeService.verifyEmailChange(request);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Email address changed successfully");
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, String> response = new HashMap<>();
             response.put("error", e.getMessage());

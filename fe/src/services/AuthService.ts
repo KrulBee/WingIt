@@ -23,6 +23,7 @@ interface UserData {
   bio?: string;
   profilePicture?: string;
   dateOfBirth?: string;
+  provider?: string; // OAuth2 provider info
 }
 
 interface LoginResponse extends AuthResponse {

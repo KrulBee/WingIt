@@ -57,10 +57,11 @@ public class SecurityConfig {    @Autowired
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");
                 return config;
-            }))
-            .authorizeHttpRequests(auth -> auth
+            }))            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll() // This covers all auth endpoints
+                .requestMatchers("/api/v1/password-reset/**").permitAll() // Allow password reset endpoints
+                .requestMatchers("/api/v1/users/verify-email-change").permitAll() // Allow email change verification
                 .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
                 .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints

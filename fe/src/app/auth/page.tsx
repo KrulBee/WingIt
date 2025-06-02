@@ -4,6 +4,7 @@ import React from "react";
 import * as Components from '../../components/LoginComponents';
 import { useRouter } from 'next/navigation';
 import AuthService from '../../services/AuthService';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 
 interface CustomError {
   response?: {
@@ -20,6 +21,7 @@ export default function Auth() {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState('');
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
   const router = useRouter();
 
   // Handle Google OAuth login
@@ -257,6 +259,25 @@ export default function Auth() {
               {loading ? '🔄 Đang đăng nhập...' : 'Đăng Nhập'}
             </Components.Button>
             
+            <div style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#7700ff',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  textDecoration: 'underline',
+                  padding: '0'
+                }}
+                disabled={loading}
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
+            
             <Components.OrDivider>
               <span>Hoặc</span>
             </Components.OrDivider>
@@ -290,10 +311,14 @@ export default function Auth() {
               <Components.GhostButton onClick={() => toggle(false)}>
                 Đăng Ký
               </Components.GhostButton>
-            </Components.RightOverlayPanel>
-          </Components.Overlay>
+            </Components.RightOverlayPanel>          </Components.Overlay>
         </Components.OverlayContainer>
       </Components.Container>
+      
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
     </div>
   );
 }

@@ -46,6 +46,7 @@ interface UserData {
   profilePicture?: string;
   coverPhoto?: string;
   dateOfBirth?: string; // ISO format: YYYY-MM-DD
+  provider?: string; // OAuth2 provider (null for regular users)
 }
 
 interface UpdateUserProfileRequest {
@@ -59,6 +60,20 @@ interface UpdateUserProfileRequest {
 interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
+}
+
+interface ChangeEmailRequest {
+  newEmail: string;
+  currentPassword: string;
+}
+
+interface RequestEmailChangeRequest {
+  newEmail: string;
+  currentPassword: string;
+}
+
+interface VerifyEmailChangeRequest {
+  token: string;
 }
 
 const UserService = {
@@ -183,7 +198,6 @@ const UserService = {
       throw error;
     }
   },
-
   // Change password
   changePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
     try {
@@ -207,6 +221,58 @@ const UserService = {
       return result;
     } catch (error) {
       console.error('Change password error:', error);
+      throw error;
+    }
+  },
+  // Request email change (step 1)
+  requestEmailChange: async (newEmail: string, currentPassword: string): Promise<{ message: string }> => {
+    try {
+      const request: RequestEmailChangeRequest = {
+        newEmail,
+        currentPassword,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/request-email-change`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to request email change');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Request email change error:', error);
+      throw error;
+    }
+  },
+
+  // Verify email change (step 2)
+  verifyEmailChange: async (token: string): Promise<{ message: string }> => {
+    try {
+      const request: VerifyEmailChangeRequest = {
+        token,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/verify-email-change`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to verify email change');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Verify email change error:', error);
       throw error;
     }
   },
