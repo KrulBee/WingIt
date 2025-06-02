@@ -17,26 +17,36 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.CorsConfiguration;
+import com.example.server.service.GoogleOAuth2UserService;
+import com.example.server.service.GoogleOidcUserService;
+import com.example.server.service.OAuth2AuthenticationSuccessHandler;
+import com.example.server.service.OAuth2AuthenticationFailureHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig {
-
-    @Autowired
+public class SecurityConfig {    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;    @Autowired
+    private GoogleOAuth2UserService googleOAuth2UserService;
+
+    @Autowired
+    private GoogleOidcUserService googleOidcUserService;
+
+    @Autowired
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    @Autowired
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
-    }
-
-    @Bean
+    }    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
@@ -53,10 +63,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll() // This covers all auth endpoints
                 .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
                 .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(googleOAuth2UserService)
+                    .oidcUserService(googleOidcUserService)
+                )
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler)
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

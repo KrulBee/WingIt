@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS follows;
 DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS request_status;
+DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS user_data;
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS role;
@@ -63,7 +64,10 @@ CREATE TABLE chat_room (
 CREATE TABLE user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL, -- Changed to nullable for OAuth2 users
+    email VARCHAR(100) UNIQUE, -- For OAuth2 users
+    provider VARCHAR(20), -- google, facebook, etc. null for regular users
+    provider_id VARCHAR(100), -- OAuth2 provider user ID
     role_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES role(id),
     UNIQUE (username)
@@ -79,6 +83,18 @@ CREATE TABLE user_data (
     date_of_birth DATE,
     created_at DATE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+-- Create user_settings table (for user preferences)
+CREATE TABLE user_settings (
+    user_id INT PRIMARY KEY,
+    privacy_level VARCHAR(20) NOT NULL DEFAULT 'friends',
+    show_online_status BOOLEAN NOT NULL DEFAULT TRUE,
+    allow_search_engines BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+    CONSTRAINT chk_privacy_level CHECK (privacy_level IN ('public', 'friends', 'private'))
 );
 
 -- Create friend table

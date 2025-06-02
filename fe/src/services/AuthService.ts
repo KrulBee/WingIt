@@ -208,9 +208,76 @@ const AuthService = {  signin: async (credentials: AuthCredentials): Promise<Log
   isAuthenticated: (): boolean => {
     return getAuthToken() !== null;
   },
-
   getToken: (): string | null => {
     return getAuthToken();
+  },
+
+  // Google OAuth2 methods
+  initiateGoogleLogin: async (): Promise<string> => {
+    console.log('🌐 AuthService.initiateGoogleLogin called');
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/oauth2/google`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to initiate Google login');
+      }
+
+      const data = await response.json();
+      console.log('✅ Google OAuth2 initiation successful:', data);
+      
+      return data.authUrl;
+    } catch (error) {
+      console.error('❌ Error initiating Google login:', error);
+      throw error;
+    }
+  },
+  loginWithGoogle: (): void => {
+    console.log('🌐 AuthService.loginWithGoogle called');
+    
+    // Redirect to Google OAuth2 authorization endpoint
+    const googleAuthUrl = `${API_BASE_URL}/oauth2/authorization/google`;
+    console.log('🔗 Redirecting to:', googleAuthUrl);
+    
+    window.location.href = googleAuthUrl;
+  },
+
+  completeOAuth2Setup: async (setupData: {
+    setupToken: string;
+    username: string;
+    password: string;
+  }): Promise<{ success: boolean; data?: any; error?: string }> => {
+    console.log('🔧 AuthService.completeOAuth2Setup called');
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/oauth2/setup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(setupData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('✅ OAuth2 setup completed successfully');
+        return { success: true, data };
+      } else {
+        console.error('❌ OAuth2 setup failed:', data);
+        return { success: false, error: data.error || 'Setup failed' };
+      }
+    } catch (error) {
+      console.error('❌ Error completing OAuth2 setup:', error);
+      return { success: false, error: 'Network error occurred' };
+    }
   },
 };
 

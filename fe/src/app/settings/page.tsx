@@ -3,34 +3,25 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardBody, CardHeader, Button, Switch, Input, Select, SelectItem, Divider, Spinner } from "@nextui-org/react";
 import { UserService } from "@/services";
+import settingsService, { UserSettings as DbUserSettings, UpdateSettingsRequest } from "@/services/settingsService";
 
-interface UserSettings {
-  // User profile data
+interface UserProfile {
   displayName: string;
   email: string;
   bio: string;
-  
-  // Preferences
-  darkMode: boolean;
-  theme: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  messageNotifications: boolean;
-  privacyLevel: string;
+}
+
+interface CombinedSettings extends UserProfile {
+  // Database-backed settings
+  privacyLevel: 'public' | 'friends' | 'private';
   showOnlineStatus: boolean;
   allowSearchEngines: boolean;
 }
 
-export default function SettingsPage() {
-  const [settings, setSettings] = useState<UserSettings>({
+export default function SettingsPage() {  const [settings, setSettings] = useState<CombinedSettings>({
     displayName: '',
     email: '',
     bio: '',
-    darkMode: true,
-    theme: 'default',
-    emailNotifications: true,
-    pushNotifications: true,
-    messageNotifications: true,
     privacyLevel: 'friends',
     showOnlineStatus: true,
     allowSearchEngines: false,
@@ -47,24 +38,38 @@ export default function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserSettings();
   }, []);
-
   const fetchUserSettings = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      // Fetch user profile data
       const userData = await UserService.getCurrentUserProfile();
+      setCurrentUserId(userData.id);
       
-      setSettings(prev => ({
-        ...prev,
+      // Fetch database-backed settings
+      let dbSettings: DbUserSettings;
+      try {
+        dbSettings = await settingsService.getUserSettings(userData.id);
+      } catch (settingsError) {
+        // If settings don't exist, they will be created with defaults
+        console.log('Creating default settings for user');
+        dbSettings = await settingsService.getUserSettings(userData.id);
+      }
+        // Combine profile and settings data
+      setSettings({
         displayName: userData.displayName || '',
         email: userData.username || '', // Assuming username is email
         bio: userData.bio || '',
-      }));
+        privacyLevel: dbSettings.privacyLevel,
+        showOnlineStatus: dbSettings.showOnlineStatus,
+        allowSearchEngines: dbSettings.allowSearchEngines,
+      });
     } catch (err) {
       console.error('Error fetching user settings:', err);
       setError('Không thể tải cài đặt');
@@ -72,24 +77,36 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
-
-  const handleSettingChange = (key: keyof UserSettings, value: any) => {
+  const handleSettingChange = (key: keyof CombinedSettings, value: any) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
   };
-
   const handleSaveSettings = async () => {
+    if (!currentUserId) {
+      setError('Không thể xác định người dùng');
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
       setSuccessMessage(null);
-        // Update profile information
+      
+      // Update profile information
       await UserService.updateUserProfile({
         displayName: settings.displayName,
         bio: settings.bio,
       });
+        // Update database-backed settings
+      const settingsUpdate: UpdateSettingsRequest = {
+        privacyLevel: settings.privacyLevel,
+        showOnlineStatus: settings.showOnlineStatus,
+        allowSearchEngines: settings.allowSearchEngines,
+      };
+      
+      await settingsService.updateUserSettings(currentUserId, settingsUpdate);
       
       // Notify other components (like Sidebar) that profile was updated
       window.dispatchEvent(new CustomEvent('profile-updated'));
@@ -212,81 +229,10 @@ export default function SettingsPage() {
                   onChange={(e) => handleSettingChange('bio', e.target.value)}
                   className="max-w-xs"
                 />
-              </div>
-            </CardBody>
-          </Card>
-            {/* Appearance */}
-          <Card className="w-full">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Giao Diện</h2>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Chế Độ Tối</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Bật hoặc tắt chế độ tối</p>
-                </div>
-                <Switch 
-                  isSelected={settings.darkMode}
-                  onValueChange={(value) => handleSettingChange('darkMode', value)}
-                />
-              </div>
-                <div>
-                <p className="font-medium mb-2">Chủ Đề</p>
-                <Select 
-                  label="Chọn chủ đề" 
-                  selectedKeys={[settings.theme]}
-                  onSelectionChange={(keys) => handleSettingChange('theme', Array.from(keys).join(""))}
-                  className="max-w-xs"
-                >
-                  <SelectItem key="default" value="default">Mặc Định</SelectItem>
-                  <SelectItem key="modern" value="modern">Hiện Đại</SelectItem>
-                  <SelectItem key="classic" value="classic">Cổ Điển</SelectItem>
-                  <SelectItem key="minimal" value="minimal">Tối Giản</SelectItem>
-                </Select>
-              </div>
-            </CardBody>
+              </div>            </CardBody>
           </Card>
           
-          {/* Notifications */}
-          <Card className="w-full">            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Thông Báo</h2>
-            </CardHeader>            <CardBody className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Thông Báo Email</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận cảnh báo qua email</p>
-                </div>
-                <Switch 
-                  isSelected={settings.emailNotifications}
-                  onValueChange={(value) => handleSettingChange('emailNotifications', value)}
-                />
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Thông Báo Đẩy</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận thông báo đẩy</p>
-                </div>
-                <Switch 
-                  isSelected={settings.pushNotifications}
-                  onValueChange={(value) => handleSettingChange('pushNotifications', value)}
-                />
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Thông Báo Tin Nhắn</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Nhận thông báo cho tin nhắn mới</p>
-                </div>
-                <Switch 
-                  isSelected={settings.messageNotifications}
-                  onValueChange={(value) => handleSettingChange('messageNotifications', value)}
-                />
-              </div>
-            </CardBody>
-          </Card>
-            {/* Privacy */}
+          {/* Privacy */}
           <Card className="w-full">
             <CardHeader className="border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold">Riêng Tư</h2>

@@ -17,13 +17,20 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(nullable = false, unique = true)
+    private Integer id;    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = true) // Changed to nullable for OAuth2 users
     private String password;
+
+    @Column(unique = true)
+    private String email; // For OAuth2 users
+
+    @Column(name = "provider")
+    private String provider; // google, facebook, etc. null for regular users
+
+    @Column(name = "provider_id")
+    private String providerId; // OAuth2 provider user ID
 
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)

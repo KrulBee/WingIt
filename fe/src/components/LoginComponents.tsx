@@ -164,3 +164,72 @@ export const RightOverlayPanel = styled(OverlayPanel)<{ $signIn: boolean }>`
   transform: translateX(0);
   ${(props: StyledProps) => props.$signIn !== true ? `transform: translateX(20%);` : null}
 `;
+
+export const GoogleButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background-color: #ffffff;
+  color: #333;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 20px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 80ms ease-in;
+  cursor: pointer;
+  margin: 10px 0;
+  width: 100%;
+  gap: 10px;
+  
+  &:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &:focus {
+    outline: none;
+  }
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+export const OrDivider = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 20px 0;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #ddd;
+  }
+  
+  &::before {
+    margin-right: 16px;
+  }
+  
+  &::after {
+    margin-left: 16px;
+  }
+  
+  span {
+    color: #666;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+`;
