@@ -88,9 +88,9 @@ CREATE TABLE user_data (
 -- Create user_settings table (for user preferences)
 CREATE TABLE user_settings (
     user_id INT PRIMARY KEY,
-    privacy_level VARCHAR(20) NOT NULL DEFAULT 'friends',
-    show_online_status BOOLEAN NOT NULL DEFAULT TRUE,
-    allow_search_engines BOOLEAN NOT NULL DEFAULT FALSE,
+    privacy_level VARCHAR(20) NOT NULL DEFAULT 'friends', -- 'public', 'friends', or 'private'
+    show_online_status BOOLEAN NOT NULL DEFAULT TRUE, -- Show user's online status to others
+    allow_search_engines BOOLEAN NOT NULL DEFAULT FALSE, -- Enable sound notifications (repurposed from search engines)
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,

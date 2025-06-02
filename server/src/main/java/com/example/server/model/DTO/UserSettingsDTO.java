@@ -4,16 +4,15 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public class UserSettingsDTO {
-    
-    @NotNull
+      @NotNull
     private Integer userId;
     
     @Pattern(regexp = "^(public|friends|private)$", message = "Privacy level must be 'public', 'friends', or 'private'")
-    private String privacyLevel = "friends";
+    private String privacyLevel = "friends"; // User's privacy level setting
     
-    private Boolean showOnlineStatus = true;
+    private Boolean showOnlineStatus = true; // Whether to show user's online status to others
     
-    private Boolean allowSearchEngines = false;
+    private Boolean allowSearchEngines = false; // Enable sound notifications (field repurposed)
     
     // Default constructor
     public UserSettingsDTO() {}

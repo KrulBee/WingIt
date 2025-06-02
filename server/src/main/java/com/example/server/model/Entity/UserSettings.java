@@ -14,15 +14,14 @@ public class UserSettings {
     @MapsId
     @JoinColumn(name = "user_id")
     private User user;
-    
-    @Column(name = "privacy_level", nullable = false, length = 20)
-    private String privacyLevel = "friends";
+      @Column(name = "privacy_level", nullable = false, length = 20)
+    private String privacyLevel = "friends"; // User's privacy level: 'public', 'friends', or 'private'
     
     @Column(name = "show_online_status", nullable = false)
-    private Boolean showOnlineStatus = true;
+    private Boolean showOnlineStatus = true; // Whether to show user's online status to others
     
     @Column(name = "allow_search_engines", nullable = false)
-    private Boolean allowSearchEngines = false;
+    private Boolean allowSearchEngines = false; // Enable sound notifications (field repurposed from search engines)
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

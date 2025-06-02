@@ -1,14 +1,55 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import { Card, CardBody, CardHeader, Button, Switch, Input, Select, SelectItem, Divider, Spinner } from "@nextui-org/react";
+import { 
+  Card, 
+  CardBody, 
+  CardHeader, 
+  Button, 
+  Switch, 
+  Input, 
+  Select, 
+  SelectItem, 
+  Divider, 
+  Spinner,
+  Avatar,
+  Badge,
+  Tabs,
+  Tab,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Tooltip
+} from "@nextui-org/react";
 import { UserService } from "@/services";
 import settingsService, { UserSettings as DbUserSettings, UpdateSettingsRequest } from "@/services/settingsService";
+import {
+  UserIcon,
+  ShieldCheckIcon,
+  BellIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  KeyIcon,
+  ExclamationTriangleIcon,
+  PhotoIcon,
+  GlobeAltIcon,
+  UserGroupIcon,
+  LockClosedIcon,
+  CogIcon,
+  CheckCircleIcon,
+  XCircleIcon
+} from "@heroicons/react/24/outline";
 
 interface UserProfile {
+  id?: number;
   displayName: string;
   email: string;
   bio: string;
+  profilePicture?: string;
+  isOnline?: boolean;
 }
 
 interface CombinedSettings extends UserProfile {
@@ -18,10 +59,13 @@ interface CombinedSettings extends UserProfile {
   allowSearchEngines: boolean;
 }
 
-export default function SettingsPage() {  const [settings, setSettings] = useState<CombinedSettings>({
-    displayName: '',
+export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("profile");
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();  const [settings, setSettings] = useState<CombinedSettings>({    displayName: '',
     email: '',
     bio: '',
+    profilePicture: '',
     privacyLevel: 'friends',
     showOnlineStatus: true,
     allowSearchEngines: false,
@@ -60,16 +104,16 @@ export default function SettingsPage() {  const [settings, setSettings] = useSta
         // If settings don't exist, they will be created with defaults
         console.log('Creating default settings for user');
         dbSettings = await settingsService.getUserSettings(userData.id);
-      }
-        // Combine profile and settings data
-      setSettings({
-        displayName: userData.displayName || '',
-        email: userData.username || '', // Assuming username is email
-        bio: userData.bio || '',
-        privacyLevel: dbSettings.privacyLevel,
-        showOnlineStatus: dbSettings.showOnlineStatus,
-        allowSearchEngines: dbSettings.allowSearchEngines,
-      });
+      }        // Combine profile and settings data
+        setSettings({
+          id: userData.id,
+          displayName: userData.displayName || '',
+          email: userData.username || '', // Assuming username is email
+          bio: userData.bio || '',
+          profilePicture: userData.profilePicture || '',
+          privacyLevel: dbSettings.privacyLevel,
+          showOnlineStatus: dbSettings.showOnlineStatus,          allowSearchEngines: dbSettings.allowSearchEngines,
+        });
     } catch (err) {
       console.error('Error fetching user settings:', err);
       setError('Không thể tải cài đặt');
@@ -93,11 +137,9 @@ export default function SettingsPage() {  const [settings, setSettings] = useSta
       setSaving(true);
       setError(null);
       setSuccessMessage(null);
-      
-      // Update profile information
+        // Update profile information
       await UserService.updateUserProfile({
         displayName: settings.displayName,
-        bio: settings.bio,
       });
         // Update database-backed settings
       const settingsUpdate: UpdateSettingsRequest = {
@@ -158,6 +200,24 @@ export default function SettingsPage() {  const [settings, setSettings] = useSta
       setChangingPassword(false);
     }
   };
+  const getPrivacyIcon = (level: string) => {
+    switch (level) {
+      case 'public': return <GlobeAltIcon className="w-4 h-4" />;
+      case 'friends': return <UserGroupIcon className="w-4 h-4" />;
+      case 'private': return <LockClosedIcon className="w-4 h-4" />;
+      default: return <UserGroupIcon className="w-4 h-4" />;
+    }
+  };
+
+  const handleProfilePictureChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Here you would typically upload the file to your server
+      // For now, we'll just create a preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setSettings(prev => ({ ...prev, profilePicture: previewUrl }));
+    }
+  };
 
   if (loading) {
     return (
@@ -171,174 +231,374 @@ export default function SettingsPage() {  const [settings, setSettings] = useSta
       </div>
     );
   }
-    return (
+
+  return (
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Left sidebar */}
       <Sidebar />
-        {/* Main content */}
-      <main className="flex-1 ml-0 md:ml-64 p-6">
-        <h1 className="text-2xl font-bold mb-6">Cài Đặt</h1>
-        
-        {/* Error Message */}
+      
+      <main className="flex-1 ml-0 md:ml-64 p-6 max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <CogIcon className="w-8 h-8 text-primary" />
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Cài Đặt
+            </h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Quản lý thông tin cá nhân và tùy chọn riêng tư của bạn
+          </p>
+        </div>
+
+        {/* Alert Messages */}
         {error && (
-          <Card className="mb-4 border-red-200 bg-red-50 dark:bg-red-900/20">
-            <CardBody>
+          <Card className="mb-6 border-l-4 border-l-red-500 bg-red-50 dark:bg-red-900/20">
+            <CardBody className="flex flex-row items-center gap-3">
+              <XCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
               <p className="text-red-600 dark:text-red-400">{error}</p>
             </CardBody>
           </Card>
         )}
         
-        {/* Success Message */}
         {successMessage && (
-          <Card className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/20">
-            <CardBody>
+          <Card className="mb-6 border-l-4 border-l-green-500 bg-green-50 dark:bg-green-900/20">
+            <CardBody className="flex flex-row items-center gap-3">
+              <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
               <p className="text-green-600 dark:text-green-400">{successMessage}</p>
             </CardBody>
           </Card>
         )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Profile Information */}
-          <Card className="w-full">            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Thông Tin Hồ Sơ</h2>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div>                <Input 
-                  label="Tên Hiển Thị"
-                  value={settings.displayName}
-                  onChange={(e) => handleSettingChange('displayName', e.target.value)}
-                  className="max-w-xs"
-                />
-              </div>
-              
-              <div>
-                <Input 
-                  label="Email"
-                  type="email" 
-                  value={settings.email}
-                  onChange={(e) => handleSettingChange('email', e.target.value)}
-                  className="max-w-xs"
-                  isDisabled // Email changes typically require verification
-                />
-              </div>
-              
-              <div>
-                <Input 
-                  label="Bio"
-                  value={settings.bio}
-                  onChange={(e) => handleSettingChange('bio', e.target.value)}
-                  className="max-w-xs"
-                />
-              </div>            </CardBody>
-          </Card>
-          
-          {/* Privacy */}
-          <Card className="w-full">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Riêng Tư</h2>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div>
-                <p className="font-medium mb-2">Ai có thể xem hồ sơ của bạn</p>
-                <Select 
-                  label="Chọn mức độ riêng tư" 
-                  selectedKeys={[settings.privacyLevel]}
-                  onSelectionChange={(keys) => handleSettingChange('privacyLevel', Array.from(keys).join(""))}
-                  className="max-w-xs"
-                >
-                  <SelectItem key="public" value="public">Mọi người</SelectItem>
-                  <SelectItem key="friends" value="friends">Chỉ bạn bè</SelectItem>
-                  <SelectItem key="private" value="private">Chỉ tôi</SelectItem>
-                </Select>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Hiển thị trạng thái trực tuyến</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Cho phép người khác biết khi bạn đang trực tuyến</p>
+
+        {/* Settings Tabs */}
+        <div className="w-full">
+          <Tabs 
+            aria-label="Settings tabs" 
+            selectedKey={activeTab}
+            onSelectionChange={(key) => setActiveTab(key as string)}
+            variant="underlined"
+            classNames={{
+              tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+              cursor: "w-full bg-primary",
+              tab: "max-w-fit px-0 h-12",
+              tabContent: "group-data-[selected=true]:text-primary"
+            }}
+          >
+            <Tab
+              key="profile"
+              title={
+                <div className="flex items-center space-x-2">
+                  <UserIcon className="w-5 h-5" />
+                  <span>Hồ Sơ</span>
                 </div>
-                <Switch 
-                  isSelected={settings.showOnlineStatus}
-                  onValueChange={(value) => handleSettingChange('showOnlineStatus', value)}
-                />
+              }
+            >
+              {/* Profile Tab Content */}
+              <div className="py-6">
+                <Card className="mb-6">
+                  <CardBody className="p-6">
+                    <div className="flex flex-col items-center text-center mb-6">
+                      <div className="relative mb-4">
+                        <Avatar
+                          src={settings.profilePicture}
+                          alt={settings.displayName}
+                          className="w-24 h-24 text-large"
+                          isBordered
+                          color="primary"
+                        />                        <Badge
+                          color="primary"
+                          shape="circle"
+                          placement="bottom-right"
+                          className="cursor-pointer"
+                          onClick={() => document.getElementById('profile-picture-input')?.click()}
+                        >
+                          <PhotoIcon className="w-3 h-3" />
+                        </Badge>
+                        <input
+                          id="profile-picture-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePictureChange}
+                          className="hidden"
+                        />
+                      </div>
+                      <h2 className="text-xl font-semibold">{settings.displayName || 'Chưa có tên'}</h2>
+                      <p className="text-gray-500 dark:text-gray-400">{settings.email}</p>
+                    </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Input
+                        label="Tên hiển thị"
+                        placeholder="Nhập tên hiển thị của bạn"
+                        value={settings.displayName}
+                        onChange={(e) => handleSettingChange('displayName', e.target.value)}
+                        startContent={<UserIcon className="w-4 h-4 text-gray-400" />}
+                        variant="bordered"
+                      />
+                      
+                      <Input
+                        label="Email"
+                        placeholder="email@example.com"
+                        type="email"
+                        value={settings.email}
+                        onChange={(e) => handleSettingChange('email', e.target.value)}
+                        isDisabled
+                        variant="bordered"
+                        description="Email không thể thay đổi"
+                      />
+                    </div>
+                  </CardBody>
+                </Card>
               </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Cho phép công cụ tìm kiếm</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Để công cụ tìm kiếm lập chỉ mục hồ sơ của bạn</p>
+            </Tab>
+
+            <Tab
+              key="privacy"
+              title={
+                <div className="flex items-center space-x-2">
+                  <ShieldCheckIcon className="w-5 h-5" />
+                  <span>Riêng Tư</span>
                 </div>
-                <Switch 
-                  isSelected={settings.allowSearchEngines}
-                  onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
-                />
-              </div>
-            </CardBody>
-          </Card>
-            {/* Account Security */}
-          <Card className="w-full">
-            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Bảo Mật Tài Khoản</h2>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div>
-                <p className="font-medium mb-2">Đổi Mật Khẩu</p>
-                <div className="space-y-2">
-                  <Input 
-                    type="password" 
-                    label="Mật khẩu hiện tại"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                    className="max-w-xs"
-                  />
-                  <Input 
-                    type="password" 
-                    label="Mật khẩu mới"
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                    className="max-w-xs"
-                  />
-                  <Input 
-                    type="password" 
-                    label="Xác nhận mật khẩu mới"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                    className="max-w-xs"
-                  />
-                  <Button 
-                    color="primary" 
-                    size="sm"
-                    onClick={handleChangePassword}
-                    isLoading={changingPassword}
-                    isDisabled={!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
-                  >
-                    Đổi Mật Khẩu
-                  </Button>
+              }
+            >
+              {/* Privacy Tab Content */}
+              <div className="py-6 space-y-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <EyeIcon className="w-5 h-5 text-primary" />
+                      Hiển thị hồ sơ
+                    </h3>
+                  </CardHeader>
+                  <CardBody className="pt-0">
+                    <Select
+                      label="Ai có thể xem hồ sơ của bạn"
+                      selectedKeys={[settings.privacyLevel]}
+                      onSelectionChange={(keys) => handleSettingChange('privacyLevel', Array.from(keys).join(""))}
+                      variant="bordered"
+                      startContent={getPrivacyIcon(settings.privacyLevel)}
+                    >
+                      <SelectItem key="public" startContent={<GlobeAltIcon className="w-4 h-4" />}>
+                        Công khai - Mọi người có thể xem
+                      </SelectItem>
+                      <SelectItem key="friends" startContent={<UserGroupIcon className="w-4 h-4" />}>
+                        Bạn bè - Chỉ bạn bè có thể xem
+                      </SelectItem>
+                      <SelectItem key="private" startContent={<LockClosedIcon className="w-4 h-4" />}>
+                        Riêng tư - Chỉ bạn có thể xem
+                      </SelectItem>
+                    </Select>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <h3 className="text-lg font-semibold">Tùy chọn hiển thị</h3>
+                  </CardHeader>
+                  <CardBody className="pt-0 space-y-4">                    <div className="flex justify-between items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                          <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                        </div>
+                        <div>
+                          <p className="font-medium">Trạng thái trực tuyến</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Hiển thị khi bạn đang hoạt động trên nền tảng
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        isSelected={settings.showOnlineStatus}
+                        onValueChange={(value) => handleSettingChange('showOnlineStatus', value)}
+                        color="success"
+                      />
+                    </div>                    <div className="flex justify-between items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                          <BellIcon className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Âm thanh thông báo</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Phát âm thanh khi nhận thông báo mới
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        isSelected={settings.allowSearchEngines}
+                        onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
+                        color="primary"
+                      />
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>            </Tab>
+
+            <Tab
+              key="security"
+              title={
+                <div className="flex items-center space-x-2">
+                  <KeyIcon className="w-5 h-5" />
+                  <span>Bảo Mật</span>
                 </div>
+              }
+            >
+              {/* Security Tab Content */}
+              <div className="py-6 space-y-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <KeyIcon className="w-5 h-5 text-primary" />
+                      Đổi mật khẩu
+                    </h3>
+                  </CardHeader>
+                  <CardBody className="pt-0">
+                    <div className="grid grid-cols-1 gap-4 max-w-md">
+                      <Input
+                        type="password"
+                        label="Mật khẩu hiện tại"
+                        placeholder="Nhập mật khẩu hiện tại"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                        variant="bordered"
+                      />
+                      <Input
+                        type="password"
+                        label="Mật khẩu mới"
+                        placeholder="Nhập mật khẩu mới"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                        variant="bordered"
+                        description="Ít nhất 6 ký tự"
+                      />
+                      <Input
+                        type="password"
+                        label="Xác nhận mật khẩu mới"
+                        placeholder="Nhập lại mật khẩu mới"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                        variant="bordered"
+                        color={passwordForm.newPassword && passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword ? "danger" : "default"}
+                        errorMessage={passwordForm.newPassword && passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword ? "Mật khẩu không khớp" : ""}
+                      />
+                      <Button
+                        color="primary"
+                        onClick={handleChangePassword}
+                        isLoading={changingPassword}
+                        isDisabled={!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
+                        className="w-fit"
+                      >
+                        Cập nhật mật khẩu
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+
+                <Card className="border-red-200 dark:border-red-800">
+                  <CardHeader className="pb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2 text-red-600 dark:text-red-400">
+                      <ExclamationTriangleIcon className="w-5 h-5" />
+                      Vùng nguy hiểm
+                    </h3>
+                  </CardHeader>
+                  <CardBody className="pt-0">
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                        <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Vô hiệu hóa tài khoản</h4>
+                        <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+                          Tạm thời ẩn tài khoản của bạn khỏi những người dùng khác. Bạn có thể kích hoạt lại bất cứ lúc nào.
+                        </p>
+                        <Button color="danger" variant="flat" onPress={onDeactivateOpen}>
+                          Vô hiệu hóa tài khoản
+                        </Button>
+                      </div>
+
+                      <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                        <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Xóa tài khoản</h4>
+                        <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+                          Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn. Hành động này không thể hoàn tác.
+                        </p>
+                        <Button color="danger" onPress={onDeleteOpen}>
+                          Xóa tài khoản vĩnh viễn
+                        </Button>
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
               </div>
-              
-              <Divider className="my-4" />
-              
-              <div>
-                <p className="font-medium text-red-500">Vùng Nguy Hiểm</p>
-                <div className="flex gap-4 mt-2">
-                  <Button color="danger" variant="flat">Vô Hiệu Hóa Tài Khoản</Button>
-                  <Button color="danger">Xóa Tài Khoản</Button>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+            </Tab>
+          </Tabs>
         </div>
-          <div className="mt-6 flex justify-end gap-2">
-          <Button variant="flat" onClick={fetchUserSettings}>Đặt Lại</Button>
-          <Button 
-            color="primary" 
+
+        {/* Save Button */}
+        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Button variant="flat" onClick={fetchUserSettings}>
+            Đặt lại
+          </Button>
+          <Button
+            color="primary"
             onClick={handleSaveSettings}
             isLoading={saving}
+            size="lg"
           >
-            Lưu Thay Đổi
+            Lưu thay đổi
           </Button>
         </div>
+
+        {/* Delete Account Modal */}
+        <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} size="md">
+          <ModalContent>
+            <ModalHeader className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-red-600">
+                <ExclamationTriangleIcon className="w-6 h-6" />
+                Xác nhận xóa tài khoản
+              </div>
+            </ModalHeader>
+            <ModalBody>
+              <p>Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình?</p>
+              <p className="text-sm text-gray-500">
+                Hành động này sẽ xóa tất cả dữ liệu của bạn và không thể hoàn tác.
+              </p>
+              <Input
+                label="Để xác nhận, hãy nhập 'XÓA TÀI KHOẢN'"
+                placeholder="XÓA TÀI KHOẢN"
+                variant="bordered"
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" onPress={onDeleteClose}>
+                Hủy
+              </Button>
+              <Button color="danger" onPress={onDeleteClose}>
+                Xóa tài khoản
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Deactivate Account Modal */}
+        <Modal isOpen={isDeactivateOpen} onClose={onDeactivateClose} size="md">
+          <ModalContent>
+            <ModalHeader className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-orange-600">
+                <EyeSlashIcon className="w-6 h-6" />
+                Xác nhận vô hiệu hóa tài khoản
+              </div>
+            </ModalHeader>
+            <ModalBody>
+              <p>Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình?</p>
+              <p className="text-sm text-gray-500">
+                Tài khoản của bạn sẽ bị ẩn khỏi những người dùng khác, nhưng bạn có thể kích hoạt lại bất cứ lúc nào.
+              </p>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" onPress={onDeactivateClose}>
+                Hủy
+              </Button>
+              <Button color="warning" onPress={onDeactivateClose}>
+                Vô hiệu hóa
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </main>
     </div>
   );
