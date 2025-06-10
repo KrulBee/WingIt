@@ -349,16 +349,10 @@ export default function SearchPage() {
                     <h2 className="text-xl font-semibold">
                       {hasSearched ? 'Mọi người' : 'Những người bạn có thể biết'}
                     </h2>
-                  </div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (
-                      <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
-<<<<<<< HEAD
-                        <CardBody className="flex flex-row items-center gap-4">
+                  </div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (                      <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
+                        <CardBody className="flex flex-col items-center text-center gap-4 p-6">
                           <Avatar 
-                            src={user.profilePicture} 
-=======
-                        <CardBody className="flex flex-col items-center text-center gap-4 p-6">                          <Avatar 
-                            src={getAvatarSrc(user.profilePicture, user.username)} 
->>>>>>> 3db89dd (push fix)
+                            src={getAvatarSrc(user.profilePicture, user.username)}
                             showFallback
                             name={user.displayName || user.username}
                             size="lg" 
@@ -377,20 +371,13 @@ export default function SearchPage() {
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                               @{user.username}
-                            </p>
-                            {user.bio && (
+                            </p>                            {user.bio && (
                               <p className="text-sm mt-1 line-clamp-2">{user.bio}</p>
                             )}
-<<<<<<< HEAD
                             {user.followersCount !== undefined && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {user.followersCount.toLocaleString()} followers
-                              </p>                            )}
-=======
-                            {user.followersCount !== undefined && (                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                                 {user.followersCount.toLocaleString()} người theo dõi
                               </p>)}
->>>>>>> 3db89dd (push fix)
                           </div>
                           {currentUser && currentUser.id !== user.id && (
                             <Button 

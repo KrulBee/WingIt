@@ -411,15 +411,10 @@ export default function Post({
         <CommentSection
           postId={id}
           commentsCount={commentCount}
-          onCommentsCountChange={handleCommentsCountChange}
-        />
-<<<<<<< HEAD
+          onCommentsCountChange={handleCommentsCountChange}        />
       )}
 
       {/* Post Detail Modal */}
-=======
-      )}      {/* Post Detail Modal */}
->>>>>>> 3db89dd (push fix)
       <PostDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
