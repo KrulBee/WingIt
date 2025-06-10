@@ -93,19 +93,18 @@ export default function DirectCropUpload({ onUploadComplete, type, trigger }: Di
   const getAspectRatio = () => {
     return type === 'profile' ? 1 : 16 / 9; // 1:1 for profile, 16:9 for cover
   };
-
   const getTitle = () => {
-    return type === 'profile' ? 'Crop Profile Picture' : 'Crop Cover Photo';
+    return type === 'profile' ? 'Cắt ảnh đại diện' : 'Cắt ảnh bìa';
   };
 
   const getConfirmTitle = () => {
-    return type === 'profile' ? 'Update Profile Picture?' : 'Update Cover Photo?';
+    return type === 'profile' ? 'Cập nhật ảnh đại diện?' : 'Cập nhật ảnh bìa?';
   };
 
   const getConfirmMessage = () => {
     return type === 'profile' 
-      ? 'Are you happy with this cropped profile picture?' 
-      : 'Are you happy with this cropped cover photo?';
+      ? 'Bạn có hài lòng với ảnh đại diện đã cắt này không?' 
+      : 'Bạn có hài lòng với ảnh bìa đã cắt này không?';
   };
 
   return (
@@ -124,14 +123,13 @@ export default function DirectCropUpload({ onUploadComplete, type, trigger }: Di
         {trigger}
       </div>
 
-      {/* Crop Modal */}
-      <ImageCropModal
+      {/* Crop Modal */}      <ImageCropModal
         isOpen={isCropOpen}
         onOpenChange={onCropOpenChange}
-        imageUrl={selectedImageForCrop}
+        imageSrc={selectedImageForCrop}
         onCropComplete={handleCropComplete}
         aspectRatio={getAspectRatio()}
-        title={getTitle()}
+        cropType={type}
       />
 
       {/* Confirmation Modal */}
@@ -152,7 +150,7 @@ export default function DirectCropUpload({ onUploadComplete, type, trigger }: Di
                   <div className="flex justify-center mb-4">
                     <img
                       src={croppedImageUrl}
-                      alt="Cropped preview"
+                      alt="Xem trước đã cắt"
                       className={`max-w-full h-auto rounded-lg shadow-md ${
                         type === 'profile' 
                           ? 'w-32 h-32 rounded-full object-cover' 
@@ -169,10 +167,9 @@ export default function DirectCropUpload({ onUploadComplete, type, trigger }: Di
                 <Button
                   color="danger"
                   variant="light"
-                  onPress={handleCancel}
-                  startContent={<X size={16} />}
+                  onPress={handleCancel}                  startContent={<X size={16} />}
                 >
-                  Cancel
+                  Hủy
                 </Button>
                 <Button
                   color="primary"
@@ -180,7 +177,7 @@ export default function DirectCropUpload({ onUploadComplete, type, trigger }: Di
                   isLoading={isLoading}
                   startContent={!isLoading && <Check size={16} />}
                 >
-                  {isLoading ? 'Uploading...' : 'Confirm'}
+                  {isLoading ? 'Đang tải lên...' : 'Xác nhận'}
                 </Button>
               </ModalFooter>
             </>

@@ -10,6 +10,7 @@ import { SearchService, UserSearchResult, PostSearchResult, TagSearchResult, Sea
 import FollowService from "@/services/FollowService";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
+import { avatarBase64 } from "@/static/images/avatarDefault";
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
@@ -45,6 +46,15 @@ export default function SearchPage() {
   const [randomPosts, setRandomPosts] = useState<PostSearchResult[]>([]);
   
   const { navigateToProfile } = useProfileNavigation();
+
+  // Generate a consistent avatar src with fallback
+  const getAvatarSrc = (avatar?: string, username?: string) => {
+    if (avatar && avatar.trim() !== '') {
+      return avatar;
+    }
+    // Use the default avatar as fallback
+    return avatarBase64;
+  };
 
   // Load search query from URL parameters on mount
   useEffect(() => {
@@ -127,7 +137,7 @@ export default function SearchPage() {
       setRandomPosts(randomPostsData);
     } catch (err) {
       console.error('Error loading initial data:', err);
-      setError('Failed to load initial data');
+      setError('Không thể tải dữ liệu ban đầu');
     } finally {
       setLoading(false);
     }
@@ -185,7 +195,7 @@ export default function SearchPage() {
         setHasSearched(true);
       } catch (err) {
         console.error('Search error:', err);
-        setError('Failed to perform search. Please try again.');
+        setError('Không thể thực hiện tìm kiếm. Vui lòng thử lại.');
         setSearchResults({ users: [], posts: [], tags: [], totalResults: 0 });
       } finally {
         setLoading(false);
@@ -256,7 +266,7 @@ export default function SearchPage() {
       {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 p-6 lg:pr-80">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Search</h1>
+          <h1 className="text-2xl font-bold mb-6">Tìm kiếm</h1>
           
           {/* Search form */}
           <form onSubmit={handleSearch} className="mb-6">            <Input
@@ -279,9 +289,8 @@ export default function SearchPage() {
               </CardBody>
             </Card>
           )}
-          {/* Tabs */}
-          <Tabs 
-            aria-label="Search categories" 
+          {/* Tabs */}          <Tabs 
+            aria-label="Danh mục tìm kiếm" 
             selectedKey={activeTab}
             onSelectionChange={(key) => handleTabChange(key as string)}
             className="mb-6"
@@ -324,13 +333,12 @@ export default function SearchPage() {
           {/* Search results or initial content */}
           {!loading && (
             <>
-              {/* Results summary */}
-              {hasSearched && (
+              {/* Results summary */}              {hasSearched && (
                 <div className="mb-6">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {displayData.totalResults > 0 
-                      ? `Found ${displayData.totalResults} result${displayData.totalResults !== 1 ? 's' : ''} for "${searchQuery}"`
-                      : `No results found for "${searchQuery}"`
+                      ? `Tìm thấy ${displayData.totalResults} kết quả${displayData.totalResults !== 1 ? '' : ''} cho "${searchQuery}"`
+                      : `Không tìm thấy kết quả cho "${searchQuery}"`
                     }
                   </p>
                 </div>
@@ -339,13 +347,18 @@ export default function SearchPage() {
                 <div className="mb-8">                  <div className="flex items-center gap-2 mb-4">
                     <User size={20} className="text-blue-600 dark:text-blue-400" />
                     <h2 className="text-xl font-semibold">
-                      {hasSearched ? 'People' : 'Những người bạn có thể biết'}
+                      {hasSearched ? 'Mọi người' : 'Những người bạn có thể biết'}
                     </h2>
                   </div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">                    {displayData.users.map(user => (
                       <Card key={user.id} className="w-full hover:shadow-lg transition-shadow">
+<<<<<<< HEAD
                         <CardBody className="flex flex-row items-center gap-4">
                           <Avatar 
                             src={user.profilePicture} 
+=======
+                        <CardBody className="flex flex-col items-center text-center gap-4 p-6">                          <Avatar 
+                            src={getAvatarSrc(user.profilePicture, user.username)} 
+>>>>>>> 3db89dd (push fix)
                             showFallback
                             name={user.displayName || user.username}
                             size="lg" 
@@ -368,10 +381,16 @@ export default function SearchPage() {
                             {user.bio && (
                               <p className="text-sm mt-1 line-clamp-2">{user.bio}</p>
                             )}
+<<<<<<< HEAD
                             {user.followersCount !== undefined && (
                               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {user.followersCount.toLocaleString()} followers
                               </p>                            )}
+=======
+                            {user.followersCount !== undefined && (                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                {user.followersCount.toLocaleString()} người theo dõi
+                              </p>)}
+>>>>>>> 3db89dd (push fix)
                           </div>
                           {currentUser && currentUser.id !== user.id && (
                             <Button 
@@ -381,7 +400,7 @@ export default function SearchPage() {
                               onClick={() => handleFollowToggle(user.id)}
                               isLoading={followLoading.has(user.id)}
                             >
-                              {followingUsers.has(user.id) ? "Following" : "Follow"}
+                              {followingUsers.has(user.id) ? "Đang theo dõi" : "Theo dõi"}
                             </Button>
                           )}
                         </CardBody>
@@ -391,7 +410,7 @@ export default function SearchPage() {
                   {activeTab === "people" && displayData.users.length >= 6 && (
                     <div className="mt-4 text-center">
                       <Button variant="flat" onClick={() => setSearchQuery(searchQuery + " ")}>
-                        Load More
+                        Tải thêm
                       </Button>
                     </div>
                   )}
@@ -400,15 +419,14 @@ export default function SearchPage() {
               {(activeTab === "all" || activeTab === "post") && displayData.posts.length > 0 && (                <div className="mb-8">                  <div className="flex items-center gap-2 mb-4">
                     <Hash size={20} className="text-green-600 dark:text-green-400" />
                     <h2 className="text-xl font-semibold">
-                      {hasSearched ? 'Posts' : (activeTab === "all" ? 'Bài viết bạn có thể muốn xem' : 'Posts')}
+                      {hasSearched ? 'Bài viết' : (activeTab === "all" ? 'Bài viết bạn có thể muốn xem' : 'Bài viết')}
                     </h2>
                   </div>
                   <div className="space-y-4">
                     {displayData.posts.map(post => (
                       <Card key={post.id} className="w-full hover:shadow-lg transition-shadow">
-                        <CardBody>                          <div className="flex items-start gap-3 mb-3">
-                            <Avatar 
-                              src={post.author.profilePicture}
+                        <CardBody>                          <div className="flex items-start gap-3 mb-3">                            <Avatar 
+                              src={getAvatarSrc(post.author.profilePicture, post.author.username)}
                               showFallback
                               name={post.author.displayName || post.author.username}
                               size="sm"
@@ -422,7 +440,11 @@ export default function SearchPage() {
                                   @{post.author.username}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(post.createdDate).toLocaleDateString()}
+                                  {new Date(post.createdDate).toLocaleDateString('vi-VN', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })}
                                 </p>
                               </div>
                             </div>
@@ -456,20 +478,13 @@ export default function SearchPage() {
                               ))}
                             </div>
                           )}
-                          
-                          <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-4">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {post.likesCount || 0} likes
+                            <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-4">                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {post.likesCount || 0} lượt thích
                               </span>
                               <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {post.commentsCount || 0} comments
+                                {post.commentsCount || 0} bình luận
                               </span>
-                              {post.sharesCount !== undefined && (
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {post.sharesCount} shares
-                                </span>
-                              )}
                             </div>
                           </div>
                         </CardBody>

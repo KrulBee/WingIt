@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
       setToken(resetToken);
       validateToken(resetToken);
     } else {
-      setError('Invalid reset link');
+      setError('Liên kết đặt lại không hợp lệ');
       setValidating(false);
     }
   }, [searchParams]);
@@ -40,10 +40,10 @@ export default function ResetPasswordPage() {
       if (response.ok && data.valid) {
         setTokenValid(true);
       } else {
-        setError('Invalid or expired reset link');
+        setError('Liên kết đặt lại không hợp lệ hoặc đã hết hạn');
       }
     } catch (err) {
-      setError('Failed to validate reset link');
+      setError('Không thể xác thực liên kết đặt lại mật khẩu');
     } finally {
       setValidating(false);
     }
@@ -59,14 +59,13 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError('Passwords do not match');
+      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('Mật khẩu không khớp');
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError('Mật khẩu phải có ít nhất 8 ký tự');
       return;
     }
 
@@ -90,10 +89,10 @@ export default function ResetPasswordPage() {
           router.push('/auth');
         }, 3000);
       } else {
-        setError(data.error || 'Failed to reset password');
+        setError(data.error || 'Không thể đặt lại mật khẩu');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Lỗi mạng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -105,7 +104,7 @@ export default function ResetPasswordPage() {
         <Card className="max-w-md w-full">
           <CardBody className="text-center space-y-4">
             <Spinner size="lg" />
-            <p>Validating reset link...</p>
+            <p>Đang xác minh liên kết đặt lại...</p>
           </CardBody>
         </Card>
       </div>
@@ -119,14 +118,13 @@ export default function ResetPasswordPage() {
           <CardBody className="text-center space-y-4">
             <AlertCircle size={48} className="text-red-500 mx-auto" />
             <div>
-              <h2 className="text-xl font-semibold text-red-600">Invalid Reset Link</h2>
+              <h2 className="text-xl font-semibold text-red-600">Liên kết đặt lại không hợp lệ</h2>
               <p className="text-sm text-gray-600 mt-2">{error}</p>
-            </div>
-            <Button 
+            </div>            <Button 
               color="primary" 
               onPress={() => router.push('/auth')}
             >
-              Back to Login
+              Về trang đăng nhập
             </Button>
           </CardBody>
         </Card>
@@ -139,11 +137,10 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Card className="max-w-md w-full">
           <CardBody className="text-center space-y-4">
-            <CheckCircle size={48} className="text-green-500 mx-auto" />
-            <div>
-              <h2 className="text-xl font-semibold text-green-600">Password Reset Successful!</h2>
+            <CheckCircle size={48} className="text-green-500 mx-auto" />            <div>
+              <h2 className="text-xl font-semibold text-green-600">Đặt lại mật khẩu thành công!</h2>
               <p className="text-sm text-gray-600 mt-2">
-                Your password has been successfully reset. You will be redirected to the login page shortly.
+                Mật khẩu của bạn đã được đặt lại thành công. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.
               </p>
             </div>
           </CardBody>
@@ -159,30 +156,26 @@ export default function ResetPasswordPage() {
           <div className="flex flex-col items-center gap-2">
             <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
               <Lock size={24} className="text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-bold">Reset Your Password</h2>
-            <p className="text-sm text-gray-600">Enter your new password below</p>
+            </div>            <h2 className="text-2xl font-bold">Đặt lại mật khẩu của bạn</h2>
+            <p className="text-sm text-gray-600">Nhập mật khẩu mới bên dưới</p>
           </div>
         </CardHeader>
 
         <CardBody>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
+          <form onSubmit={handleSubmit} className="space-y-4">            <Input
               type="password"
-              label="New Password"
-              placeholder="Enter your new password"
+              label="Mật khẩu mới"
+              placeholder="Nhập mật khẩu mới của bạn"
               value={passwordForm.newPassword}
               onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
               variant="bordered"
               isRequired
               isDisabled={loading}
               startContent={<Lock size={18} className="text-gray-400" />}
-            />
-
-            <Input
+            />            <Input
               type="password"
-              label="Confirm Password"
-              placeholder="Confirm your new password"
+              label="Xác nhận mật khẩu"
+              placeholder="Xác nhận mật khẩu mới của bạn"
               value={passwordForm.confirmPassword}
               onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
               variant="bordered"
@@ -206,16 +199,14 @@ export default function ResetPasswordPage() {
                 isDisabled={!passwordForm.newPassword || !passwordForm.confirmPassword || loading}
                 startContent={!loading && <Lock size={16} />}
               >
-                {loading ? 'Resetting Password...' : 'Reset Password'}
-              </Button>
-
-              <Button
+                {loading ? 'Đang đặt lại mật khẩu...' : 'Đặt lại mật khẩu'}
+              </Button>              <Button
                 variant="light"
                 className="w-full"
                 onPress={() => router.push('/auth')}
                 isDisabled={loading}
               >
-                Back to Login
+                Về trang đăng nhập
               </Button>
             </div>
           </form>

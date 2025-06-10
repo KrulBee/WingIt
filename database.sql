@@ -3,6 +3,7 @@ CREATE SCHEMA IF NOT EXISTS db;
 USE db;
 
 -- Drop tables if they exist
+DROP TABLE IF EXISTS reports;
 DROP TABLE IF EXISTS bookmarks;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS messages;
@@ -287,6 +288,30 @@ CREATE TABLE post_views (
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
 );
 
+-- Create reports table for user/post/comment reporting system
+CREATE TABLE reports (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    reporter_id INT NOT NULL,
+    reported_user_id INT NULL, -- For user reports
+    post_id BIGINT NULL, -- For post reports  
+    comment_id BIGINT NULL, -- For comment reports
+    reason VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    status ENUM('PENDING', 'REVIEWED', 'RESOLVED', 'DISMISSED') NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (reporter_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_user_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    -- Ensure at least one of the reported items is specified
+    CONSTRAINT chk_report_target CHECK (
+        (reported_user_id IS NOT NULL AND post_id IS NULL AND comment_id IS NULL) OR
+        (reported_user_id IS NULL AND post_id IS NOT NULL AND comment_id IS NULL) OR  
+        (reported_user_id IS NULL AND post_id IS NULL AND comment_id IS NOT NULL)
+    )
+);
+
 -- Add indexes for performance
 CREATE INDEX idx_friend_user1 ON friends(user1_id);
 CREATE INDEX idx_friend_user2 ON friends(user2_id);
@@ -313,6 +338,12 @@ CREATE INDEX idx_post_views_post ON post_views(post_id);
 CREATE INDEX idx_post_views_user ON post_views(user_id);
 CREATE INDEX idx_post_views_source ON post_views(view_source);
 CREATE INDEX idx_post_views_date ON post_views(viewed_at);
+CREATE INDEX idx_reports_reporter ON reports(reporter_id);
+CREATE INDEX idx_reports_reported_user ON reports(reported_user_id);
+CREATE INDEX idx_reports_post ON reports(post_id);
+CREATE INDEX idx_reports_comment ON reports(comment_id);
+CREATE INDEX idx_reports_status ON reports(status);
+CREATE INDEX idx_reports_created_at ON reports(created_at);
 
 -- Insert some initial data for lookup tables (optional)
 INSERT INTO role (id, role) VALUES

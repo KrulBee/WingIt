@@ -52,13 +52,11 @@ interface PostData {
 interface PostProps {
   id: string;
   authorName: string;
-  authorUsername: string;
-  authorAvatar?: string;
+  authorUsername: string;  authorAvatar?: string;
   content: string;
   image?: string;
   likes: number;
   comments: number;
-  shares: number;
   createdAt: Date;
   liked: boolean;
 }
@@ -124,10 +122,8 @@ export default function UserProfilePage() {
         authorUsername: user.username,
         authorAvatar: user.profilePicture,
         content: post.content,
-        image: post.mediaUrls?.[0],
-        likes: post.reactionCount || 0,
+        image: post.mediaUrls?.[0],        likes: post.reactionCount || 0,
         comments: post.commentCount || 0,
-        shares: 0, // Not available in backend yet
         createdAt: new Date(post.createdDate),
         liked: false // Will need to check user reactions
       }));
@@ -135,7 +131,7 @@ export default function UserProfilePage() {
       setPosts(transformedPosts);
     } catch (err) {
       console.error('Error fetching user data:', err);
-      setError('Failed to load user profile. Please try again.');
+      setError('Không thể tải hồ sơ người dùng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -157,14 +153,14 @@ export default function UserProfilePage() {
     }
   };  const handleAddFriend = async () => {
     if (!userData || !currentUser) {
-      setError('Unable to send friend request. Please try again.');
+      setError('Không thể gửi lời mời kết bạn. Vui lòng thử lại.');
       return;
     }
 
     // Extra safety check to prevent self-friend requests
     if (currentUser.id === userData.id) {
       console.warn('Attempted to send friend request to self');
-      setError('Cannot send friend request to yourself.');
+      setError('Không thể gửi lời mời kết bạn cho chính mình.');
       return;
     }
 
@@ -192,30 +188,28 @@ export default function UserProfilePage() {
       await FriendService.sendFriendRequest(userData.id);
       setFriendRequestSent(true);
       setError(''); // Clear any errors on success
-      
-      // Show success message briefly
-      const successMessage = `Friend request sent to ${userData.displayName || userData.username}!`;
+        // Show success message briefly
+      const successMessage = `Đã gửi lời mời kết bạn đến ${userData.displayName || userData.username}!`;
       console.log(successMessage);
       
     } catch (err: any) {
       console.error('Error sending friend request:', err);
       
       // Extract meaningful error message
-      let errorMessage = 'Failed to send friend request. Please try again.';
-      
-      if (err.message) {
+      let errorMessage = 'Không thể gửi lời mời kết bạn. Vui lòng thử lại.';
+        if (err.message) {
         if (err.message.includes('already exists') || err.message.includes('duplicate')) {
-          errorMessage = 'Friend request already exists or you are already friends.';
+          errorMessage = 'Lời mời kết bạn đã tồn tại hoặc bạn đã là bạn bè.';
         } else if (err.message.includes('Authentication failed') || err.message.includes('not authenticated')) {
-          errorMessage = 'Please log in again to send friend requests.';
+          errorMessage = 'Vui lòng đăng nhập lại để gửi lời mời kết bạn.';
         } else if (err.message.includes('not found')) {
-          errorMessage = 'User not found.';
+          errorMessage = 'Không tìm thấy người dùng.';
         } else if (err.message.includes('permission')) {
-          errorMessage = 'You do not have permission to send friend requests.';
+          errorMessage = 'Bạn không có quyền gửi lời mời kết bạn.';
         } else if (err.message.includes('too many requests')) {
-          errorMessage = 'Too many requests. Please wait before trying again.';
+          errorMessage = 'Quá nhiều yêu cầu. Vui lòng đợi trước khi thử lại.';
         } else if (err.message.includes('blocked')) {
-          errorMessage = 'Unable to send friend request to this user.';
+          errorMessage = 'Không thể gửi lời mời kết bạn đến người dùng này.';
         } else {
           errorMessage = err.message;
         }
@@ -264,7 +258,7 @@ export default function UserProfilePage() {
                   className="mt-2"
                   color="primary"
                 >
-                  Try Again
+                  Thử lại
                 </Button>
               </div>
             </div>
@@ -283,13 +277,12 @@ export default function UserProfilePage() {
           <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
             <div className="max-w-2xl mx-auto">
               <div className="text-center p-4">
-                <p className="text-gray-500 dark:text-gray-400">User not found</p>
-                <Button 
+                <p className="text-gray-500 dark:text-gray-400">Không tìm thấy người dùng</p>                <Button 
                   onClick={() => router.push('/search')}
                   className="mt-2"
                   color="primary"
                 >
-                  Search Users
+                  Tìm kiếm người dùng
                 </Button>
               </div>
             </div>
@@ -348,39 +341,35 @@ export default function UserProfilePage() {
                         startContent={<UserPlus size={16} />}
                         onClick={handleAddFriend}
                         isLoading={addingFriend}
-                        size="sm"
-                      >
-                        Add Friend
+                        size="sm"                      >
+                        Kết bạn
                       </Button>
                     )}
                     {friendRequestSent && (
                       <Button
                         color="default"
                         variant="flat"
-                        size="sm"
-                        disabled
+                        size="sm"                        disabled
                       >
-                        Request Sent
+                        Đã gửi yêu cầu
                       </Button>
                     )}
                     {isFriend && (
                       <Button
                         color="success"
                         variant="flat"
-                        size="sm"
-                        disabled
+                        size="sm"                        disabled
                       >
-                        Friends
+                        Bạn bè
                       </Button>
                     )}
                     <Button
                       color="primary"
                       variant="flat"
                       startContent={<MessageCircle size={16} />}
-                      onClick={handleMessage}
-                      size="sm"
+                      onClick={handleMessage}                      size="sm"
                     >
-                      Message
+                      Nhắn tin
                     </Button>
                     <Button
                       isIconOnly
@@ -402,9 +391,8 @@ export default function UserProfilePage() {
 
             {/* Profile Tabs */}
             <Card>
-              <CardBody>
-                <Tabs aria-label="Profile options" fullWidth>
-                  <Tab key="posts" title={`Posts (${posts.length})`}>
+              <CardBody>                <Tabs aria-label="Tùy chọn hồ sơ" fullWidth>
+                  <Tab key="posts" title={`Bài viết (${posts.length})`}>
                     <div className="space-y-4 mt-4">
                       {posts.length > 0 ? (
                         posts.map((post) => (
@@ -414,11 +402,9 @@ export default function UserProfilePage() {
                             authorName={post.authorName}
                             authorUsername={post.authorUsername}
                             authorAvatar={post.authorAvatar}
-                            content={post.content}
-                            image={post.image}
+                            content={post.content}                            image={post.image}
                             likes={post.likes}
                             comments={post.comments}
-                            shares={post.shares}
                             createdAt={post.createdAt}
                             liked={post.liked}
                           />
@@ -426,16 +412,16 @@ export default function UserProfilePage() {
                       ) : (
                         <div className="text-center py-8">
                           <p className="text-gray-500 dark:text-gray-400">
-                            No posts yet
+                            Chưa có bài viết nào
                           </p>
                         </div>
                       )}
                     </div>
                   </Tab>
-                  <Tab key="about" title="About">
+                  <Tab key="about" title="Giới thiệu">
                     <div className="mt-4 space-y-4">
                       <div>
-                        <h3 className="font-semibold mb-2">Profile Information</h3>
+                        <h3 className="font-semibold mb-2">Thông tin hồ sơ</h3>
                         <div className="space-y-2 text-sm">
                           <div>
                             <span className="font-medium">Username:</span> @{userData.username}

@@ -218,37 +218,9 @@ export default function MessagesPage() {
       // Set first room as active if available
       if (rooms.length > 0) {
         setActiveChat(rooms[0].id);
-      }
-    } catch (err) {
+      }    } catch (err) {
       console.error('Error fetching chat rooms:', err);
-      setError('Failed to load chat rooms. Please try again.');
-      
-      // Fallback to mock data
-      const mockRooms: ChatRoom[] = [
-        {
-          id: 1,
-          roomName: "Jane Smith",
-          isGroupChat: false,
-          createdDate: new Date().toISOString(),
-          participants: [
-            { id: 2, username: "janesmith", displayName: "Jane Smith", profilePicture: "https://i.pravatar.cc/150?u=janesmith" }
-          ]
-        },
-        {
-          id: 2,
-          roomName: "Project Team",
-          isGroupChat: true,
-          createdDate: new Date().toISOString(),
-          participants: [
-            { id: 3, username: "alice", displayName: "Alice Johnson", profilePicture: "https://i.pravatar.cc/150?u=alicej" },
-            { id: 4, username: "bob", displayName: "Bob Wilson", profilePicture: "https://i.pravatar.cc/150?u=bobw" }
-          ]
-        }
-      ];
-      setChatRooms(mockRooms);
-      if (mockRooms.length > 0) {
-        setActiveChat(mockRooms[0].id);
-      }
+      setError('Không thể tải phòng trò chuyện. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -256,32 +228,9 @@ export default function MessagesPage() {
   const fetchMessages = async (roomId: number) => {
     try {
       const roomMessages = await ChatService.getMessagesByRoomId(roomId);
-      setMessages(roomMessages);
-    } catch (err) {
+      setMessages(roomMessages);    } catch (err) {
       console.error('Error fetching messages:', err);
-      setError('Failed to load messages.');
-      
-      // Fallback to mock messages
-      const mockMessages: Message[] = [
-        {
-          id: 1,
-          roomId: roomId,
-          senderId: 2,
-          content: "Hey, how are you?",
-          messageType: "TEXT",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          sender: { id: 2, username: "janesmith", displayName: "Jane Smith" }
-        },
-        {
-          id: 2,
-          roomId: roomId,
-          senderId: currentUserId,
-          content: "I'm good! Just working on the new project",
-          messageType: "TEXT",
-          timestamp: new Date(Date.now() - 3000000).toISOString()
-        }
-      ];
-      setMessages(mockMessages);
+      setError('Không thể tải tin nhắn.');
     }
   };const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeChat) return;
@@ -332,7 +281,7 @@ export default function MessagesPage() {
       }
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Failed to send message. Please try again.');
+      setError('Không thể gửi tin nhắn. Vui lòng thử lại.');
       
       // Remove the failed message status
       setMessageDeliveryStatus(prev => {
@@ -414,32 +363,36 @@ export default function MessagesPage() {
 
   const getLastMessageForRoom = (roomId: number): string => {
     // In a real app, this would come from the API
-    return "No messages yet";
+    return "Chưa có tin nhắn nào";
   };
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
-    if (diffHours < 1) return "Now";
+    if (diffHours < 1) return "Bây giờ";
     if (diffHours < 24) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (diffHours < 48) return "Yesterday";
-    return date.toLocaleDateString();  };
+    if (diffHours < 48) return "Hôm qua";
+    return date.toLocaleDateString('vi-VN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });  };
 
   // Transform Message to ChatMessage for UI compatibility
   const transformMessage = (message: Message): ChatMessage => {
     const isCurrentUser = message.senderId === currentUserId;
-    let senderName = 'Unknown';
+    let senderName = 'Không xác định';
     
     if (isCurrentUser) {
       senderName = 'tôi'; // Show "tôi" for current user messages
     } else if (message.sender) {
-      senderName = message.sender.displayName || message.sender.username || 'Unknown';
+      senderName = message.sender.displayName || message.sender.username || 'Không xác định';
     } else {
       // Try to find sender info from chat room participants
       const sender = activeChatRoom?.participants?.find(p => p.id === message.senderId);
       if (sender) {
-        senderName = sender.displayName || sender.username || 'Unknown';
+        senderName = sender.displayName || sender.username || 'Không xác định';
       }
     }
     
@@ -451,19 +404,16 @@ export default function MessagesPage() {
     
     let shortTimestamp: string;
     let fullTimestamp: string;
-    
-    if (messageDay.getTime() === today.getTime()) {
+      if (messageDay.getTime() === today.getTime()) {
       // Today - show only time
       shortTimestamp = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      fullTimestamp = `Today at ${messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (messageDay.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
-      // Yesterday
-      shortTimestamp = "Yesterday";
-      fullTimestamp = `Yesterday at ${messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      fullTimestamp = `Hôm nay lúc ${messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (messageDay.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {// Hôm qua
+      shortTimestamp = "Hôm qua";
+      fullTimestamp = `Hôm qua lúc ${messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     } else {
       // Older - show date
-      shortTimestamp = messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-      fullTimestamp = messageDate.toLocaleString([], { 
+      shortTimestamp = messageDate.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });      fullTimestamp = messageDate.toLocaleString('vi-VN', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric', 
@@ -474,7 +424,7 @@ export default function MessagesPage() {
     
     return {
       id: message.id?.toString() || '0',
-      senderId: message.senderId?.toString() || 'unknown',
+      senderId: message.senderId?.toString() || 'không xác định',
       originalSenderId: message.senderId || 0, // Store original numeric senderId
       senderName: senderName,
       text: message.content || '',
@@ -501,7 +451,7 @@ export default function MessagesPage() {
         <main className="flex-1 ml-0 md:ml-64 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading messages...</p>
+            <p className="text-gray-600 dark:text-gray-400">Đang tải tin nhắn...</p>
           </div>
         </main>
       </div>

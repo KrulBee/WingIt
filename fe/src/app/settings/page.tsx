@@ -316,7 +316,7 @@ export default function SettingsPage() {
         {/* Settings Tabs */}
         <div className="w-full">
           <Tabs 
-            aria-label="Settings tabs" 
+            aria-label="Tab cài đặt" 
             selectedKey={activeTab}
             onSelectionChange={(key) => setActiveTab(key as string)}
             variant="underlined"

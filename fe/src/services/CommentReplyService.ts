@@ -358,15 +358,18 @@ class CommentReplyService {
 
   /**
    * Format reply for display
-   */
-  formatReplyForDisplay(reply: CommentReply): string {
-    const user = reply.user?.username || 'Unknown User';
-    const date = new Date(reply.createdAt).toLocaleDateString();
+   */  formatReplyForDisplay(reply: CommentReply): string {
+    const user = reply.user?.username || 'Người dùng không xác định';
+    const date = new Date(reply.createdAt).toLocaleDateString('vi-VN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     const preview = reply.content.length > 50 ? 
       reply.content.substring(0, 50) + '...' : 
       reply.content;
     
-    return `${user} replied on ${date}: ${preview}`;
+    return `${user} đã trả lời vào ${date}: ${preview}`;
   }
 
   /**

@@ -91,15 +91,14 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
       setCroppedFiles([]);
     }
   };
-
   const getButtonText = () => {
     switch (type) {
       case 'profile':
-        return 'Select Profile Image';
+        return 'Chọn ảnh đại diện';
       case 'cover':
-        return 'Select Cover Photo';
+        return 'Chọn ảnh bìa';
       default:
-        return 'Add Images';
+        return 'Thêm ảnh';
     }
   };
 
@@ -132,7 +131,7 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
             disabled={isLoading}
             className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
           >
-            {isLoading ? 'Uploading...' : 'Upload'}
+            {isLoading ? 'Đang tải lên...' : 'Tải lên'}
           </button>
         )}
       </div>
@@ -174,10 +173,9 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
           ))}
         </div>
       )}
-      
-      {type === 'post' && (
+        {type === 'post' && (
         <p className="text-sm text-gray-500 mt-1">
-          {previews.length}/{maxFiles} images selected
+          {previews.length}/{maxFiles} ảnh đã chọn
         </p>
       )}
 

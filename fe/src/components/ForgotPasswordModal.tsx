@@ -37,10 +37,10 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
       if (response.ok) {
         setSuccess(true);
       } else {
-        setError(data.error || 'Failed to send reset email');
+        setError(data.error || 'Không thể gửi email đặt lại mật khẩu');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Lỗi mạng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -65,24 +65,22 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
       isDismissable={true}
       isKeyboardDismissDisabled={false}
     >
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
+      <ModalContent>        <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Mail size={24} className="text-blue-600" />
-            <span>Forgot Password</span>
+            <span>Quên mật khẩu</span>
           </div>
-        </ModalHeader>        <ModalBody>
+        </ModalHeader><ModalBody>
           {!success ? (
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-4">              <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Enter your email address and we'll send you a link to reset your password.
+                  Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.
                 </p>
                 
                 <Input
                   type="email"
-                  label="Email Address"
-                  placeholder="Enter your email"
+                  label="Địa chỉ email"
+                  placeholder="Nhập email của bạn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   variant="bordered"
@@ -102,12 +100,11 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
             <div className="text-center space-y-4">
               <div className="flex justify-center">
                 <CheckCircle size={48} className="text-green-500" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-green-600">Email Sent!</h3>
+              </div>              <div>
+                <h3 className="text-lg font-semibold text-green-600">Email đã được gửi!</h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  If an account with that email exists, you will receive a password reset link shortly.
-                  Please check your inbox and spam folder.
+                  Nếu tài khoản với email đó tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu trong thời gian ngắn.
+                  Vui lòng kiểm tra hộp thư đến và thư mục spam.
                 </p>
               </div>
             </div>
@@ -116,22 +113,20 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
 
         <ModalFooter>
           {!success ? (
-            <>
-              <Button variant="light" onPress={handleClose} isDisabled={loading}>
-                Cancel
-              </Button>              <Button
+            <>              <Button variant="light" onPress={handleClose} isDisabled={loading}>
+                Hủy
+              </Button>
+              <Button
                 color="primary"
                 onPress={handleSubmit}
                 isLoading={loading}
                 isDisabled={!email || loading}
                 startContent={!loading && <Mail size={16} />}
               >
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                {loading ? 'Đang gửi...' : 'Gửi liên kết đặt lại'}
               </Button>
-            </>
-          ) : (
-            <Button color="primary" onPress={handleClose}>
-              Close
+            </>          ) : (            <Button color="primary" onPress={handleClose}>
+              Đóng
             </Button>
           )}
         </ModalFooter>

@@ -70,10 +70,9 @@ export default function AuthCallback() {
                 <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-red-600">Authentication Failed</h2>
+              </div>              <h2 className="text-xl font-semibold text-red-600">Xác thực thất bại</h2>
               <p className="text-gray-600">{message}</p>
-              <p className="text-sm text-gray-500">Redirecting to login page...</p>
+              <p className="text-sm text-gray-500">Đang chuyển hướng đến trang đăng nhập...</p>
             </div>
           )}
         </div>

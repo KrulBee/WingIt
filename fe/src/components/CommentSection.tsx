@@ -51,13 +51,11 @@ export default function CommentSection({
         ]);
 
         // Recursively transform nested replies
-        const nestedReplies = await transformRepliesRecursively(reply.replies || [], reply.id.toString());
-
-        return {
+        const nestedReplies = await transformRepliesRecursively(reply.replies || [], reply.id.toString());        return {
           id: reply.id.toString(),
           content: reply.text,
-          authorName: reply.author?.displayName || reply.author?.username || 'Unknown User',
-          authorUsername: reply.author?.username || 'unknown',
+          authorName: reply.author?.displayName || reply.author?.username || 'Người dùng không xác định',
+          authorUsername: reply.author?.username || 'không xác định',
           authorAvatar: reply.author?.profilePicture || "",
           likes: replyLikeCount,
           dislikes: replyDislikeCount,
@@ -94,10 +92,9 @@ export default function CommentSection({
           const transformedReplies = await transformRepliesRecursively(apiComment.replies || [], apiComment.id.toString());
 
           return {
-            id: apiComment.id.toString(),
-            content: apiComment.text, // API uses 'text' field
-            authorName: apiComment.author?.displayName || apiComment.author?.username || 'Unknown User',
-            authorUsername: apiComment.author?.username || 'unknown',
+            id: apiComment.id.toString(),            content: apiComment.text, // API uses 'text' field
+            authorName: apiComment.author?.displayName || apiComment.author?.username || 'Người dùng không xác định',
+            authorUsername: apiComment.author?.username || 'không xác định',
             authorAvatar: apiComment.author?.profilePicture || "",
             likes: likeCount,
             dislikes: dislikeCount,

@@ -118,9 +118,8 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               radius="full" 
               size="md" 
               src={currentUser?.profilePicture || avatarBase64}
-            />
-            <Textarea
-              placeholder="What's on your mind?"
+            />            <Textarea
+              placeholder="Bạn đang nghĩ gì?"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               fullWidth
@@ -129,7 +128,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               variant="bordered"
               classNames={{
                 input: "text-sm",
-              }}            />          </div>
+              }}            /></div>
 
           {showMediaUpload && (
             <div className="mt-4">
@@ -186,10 +185,9 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
           {mediaUrls.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-4">
               {mediaUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img 
+                <div key={index} className="relative">                  <img 
                     src={url} 
-                    alt={`Post media ${index + 1}`}
+                    alt={`Hình ảnh bài viết ${index + 1}`}
                     className="rounded object-cover w-full h-32"
                   />
                   <Button

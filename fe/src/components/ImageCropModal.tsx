@@ -129,12 +129,12 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
         {(onClose) => (
           <>            <ModalHeader className="flex flex-col gap-1">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Crop {cropType === 'profile' ? 'Profile Picture' : 'Cover Photo'}
+                Cắt {cropType === 'profile' ? 'Ảnh đại diện' : 'Ảnh bìa'}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {cropType === 'profile' 
-                  ? 'Adjust your profile picture to fit perfectly'
-                  : 'Adjust your cover photo to fit the banner area'
+                  ? 'Điều chỉnh ảnh đại diện để phù hợp hoàn hảo'
+                  : 'Điều chỉnh ảnh bìa để phù hợp với khu vực banner'
                 }
               </p>
             </ModalHeader>
@@ -142,7 +142,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
               <div className="space-y-4">
                 {/* Crop Controls */}                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Scale</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Tỷ lệ</label>
                     <Slider 
                       size="sm"
                       step={0.1}
@@ -159,7 +159,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Rotate</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Xoay</label>
                     <Slider 
                       size="sm"
                       step={1}
@@ -217,14 +217,14 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
                 variant="light" 
                 onPress={onClose}
               >
-                Cancel
+                Hủy
               </Button>
               <Button 
                 color="primary" 
                 onPress={handleCropSave}
                 isDisabled={!completedCrop}
               >
-                Apply Crop
+                Áp dụng cắt ảnh
               </Button>
             </ModalFooter>
           </>

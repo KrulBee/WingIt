@@ -5,6 +5,7 @@ import * as Components from '../../components/LoginComponents';
 import { useRouter } from 'next/navigation';
 import AuthService from '../../services/AuthService';
 import ForgotPasswordModal from '../../components/ForgotPasswordModal';
+import ClientOnly from '../../components/ClientOnly';
 
 interface CustomError {
   response?: {
@@ -76,8 +77,7 @@ export default function Auth() {
     try {
       const response = await AuthService.signin({ username, password });
       console.log('🎯 Login response received:', response);
-      
-      // Only redirect if login was actually successful
+        // Only redirect if login was actually successful
       if (response && response.token) {
         console.log('✅ LOGIN SUCCESSFUL!');
         console.log('🎫 JWT Token received:', response.token.substring(0, 20) + '...');
@@ -87,13 +87,37 @@ export default function Auth() {
           console.log('👤 User data:', response.user);
           localStorage.setItem('user', JSON.stringify(response.user));
         }
-          console.log('🏠 Redirecting to home page in 2 seconds...');
-        setSuccessMessage('✅ Đăng nhập thành công! Đang chuyển hướng đến trang chủ...');
-        
-        setTimeout(() => {
-          console.log('🚀 Navigating to /home');
-          router.push('/home');
-        }, 2000);
+
+        // Check if user has admin access
+        try {
+          const AdminService = (await import('../../services/AdminService')).default;
+          const adminAccess = await AdminService.checkAdminAccess();
+          
+          if (adminAccess.hasAdminAccess || adminAccess.hasFullAdminAccess) {
+            console.log('👑 Admin user detected, redirecting to admin panel...');
+            setSuccessMessage('✅ Đăng nhập thành công! Đang chuyển hướng đến trang quản trị...');
+              setTimeout(() => {
+              console.log('🚀 Navigating to /admin');
+              router.push('/admin');
+            }, 2000);
+          } else {
+            console.log('🏠 Regular user, redirecting to home page...');
+            setSuccessMessage('✅ Đăng nhập thành công! Đang chuyển hướng đến trang chủ...');
+            
+            setTimeout(() => {
+              console.log('🚀 Navigating to /home');
+              router.push('/home');
+            }, 2000);
+          }
+        } catch (adminError) {
+          console.log('⚠️ Could not check admin access, defaulting to home:', adminError);
+          setSuccessMessage('✅ Đăng nhập thành công! Đang chuyển hướng đến trang chủ...');
+          
+          setTimeout(() => {
+            console.log('🚀 Navigating to /home');
+            router.push('/home');
+          }, 2000);
+        }
       } else {
         console.log('❌ Login failed: Invalid response structure');
         throw new Error('Phản hồi không hợp lệ từ máy chủ');
@@ -184,15 +208,33 @@ export default function Auth() {
       error !== null &&
       (error as CustomError).response !== undefined
     );
-  }
-
-  return (
-    <div style={{height: '100vh', width: '100vw', alignItems:'center', display: 'flex',justifyContent: 'center', backgroundColor: '#ffffff'}}>      <Components.Container>        <Components.SignUpContainer $signIn={signIn}>
-          <Components.Form onSubmit={handleSignUp}>
+  }  return (
+    <ClientOnly fallback={
+      <div style={{
+        height: "100vh",
+        width: "100vw",
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "center",
+        background: "linear-gradient(to right, #7700ff, #0088ff)"
+      }}>
+        <div style={{
+          backgroundColor: '#fff',
+          borderRadius: '10px',
+          padding: '40px',
+          textAlign: 'center',
+          color: '#333'
+        }}>
+          <h2>Đang tải...</h2>
+        </div>
+      </div>
+    }>
+      <div style={{height: '100vh', width: '100vw', alignItems:'center', display: 'flex',justifyContent: 'center', backgroundColor: '#ffffff'}} suppressHydrationWarning>
+        <Components.Container suppressHydrationWarning>        <Components.SignUpContainer $signIn={signIn} suppressHydrationWarning>
+          <Components.Form onSubmit={handleSignUp} suppressHydrationWarning>
             <Components.Title style={{color: '#0088ff', fontSize: '40px'}}>Đăng Ký</Components.Title>
             {errorMessage && <p style={{ color: 'red', margin: '10px 0' }}>{errorMessage}</p>}
-            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}
-            {loading && <p style={{ color: '#0088ff', margin: '10px 0' }}>🔄 Đang đăng ký...</p>}
+            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}            {loading && <p style={{ color: '#0088ff', margin: '10px 0' }}>🔄 Đang đăng ký...</p>}
             <Components.Input 
               type='text' 
               placeholder='Tên đăng nhập' 
@@ -200,6 +242,7 @@ export default function Auth() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
               style={{color: '#000000'}}
               disabled={loading}
+              suppressHydrationWarning
             />
             <Components.Input 
               type='password' 
@@ -208,6 +251,7 @@ export default function Auth() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               style={{color: '#000000'}}
               disabled={loading}
+              suppressHydrationWarning
             />
             <Components.Input 
               type='password' 
@@ -216,15 +260,15 @@ export default function Auth() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
               style={{color: '#000000'}}
               disabled={loading}
-            />            <Components.Button disabled={loading}>
+              suppressHydrationWarning
+            />            <Components.Button disabled={loading} suppressHydrationWarning>
               {loading ? '🔄 Đang đăng ký...' : 'Đăng Ký'}
             </Components.Button>
             
             <Components.OrDivider>
               <span>Hoặc</span>
             </Components.OrDivider>
-            
-            <Components.GoogleButton type="button" onClick={handleGoogleLogin} disabled={loading}>
+              <Components.GoogleButton type="button" onClick={handleGoogleLogin} disabled={loading} suppressHydrationWarning>
               <svg viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -234,12 +278,11 @@ export default function Auth() {
               Đăng ký với Google
             </Components.GoogleButton>
           </Components.Form>
-        </Components.SignUpContainer><Components.SignInContainer $signIn={signIn}>
-          <Components.Form onSubmit={handleSignIn}>
+        </Components.SignUpContainer>        <Components.SignInContainer $signIn={signIn} suppressHydrationWarning>
+          <Components.Form onSubmit={handleSignIn} suppressHydrationWarning>
             <Components.Title style={{color: '#7700ff', fontSize: '40px'}}>Đăng Nhập</Components.Title>
             {errorMessage && <p style={{ color: 'red', margin: '10px 0' }}>{errorMessage}</p>}
-            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}
-            {loading && <p style={{ color: '#7700ff', margin: '10px 0' }}>🔄 {signIn ? 'Đang đăng nhập...' : 'Đang đăng ký...'}</p>}
+            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}            {loading && <p style={{ color: '#7700ff', margin: '10px 0' }}>🔄 {signIn ? 'Đang đăng nhập...' : 'Đang đăng ký...'}</p>}
             <Components.Input 
               type='text' 
               placeholder='Tên đăng nhập' 
@@ -247,6 +290,7 @@ export default function Auth() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
               style={{color: '#000000'}}
               disabled={loading}
+              suppressHydrationWarning
             />
             <Components.Input 
               type='password' 
@@ -255,7 +299,8 @@ export default function Auth() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               style={{color: '#000000'}}
               disabled={loading}
-            />            <Components.Button style={{background:'#7700ff'}} disabled={loading}>
+              suppressHydrationWarning
+            />            <Components.Button style={{background:'#7700ff'}} disabled={loading} suppressHydrationWarning>
               {loading ? '🔄 Đang đăng nhập...' : 'Đăng Nhập'}
             </Components.Button>
             
@@ -280,9 +325,8 @@ export default function Auth() {
             
             <Components.OrDivider>
               <span>Hoặc</span>
-            </Components.OrDivider>
-            
-            <Components.GoogleButton type="button" onClick={handleGoogleLogin} disabled={loading}>
+            </Components.OrDivider>            
+            <Components.GoogleButton type="button" onClick={handleGoogleLogin} disabled={loading} suppressHydrationWarning>
               <svg viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -313,12 +357,12 @@ export default function Auth() {
               </Components.GhostButton>
             </Components.RightOverlayPanel>          </Components.Overlay>
         </Components.OverlayContainer>
-      </Components.Container>
-      
+      </Components.Container>      
       <ForgotPasswordModal 
         isOpen={showForgotPassword} 
         onClose={() => setShowForgotPassword(false)} 
       />
-    </div>
+      </div>
+    </ClientOnly>
   );
 }

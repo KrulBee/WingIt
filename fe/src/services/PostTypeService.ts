@@ -160,35 +160,30 @@ class PostTypeService {
       throw error;
     }
   }
-
   // Get default post types (common ones like "text", "image", "video")
   getDefaultPostTypes(): string[] {
-    return ['text', 'image', 'video', 'poll', 'event', 'share'];
+    return ['text', 'image', 'video', 'poll', 'event'];
   }
 
   // Get post type display name (for UI)
-  getPostTypeDisplayName(typeName: string): string {
-    const displayNames: { [key: string]: string } = {
+  getPostTypeDisplayName(typeName: string): string {    const displayNames: { [key: string]: string } = {
       'text': 'Text Post',
       'image': 'Photo Post',
       'video': 'Video Post',
       'poll': 'Poll',
       'event': 'Event',
-      'share': 'Shared Post',
     };
     
     return displayNames[typeName.toLowerCase()] || typeName;
   }
 
   // Get post type icon (for UI)
-  getPostTypeIcon(typeName: string): string {
-    const icons: { [key: string]: string } = {
+  getPostTypeIcon(typeName: string): string {    const icons: { [key: string]: string } = {
       'text': '📝',
       'image': '📷',
       'video': '🎥',
       'poll': '📊',
       'event': '📅',
-      'share': '🔄',
     };
     
     return icons[typeName.toLowerCase()] || '📄';

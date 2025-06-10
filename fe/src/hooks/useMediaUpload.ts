@@ -89,7 +89,7 @@ export const useMediaUpload = () => {
         return data.urls;
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during upload');
+      setError(err.message || 'Đã xảy ra lỗi trong quá trình tải lên');
       return [];
     } finally {
       setIsLoading(false);
@@ -126,7 +126,7 @@ export const useMediaUpload = () => {
       
       return true;
     } catch (err: any) {
-      setError(err.message || 'An error occurred during deletion');
+      setError(err.message || 'Đã xảy ra lỗi trong quá trình xóa');
       return false;
     } finally {
       setIsLoading(false);

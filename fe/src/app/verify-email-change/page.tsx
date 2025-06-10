@@ -15,7 +15,7 @@ export default function VerifyEmailChangePage() {
 
   useEffect(() => {
     if (!token) {
-      setError('Invalid verification link');
+      setError('Liên kết xác minh không hợp lệ');
       setLoading(false);
       return;
     }
@@ -29,7 +29,7 @@ export default function VerifyEmailChangePage() {
       await UserService.verifyEmailChange(token!);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to verify email change');
+      setError(err.message || 'Không thể xác minh thay đổi email');
     } finally {
       setLoading(false);
     }
@@ -53,9 +53,8 @@ export default function VerifyEmailChangePage() {
                 <Spinner size="lg" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-2">Verifying Email Change</h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please wait while we verify your new email address...
+                <h2 className="text-xl font-semibold mb-2">Đang xác minh thay đổi email</h2>                <p className="text-gray-600 dark:text-gray-400">
+                  Vui lòng đợi trong khi chúng tôi xác minh địa chỉ email mới của bạn...
                 </p>
               </div>
             </>
@@ -66,26 +65,24 @@ export default function VerifyEmailChangePage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-green-600 mb-2">
-                  Email Successfully Changed!
+                  Email đã được thay đổi thành công!
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Your email address has been successfully updated. You can now use your new email address to log in.
+                  Địa chỉ email của bạn đã được cập nhật thành công. Bây giờ bạn có thể sử dụng địa chỉ email mới để đăng nhập.
                 </p>
               </div>
               <div className="space-y-2">
                 <Button 
                   color="primary" 
                   className="w-full"
-                  onPress={handleGoToSettings}
-                >
-                  Go to Settings
+                  onPress={handleGoToSettings}                >                  Đi tới Cài đặt
                 </Button>
                 <Button 
                   variant="light" 
                   className="w-full"
                   onPress={handleGoHome}
                 >
-                  Go to Home
+                  Về trang chủ
                 </Button>
               </div>
             </>
@@ -94,9 +91,8 @@ export default function VerifyEmailChangePage() {
               <div className="flex justify-center">
                 <XCircle size={64} className="text-red-500" />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-red-600 mb-2">
-                  Verification Failed
+              <div>                <h2 className="text-xl font-semibold text-red-600 mb-2">
+                  Xác minh thất bại
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   {error}
@@ -107,15 +103,14 @@ export default function VerifyEmailChangePage() {
                   color="primary" 
                   className="w-full"
                   onPress={handleGoToSettings}
-                >
-                  Try Again in Settings
+                >                  Thử lại trong Cài đặt
                 </Button>
                 <Button 
                   variant="light" 
                   className="w-full"
                   onPress={handleGoHome}
                 >
-                  Go to Home
+                  Về trang chủ
                 </Button>
               </div>
             </>

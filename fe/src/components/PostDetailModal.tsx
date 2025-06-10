@@ -22,6 +22,7 @@ import {
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
 import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
 import { PostReactionService, BookmarkService, ReactionTypeService, viewService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
@@ -35,13 +36,11 @@ interface PostDetailModalProps {
     authorName: string;
     authorUsername: string;
     authorAvatar?: string;
-    content: string;
-    image?: string;
+    content: string;    image?: string;
     images?: string[];
     likes: number;
     dislikes?: number;
     comments: number;
-    shares: number;
     createdAt: Date;
     liked?: boolean;
     disliked?: boolean;
@@ -304,9 +303,8 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                     />
                     <div className="flex flex-col">
                       <h4 className="text-sm font-semibold">{post.authorName}</h4>
-                      <p className="text-xs text-gray-500">@{post.authorUsername}</p>
-                      <p className="text-xs text-gray-400">
-                        {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                      <p className="text-xs text-gray-500">@{post.authorUsername}</p>                      <p className="text-xs text-gray-400">
+                        {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: vi })}
                       </p>
                     </div>
                   </div>
@@ -317,7 +315,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                         <MoreHorizontal size={20} />
                       </Button>
                     </DropdownTrigger>
-                    <DropdownMenu aria-label="Post actions">
+                    <DropdownMenu aria-label="Hành động bài viết">
                       <DropdownItem
                         key="bookmark"
                         onClick={handleBookmark}

@@ -538,35 +538,15 @@ class ViewService {
 
       if (response.ok) {
         const data = await response.json();
-        return data;
-      } else {
+        return data;      } else {
         console.warn('Failed to fetch top locations from backend:', response.statusText);
-        // Return mock data as fallback
-        return this.getMockLocationData(limit);
+        // Return empty array if backend fails
+        return [];
       }
     } catch (error) {
-      console.warn('Failed to fetch top locations, using fallback data:', error);
-      return this.getMockLocationData(limit);
+      console.warn('Failed to fetch top locations:', error);
+      return [];
     }
-  }
-
-  /**
-   * Mock location data for fallback
-   */
-  private getMockLocationData(limit: number = 5): Array<{
-    locationId: number;
-    locationName: string;
-    viewCount: number;
-    uniqueViewers: number;
-  }> {
-    const mockLocations = [
-      { locationId: 1, locationName: 'Hà Nội', viewCount: 150, uniqueViewers: 45 },
-      { locationId: 2, locationName: 'Hồ Chí Minh', viewCount: 120, uniqueViewers: 38 },
-      { locationId: 4, locationName: 'Đà Nẵng', viewCount: 89, uniqueViewers: 32 },
-      { locationId: 3, locationName: 'Hải Phòng', viewCount: 67, uniqueViewers: 25 },
-      { locationId: 5, locationName: 'Cần Thơ', viewCount: 54, uniqueViewers: 22 }
-    ];
-    return mockLocations.slice(0, limit);
   }
 
   /**

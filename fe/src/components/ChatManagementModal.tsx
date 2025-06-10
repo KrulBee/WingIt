@@ -101,26 +101,32 @@ export default function ChatManagementModal({
         fetchFriends();
       }
     }
-  }, [isOpen, chatRoom]);
-
-  const fetchParticipants = async () => {
+  }, [isOpen, chatRoom]);  const fetchParticipants = async () => {
     if (!chatRoom) return;
     
     try {
       setLoading(true);
-      // Mock participants for now - replace with actual API call
-      const mockParticipants: RoomUser[] = chatRoom.participants?.map((user, index) => ({
-        id: index + 1,
-        user,
-        role: user.id === currentUserId ? 'ADMIN' : index === 0 ? 'MODERATOR' : 'MEMBER',
-        joinedAt: new Date().toISOString(),
-        isMuted: false
-      })) || [];
+      // Fetch actual participants from the API
+      const roomUserService = (await import('../services/RoomUserService')).default;
+      const response = await roomUserService.getRoomUsers(chatRoom.id);
       
-      setParticipants(mockParticipants);
+      const participants: RoomUser[] = response.roomUsers.map(roomUser => ({
+        id: roomUser.id,
+        user: {
+          id: roomUser.user?.id || 0,
+          username: roomUser.user?.username || 'unknown',
+          displayName: roomUser.user?.username,
+          profilePicture: roomUser.user?.profilePicture
+        },
+        role: roomUser.role,
+        joinedAt: roomUser.joinedAt,
+        isMuted: roomUser.isMuted
+      }));
+      
+      setParticipants(participants);
     } catch (err) {
       console.error('Error fetching participants:', err);
-      setError('Failed to load participants');
+      setError('Không thể tải danh sách thành viên');
     } finally {
       setLoading(false);
     }
@@ -148,13 +154,12 @@ export default function ChatManagementModal({
       };
 
       const updatedChat = await ChatService.updateChatRoom(chatRoom.id, updateData);
-      onChatUpdated(updatedChat);
-      setSuccess('Chat information updated successfully');
+      onChatUpdated(updatedChat);      setSuccess('Thông tin cuộc trò chuyện đã được cập nhật thành công');
       
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Error updating chat:', err);
-      setError('Failed to update chat information');
+      setError('Không thể cập nhật thông tin cuộc trò chuyện');
     } finally {
       setLoading(false);
     }
@@ -165,12 +170,11 @@ export default function ChatManagementModal({
 
     try {
       await ChatService.addUserToChatRoom(chatRoom.id, friendId);
-      fetchParticipants(); // Refresh participants
-      setSuccess('User added to chat');
+      fetchParticipants(); // Refresh participants      setSuccess('Người dùng đã được thêm vào cuộc trò chuyện');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Error adding participant:', err);
-      setError('Failed to add user to chat');
+      setError('Không thể thêm người dùng vào cuộc trò chuyện');
     }
   };
 
@@ -179,12 +183,11 @@ export default function ChatManagementModal({
 
     try {
       await ChatService.removeUserFromChatRoom(chatRoom.id, userId);
-      setParticipants(prev => prev.filter(p => p.user.id !== userId));
-      setSuccess('User removed from chat');
+      setParticipants(prev => prev.filter(p => p.user.id !== userId));      setSuccess('Người dùng đã được gỡ khỏi cuộc trò chuyện');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Error removing participant:', err);
-      setError('Failed to remove user from chat');
+      setError('Không thể gỡ người dùng khỏi cuộc trò chuyện');
     }
   };
 
@@ -194,10 +197,9 @@ export default function ChatManagementModal({
     try {
       await ChatService.leaveChatRoom(chatRoom.id);
       onChatDeleted(chatRoom.id);
-      onClose();
-    } catch (err) {
+      onClose();    } catch (err) {
       console.error('Error leaving chat:', err);
-      setError('Failed to leave chat');
+      setError('Không thể rời khỏi cuộc trò chuyện');
     }
   };
 
@@ -207,10 +209,9 @@ export default function ChatManagementModal({
     try {
       await ChatService.deleteChatRoom(chatRoom.id);
       onChatDeleted(chatRoom.id);
-      onClose();
-    } catch (err) {
+      onClose();    } catch (err) {
       console.error('Error deleting chat:', err);
-      setError('Failed to delete chat');
+      setError('Không thể xóa cuộc trò chuyện');
     }
   };
 
@@ -240,9 +241,8 @@ export default function ChatManagementModal({
               name={chatRoom.roomName}
             />
             <div>
-              <h2 className="text-xl font-semibold">{chatRoom.roomName}</h2>
-              <p className="text-sm text-gray-500">
-                {chatRoom.isGroupChat ? `${participants.length} members` : 'Direct message'}
+              <h2 className="text-xl font-semibold">{chatRoom.roomName}</h2>              <p className="text-sm text-gray-500">
+                {chatRoom.isGroupChat ? `${participants.length} thành viên` : 'Tin nhắn riêng'}
               </p>
             </div>
           </div>
@@ -269,20 +269,18 @@ export default function ChatManagementModal({
             selectedKey={activeTab}
             onSelectionChange={(key) => setActiveTab(key as string)}
             variant="underlined"
-          >
-            <Tab key="info" title={
+          >            <Tab key="info" title={
               <div className="flex items-center gap-2">
                 <Settings size={16} />
-                Info
+                Thông tin
               </div>
             }>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Chat Name</label>
+              <div className="space-y-4">                <div>
+                  <label className="text-sm font-medium mb-2 block">Tên cuộc trò chuyện</label>
                   <Input
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
-                    placeholder="Enter chat name"
+                    placeholder="Nhập tên cuộc trò chuyện"
                     variant="bordered"
                     isDisabled={!canManageChat()}
                   />
@@ -290,21 +288,22 @@ export default function ChatManagementModal({
 
                 {chatRoom.isGroupChat && (
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Description</label>
+                    <label className="text-sm font-medium mb-2 block">Mô tả</label>
                     <Textarea
                       value={roomDescription}
                       onChange={(e) => setRoomDescription(e.target.value)}
-                      placeholder="Enter chat description"
+                      placeholder="Nhập mô tả cuộc trò chuyện"
                       variant="bordered"
                       isDisabled={!canManageChat()}
                     />
                   </div>
-                )}
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Created</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(chatRoom.createdDate).toLocaleDateString()}
+                )}                <div className="space-y-2">
+                  <p className="text-sm font-medium">Được tạo</p>                  <p className="text-sm text-gray-500">
+                    {new Date(chatRoom.createdDate).toLocaleDateString('vi-VN', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
                   </p>
                 </div>
 
@@ -316,27 +315,24 @@ export default function ChatManagementModal({
                       isLoading={loading}
                       startContent={<Edit3 size={16} />}
                     >
-                      Update Info
+                      Cập nhật thông tin
                     </Button>
                   </div>
                 )}
               </div>
-            </Tab>
-
-            <Tab key="members" title={
+            </Tab>            <Tab key="members" title={
               <div className="flex items-center gap-2">
                 <Users size={16} />
-                Members ({participants.length})
+                Thành viên ({participants.length})
               </div>
             }>
               <div className="space-y-4">
                 {/* Add members section for group chats */}
                 {chatRoom.isGroupChat && canManageChat() && availableFriends.length > 0 && (
                   <Card>
-                    <CardBody>
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <CardBody>                      <h4 className="font-medium mb-3 flex items-center gap-2">
                         <UserPlus size={16} />
-                        Add Friends
+                        Thêm bạn bè
                       </h4>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {availableFriends.slice(0, 5).map(friendship => (
@@ -360,10 +356,9 @@ export default function ChatManagementModal({
                               size="sm"
                               color="primary"
                               variant="light"
-                              onPress={() => handleAddParticipant(friendship.friend.id)}
-                              startContent={<UserPlus size={14} />}
+                              onPress={() => handleAddParticipant(friendship.friend.id)}                              startContent={<UserPlus size={14} />}
                             >
-                              Add
+                              Thêm
                             </Button>
                           </div>
                         ))}
@@ -395,7 +390,7 @@ export default function ChatManagementModal({
                               <Shield size={14} className="text-blue-500" />
                             )}
                             {participant.user.id === currentUserId && (
-                              <Chip size="sm" variant="flat" color="primary">You</Chip>
+                              <Chip size="sm" variant="flat" color="primary">Bạn</Chip>
                             )}
                           </div>
                           <p className="text-sm text-gray-500">
@@ -419,8 +414,7 @@ export default function ChatManagementModal({
                             <DropdownItem
                               key="mute"
                               startContent={participant.isMuted ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                            >
-                              {participant.isMuted ? 'Unmute' : 'Mute'}
+                            >                              {participant.isMuted ? 'Bỏ tắt tiếng' : 'Tắt tiếng'}
                             </DropdownItem>
                             <DropdownItem
                               key="remove"
@@ -428,7 +422,7 @@ export default function ChatManagementModal({
                               startContent={<UserMinus size={16} />}
                               onPress={() => handleRemoveParticipant(participant.user.id)}
                             >
-                              Remove
+                              Gỡ khỏi nhóm
                             </DropdownItem>
                           </DropdownMenu>
                         </Dropdown>
@@ -437,20 +431,18 @@ export default function ChatManagementModal({
                   ))}
                 </div>
               </div>
-            </Tab>
-
-            <Tab key="danger" title={
+            </Tab>            <Tab key="danger" title={
               <div className="flex items-center gap-2 text-red-500">
                 <Trash2 size={16} />
-                Danger Zone
+                Vùng nguy hiểm
               </div>
             }>
               <div className="space-y-4">
                 <Card className="border-red-200 bg-red-50">
                   <CardBody>
-                    <h4 className="font-medium text-red-700 mb-2">Leave Chat</h4>
+                    <h4 className="font-medium text-red-700 mb-2">Rời khỏi cuộc trò chuyện</h4>
                     <p className="text-sm text-red-600 mb-4">
-                      You will no longer receive messages from this chat.
+                      Bạn sẽ không còn nhận được tin nhắn từ cuộc trò chuyện này.
                     </p>
                     <Button
                       color="danger"
@@ -458,7 +450,7 @@ export default function ChatManagementModal({
                       onPress={handleLeaveChat}
                       startContent={<LogOut size={16} />}
                     >
-                      Leave Chat
+                      Rời khỏi cuộc trò chuyện
                     </Button>
                   </CardBody>
                 </Card>
@@ -466,16 +458,16 @@ export default function ChatManagementModal({
                 {canManageChat() && (
                   <Card className="border-red-300 bg-red-100">
                     <CardBody>
-                      <h4 className="font-medium text-red-800 mb-2">Delete Chat</h4>
+                      <h4 className="font-medium text-red-800 mb-2">Xóa cuộc trò chuyện</h4>
                       <p className="text-sm text-red-700 mb-4">
-                        This action cannot be undone. All messages will be permanently deleted.
+                        Hành động này không thể hoàn tác. Tất cả tin nhắn sẽ bị xóa vĩnh viễn.
                       </p>
                       <Button
                         color="danger"
                         onPress={handleDeleteChat}
                         startContent={<Trash2 size={16} />}
                       >
-                        Delete Chat
+                        Xóa cuộc trò chuyện
                       </Button>
                     </CardBody>
                   </Card>
@@ -483,11 +475,9 @@ export default function ChatManagementModal({
               </div>
             </Tab>
           </Tabs>
-        </ModalBody>
-
-        <ModalFooter>
+        </ModalBody>        <ModalFooter>
           <Button variant="light" onPress={onClose}>
-            Close
+            Đóng
           </Button>
         </ModalFooter>
       </ModalContent>

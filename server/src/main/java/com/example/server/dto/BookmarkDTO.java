@@ -22,12 +22,10 @@ public class BookmarkDTO {
         private String content;
         private LocalDateTime createdDate;
         private Integer userId;
-        private UserDTO user;
-        private List<String> mediaUrls;
+        private UserDTO user;        private List<String> mediaUrls;
         private Integer likesCount;
         private Integer dislikesCount;
         private Integer commentsCount;
-        private Integer sharesCount;
     }
 
     @Data

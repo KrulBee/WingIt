@@ -22,6 +22,7 @@ import com.example.server.service.GoogleOidcUserService;
 import com.example.server.service.OAuth2AuthenticationSuccessHandler;
 import com.example.server.service.OAuth2AuthenticationFailureHandler;
 
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
@@ -63,13 +64,25 @@ public class SecurityConfig {    @Autowired
                 .requestMatchers("/api/v1/password-reset/**").permitAll() // Allow password reset endpoints
                 .requestMatchers("/api/v1/users/verify-email-change").permitAll() // Allow email change verification
                 .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
-                .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth
-                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints
+                .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints
+                .requestMatchers("/api/admin/**").hasRole("admin") // Admin endpoints require admin role
                 .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
+            )            .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )            .oauth2Login(oauth2 -> oauth2
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    // For API endpoints, return 401 instead of redirecting to OAuth2
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(401);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+                    } else {
+                        // For non-API endpoints, redirect to OAuth2 login
+                        response.sendRedirect("/oauth2/authorization/google");
+                    }
+                })
+            ).oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(googleOAuth2UserService)
                     .oidcUserService(googleOidcUserService)

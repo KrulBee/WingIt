@@ -50,10 +50,10 @@ export default function SetupPage() {
           }));
         }
       } else {
-        setError(data.error || 'Failed to load setup information');
+        setError(data.error || 'Không thể tải thông tin thiết lập');
       }
     } catch (error) {
-      setError('Failed to load setup information');
+      setError('Không thể tải thông tin thiết lập');
     } finally {
       setLoading(false);
     }
@@ -64,17 +64,17 @@ export default function SetupPage() {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Mật khẩu không khớp');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
 
     if (formData.username.length < 3) {
-      setError('Username must be at least 3 characters long');
+      setError('Tên người dùng phải có ít nhất 3 ký tự');
       return;
     }
 
@@ -90,10 +90,10 @@ export default function SetupPage() {
         localStorage.setItem('auth-token', result.data.token);
         router.push('/home');
       } else {
-        setError(result.error || 'Failed to complete setup');
+        setError(result.error || 'Không thể hoàn thành thiết lập');
       }
     } catch (error) {
-      setError('Failed to complete setup. Please try again.');
+      setError('Không thể hoàn thành thiết lập. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +112,7 @@ export default function SetupPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading setup information...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải thông tin thiết lập...</p>
         </div>
       </div>
     );
@@ -123,14 +123,13 @@ export default function SetupPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="text-center">
-            <div className="text-red-500 text-5xl mb-4">⚠️</div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Setup Error</h2>
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Lỗi thiết lập</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
             <button
               onClick={() => router.push('/auth')}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
-              Back to Login
+              Quay lại đăng nhập
             </button>
           </div>
         </div>
@@ -143,11 +142,10 @@ export default function SetupPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Complete Your Account Setup
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            You&apos;ve successfully authenticated with {setupInfo?.provider}. 
-            Please choose a username and password to complete your account.
+            Hoàn tất thiết lập tài khoản
+          </h2>          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Bạn đã xác thực thành công với {setupInfo?.provider}. 
+            Vui lòng chọn tên người dùng và mật khẩu để hoàn tất tài khoản của bạn.
           </p>
         </div>
 
@@ -157,7 +155,7 @@ export default function SetupPage() {
               {setupInfo.profilePicture && (
                 <img
                   src={setupInfo.profilePicture}
-                  alt="Profile"
+                  alt="Hồ sơ"
                   className="w-12 h-12 rounded-full"
                 />
               )}
@@ -175,9 +173,8 @@ export default function SetupPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Username
+            <div>              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tên người dùng
               </label>
               <input
                 id="username"
@@ -187,13 +184,12 @@ export default function SetupPage() {
                 value={formData.username}
                 onChange={handleInputChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Choose a username"
+                placeholder="Chọn tên người dùng"
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
+            <div>              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Mật khẩu
               </label>
               <input
                 id="password"
@@ -203,13 +199,12 @@ export default function SetupPage() {
                 value={formData.password}
                 onChange={handleInputChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Create a password"
+                placeholder="Tạo mật khẩu"
               />
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Confirm Password
+            <div>              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Xác nhận mật khẩu
               </label>
               <input
                 id="confirmPassword"
@@ -219,7 +214,7 @@ export default function SetupPage() {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm your password"
+                placeholder="Xác nhận mật khẩu của bạn"
               />
             </div>
           </div>
@@ -239,10 +234,10 @@ export default function SetupPage() {
               {isSubmitting ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating Account...
+                  Đang tạo tài khoản...
                 </div>
               ) : (
-                'Complete Setup'
+                'Hoàn tất thiết lập'
               )}
             </button>
           </div>
@@ -253,7 +248,7 @@ export default function SetupPage() {
               onClick={() => router.push('/auth')}
               className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"
             >
-              Back to Login
+              Về trang đăng nhập
             </button>
           </div>
         </form>

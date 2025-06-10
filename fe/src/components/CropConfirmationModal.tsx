@@ -21,7 +21,7 @@ const CropConfirmationModal: React.FC<CropConfirmationModalProps> = ({
   cropType,
   isUploading = false
 }) => {
-  const title = cropType === 'profile' ? 'Confirm Profile Picture' : 'Confirm Cover Photo';
+  const title = cropType === 'profile' ? 'Xác nhận ảnh đại diện' : 'Xác nhận ảnh bìa';
   
   return (
     <Modal 
@@ -39,11 +39,10 @@ const CropConfirmationModal: React.FC<CropConfirmationModalProps> = ({
         <ModalHeader className="flex flex-col gap-1">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          </h3>          <p className="text-sm text-gray-600 dark:text-gray-400">
             {cropType === 'profile' 
-              ? 'This will be your new profile picture' 
-              : 'This will be your new cover photo'
+              ? 'Đây sẽ là ảnh đại diện mới của bạn' 
+              : 'Đây sẽ là ảnh bìa mới của bạn'
             }
           </p>
         </ModalHeader>
@@ -72,16 +71,15 @@ const CropConfirmationModal: React.FC<CropConfirmationModalProps> = ({
             color="default" 
             variant="light" 
             onPress={onRetry}
-            isDisabled={isUploading}
-          >
-            Crop Again
+            isDisabled={isUploading}          >
+            Cắt lại
           </Button>
           <Button 
             color="primary" 
             onPress={onConfirm}
             isLoading={isUploading}
           >
-            {isUploading ? 'Uploading...' : 'Save'}
+            {isUploading ? 'Đang tải lên...' : 'Lưu'}
           </Button>
         </ModalFooter>
       </ModalContent>

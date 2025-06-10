@@ -40,12 +40,10 @@ export interface BookmarkData {
       username: string;
       displayName?: string;
       profilePicture?: string;
-    };
-    mediaUrls?: string[];
+    };    mediaUrls?: string[];
     likesCount?: number;
     dislikesCount?: number;
     commentsCount?: number;
-    sharesCount?: number;
   };
 }
 
@@ -151,53 +149,7 @@ const BookmarkService = {
     } catch (error) {
       console.error('Get bookmark count error:', error);
       return 0;
-    }
-  },
-
-  // Mock collection management (for UI compatibility)
-  // These would need dedicated backend endpoints for full implementation
-  createCollection: async (name: string, description?: string): Promise<BookmarkCollectionData> => {
-    // This is a mock implementation
-    // In a real app, you'd need a dedicated collections API
-    const mockCollection: BookmarkCollectionData = {
-      id: Date.now(),
-      name,
-      description,
-      userId: 1, // Should come from auth context
-      createdDate: new Date().toISOString(),
-      bookmarkCount: 0
-    };
-    
-    // Store in localStorage for now
-    const collections = JSON.parse(localStorage.getItem('bookmark-collections') || '[]');
-    collections.push(mockCollection);
-    localStorage.setItem('bookmark-collections', JSON.stringify(collections));
-    
-    return mockCollection;
-  },
-
-  getUserCollections: async (): Promise<BookmarkCollectionData[]> => {
-    // Mock implementation using localStorage
-    try {
-      const collections = JSON.parse(localStorage.getItem('bookmark-collections') || '[]');
-      return collections;
-    } catch (error) {
-      console.error('Get collections error:', error);
-      return [];
-    }
-  },
-
-  deleteCollection: async (collectionId: number): Promise<void> => {
-    // Mock implementation using localStorage
-    try {
-      const collections = JSON.parse(localStorage.getItem('bookmark-collections') || '[]');
-      const filteredCollections = collections.filter((c: BookmarkCollectionData) => c.id !== collectionId);
-      localStorage.setItem('bookmark-collections', JSON.stringify(filteredCollections));
-    } catch (error) {
-      console.error('Delete collection error:', error);
-      throw error;
-    }
-  },
+    }  },
 };
 
 export default BookmarkService;

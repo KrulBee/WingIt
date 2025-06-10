@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { MessageCircle, Share, MoreHorizontal, Bookmark } from "react-feather";
+import { MessageCircle, MoreHorizontal, Bookmark } from "react-feather";
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
 import PostDetailModal from './PostDetailModal';
 import { Card, CardHeader, CardBody, CardFooter, Avatar, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
 import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
 import { PostReactionService, BookmarkService, ReactionTypeService, viewService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
@@ -21,9 +22,7 @@ interface PostProps {
   image?: string;
   images?: string[]; // Add support for multiple images
   likes: number;
-  dislikes?: number;
-  comments: number;
-  shares: number;
+  dislikes?: number;  comments: number;
   createdAt: Date;
   liked?: boolean;
   disliked?: boolean;
@@ -42,7 +41,6 @@ export default function Post({
   likes,
   dislikes = 0,
   comments,
-  shares,
   createdAt,
   liked = false,
   disliked = false,
@@ -288,7 +286,7 @@ export default function Post({
                 <MoreHorizontal size={20} />
               </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label="Post actions">
+            <DropdownMenu aria-label="Hành động bài viết">
               <DropdownItem
                 key="bookmark"
                 onClick={handleBookmark}
@@ -353,10 +351,8 @@ export default function Post({
                 </div>
               ))}
             </div>
-          )}
-
-          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
-            <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
+          )}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
+            <span>{formatDistanceToNow(createdAt, { addSuffix: true, locale: vi })}</span>
           </div>
         </CardBody>        <CardFooter className="gap-3" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between w-full">
@@ -393,9 +389,7 @@ export default function Post({
                 </Button>
                 <span className="text-sm text-default-600 min-w-[20px]">{dislikeCount}</span>
               </div>
-            </div>
-
-            {/* Comment and Share Section */}
+            </div>            {/* Comment Section */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Button
@@ -409,18 +403,6 @@ export default function Post({
                 </Button>
                 <span className="text-sm text-default-600">{commentCount}</span>
               </div>
-
-              <div className="flex items-center gap-1">
-                <Button
-                  isIconOnly
-                  variant="light"
-                  size="sm"
-                  className="hover:bg-purple-50 dark:hover:bg-purple-900/20 text-default-400 hover:text-purple-600"
-                >
-                  <Share size={18} />
-                </Button>
-                <span className="text-sm text-default-600">{shares}</span>
-              </div>
             </div>
           </div>
         </CardFooter>
@@ -431,9 +413,13 @@ export default function Post({
           commentsCount={commentCount}
           onCommentsCountChange={handleCommentsCountChange}
         />
+<<<<<<< HEAD
       )}
 
       {/* Post Detail Modal */}
+=======
+      )}      {/* Post Detail Modal */}
+>>>>>>> 3db89dd (push fix)
       <PostDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
@@ -448,7 +434,6 @@ export default function Post({
           likes: likeCount,
           dislikes: dislikeCount,
           comments: commentCount,
-          shares,
           createdAt,
           liked: isLiked,
           disliked: isDisliked

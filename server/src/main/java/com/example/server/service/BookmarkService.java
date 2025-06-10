@@ -128,13 +128,9 @@ public class BookmarkService {    private final BookmarkRepository bookmarkRepos
         long dislikesCount = postReactionRepository.countByPostIdAndReactionTypeId(post.getId(), 2L); // Dislike = 2
         postDTO.setLikesCount((int) likesCount);
         postDTO.setDislikesCount((int) dislikesCount);
-        
-        // Get comments count
+          // Get comments count
         long commentsCount = commentRepository.countByPostId(post.getId());
         postDTO.setCommentsCount((int) commentsCount);
-        
-        // Shares count (placeholder - would need shares functionality)
-        postDTO.setSharesCount(0);
         
         return postDTO;
     }

@@ -22,6 +22,5 @@ public class PostDTO {
     private List<PostReactionDTO> reactions;
     private int likesCount;
     private int commentsCount;
-    private int sharesCount;
     private boolean liked; // Whether current user liked this post
 }

@@ -164,7 +164,6 @@ public class PostService {
         dto.setCommentsCount(post.getComments() != null ? post.getComments().size() : 0);
         dto.setLikesCount(post.getReactions() != null ? 
                 (int) post.getReactions().stream().filter(r -> "LIKE".equals(r.getReactionType().getName())).count() : 0);
-        dto.setSharesCount(0); // You can implement share tracking later
 
         return dto;
     }

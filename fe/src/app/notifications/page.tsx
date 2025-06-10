@@ -25,69 +25,6 @@ interface NotificationProps {
   commentId?: number;
 }
 
-// Mock data for fallback
-const MOCK_NOTIFICATIONS: NotificationProps[] = [
-  {
-    id: "n1",
-    type: "like",
-    user: {
-      name: "Jane Smith",
-      username: "janesmith",
-      avatar: avatarBase64,
-    },
-    content: "liked your post",
-    time: "2 minutes ago",
-    read: false,
-  },
-  {
-    id: "n2",
-    type: "comment",
-    user: {
-      name: "Alice Johnson",
-      username: "alicej",
-      avatar: avatarBase64,
-    },
-    content: "commented on your post: \"Great article, thanks for sharing!\"",
-    time: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "n3",
-    type: "follow",
-    user: {
-      name: "Robert Wilson",
-      username: "robertw",
-      avatar: avatarBase64,
-    },
-    content: "started following you",
-    time: "3 hours ago",
-    read: true,
-  },  {
-    id: "n4",
-    type: "mention",
-    user: {
-      name: "Emily Davis",
-      username: "emilyd",
-      avatar: avatarBase64,
-    },
-    content: "mentioned you in a comment: \"@johndoe what do you think about this?\"",
-    time: "1 day ago",
-    read: true,
-  },
-  {
-    id: "n5",
-    type: "like",
-    user: {
-      name: "Michael Brown",
-      username: "michaelb",
-      avatar: avatarBase64,
-    },
-    content: "liked your photo",
-    time: "2 days ago",
-    read: true,
-  },
-];
-
 // Helper function to transform backend NotificationDTO to UI format
 const transformNotification = (backendNotification: any): NotificationProps => {
   const getNotificationType = (type: string): "like" | "comment" | "follow" | "mention" => {
@@ -113,23 +50,25 @@ const transformNotification = (backendNotification: any): NotificationProps => {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return `${diffInSeconds} seconds ago`;
+      return `${diffInSeconds} giây trước`;
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      return `${minutes} phút trước`;
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `${hours} giờ trước`;
     } else {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return `${days} ngày trước`;
     }
-  };  return {
+  };
+
+  return {
     id: backendNotification.id.toString(),
     type: getNotificationType(backendNotification.type),
     user: {
-      name: backendNotification.actorDisplayName || backendNotification.actorUserName || 'Unknown User',
-      username: backendNotification.actorUserName || 'unknown',
+      name: backendNotification.actorDisplayName || backendNotification.actorUserName || 'Người dùng không xác định',
+      username: backendNotification.actorUserName || 'không xác định',
       avatar: backendNotification.actorProfilePicture || avatarBase64,
     },
     content: backendNotification.content || '',
@@ -224,6 +163,7 @@ export default function NotificationsPage() {
       console.error('Error processing new notification:', err);
     }
   }, []);
+
   useEffect(() => {
     fetchNotifications();
     getCurrentUser();
@@ -249,7 +189,8 @@ export default function NotificationsPage() {
       if (wsService.isConnected()) {
         wsService.disconnect();
       }
-    };  }, [handleNewNotification]);
+    };
+  }, [handleNewNotification]);
 
   const getCurrentUser = async () => {
     try {
@@ -270,9 +211,7 @@ export default function NotificationsPage() {
       setNotifications(transformedNotifications);
     } catch (err) {
       console.error('Error fetching notifications:', err);
-      setError('Failed to load notifications');
-      // Fallback to mock data
-      setNotifications(MOCK_NOTIFICATIONS);
+      setError('Không thể tải thông báo. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -338,11 +277,12 @@ export default function NotificationsPage() {
         <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
           <div className="max-w-2xl mx-auto">
             <div className="text-center text-red-500 p-4">
-              <p>{error}</p>              <button 
+              <p>{error}</p>
+              <button 
                 onClick={handleRetry}
                 className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                Thử Lại
+                Thử lại
               </button>
             </div>
           </div>
@@ -356,9 +296,11 @@ export default function NotificationsPage() {
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Left sidebar */}
       <Sidebar />
-        {/* Main content */}
+
+      {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
-        <div className="max-w-2xl mx-auto">          <div className="flex justify-between items-center mb-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">Thông Báo</h1>
               {wsConnected && (
@@ -378,10 +320,12 @@ export default function NotificationsPage() {
               Đánh dấu tất cả đã đọc
             </Button>
           </div>
-            <Tabs aria-label="Notification options">
+
+          <Tabs aria-label="Tùy chọn thông báo">
             <Tab key="all" title={`Tất Cả (${notifications.length})`}>
               <Card>
-                <CardBody className="p-0">                  {notifications.length > 0 ? (
+                <CardBody className="p-0">
+                  {notifications.length > 0 ? (
                     notifications.map((notification) => (
                       <NotificationItem 
                         key={notification.id} 
@@ -390,16 +334,20 @@ export default function NotificationsPage() {
                         currentUser={currentUser}
                         navigateToProfile={navigateToProfile}
                       />
-                    ))) : (
+                    ))
+                  ) : (
                     <div className="p-8 text-center text-gray-500">
                       Chưa có thông báo nào
                     </div>
                   )}
                 </CardBody>
               </Card>
-            </Tab>            <Tab key="unread" title={`Chưa Đọc (${unreadNotifications.length})`}>
+            </Tab>
+
+            <Tab key="unread" title={`Chưa Đọc (${unreadNotifications.length})`}>
               <Card>
-                <CardBody className="p-0">                  {unreadNotifications.length > 0 ? (
+                <CardBody className="p-0">
+                  {unreadNotifications.length > 0 ? (
                     unreadNotifications.map((notification) => (
                       <NotificationItem 
                         key={notification.id} 
@@ -408,7 +356,8 @@ export default function NotificationsPage() {
                         currentUser={currentUser}
                         navigateToProfile={navigateToProfile}
                       />
-                    ))) : (
+                    ))
+                  ) : (
                     <div className="p-8 text-center text-gray-500">
                       Không có thông báo chưa đọc
                     </div>

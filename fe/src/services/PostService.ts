@@ -72,10 +72,8 @@ interface PostData {
     id: number;
     mediaUrl: string;
     mediaType: string;
-  }>;
-  likesCount: number;
+  }>;  likesCount: number;
   commentsCount: number;
-  sharesCount: number;
   liked: boolean;
   // Legacy fields for backward compatibility
   userId?: number;

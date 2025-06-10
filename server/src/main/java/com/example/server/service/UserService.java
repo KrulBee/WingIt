@@ -186,7 +186,21 @@ public class UserService {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
         userDTO.setUsername(user.getUsername());
-        userDTO.setProvider(user.getProvider()); // Include OAuth2 provider info
+        userDTO.setEmail(user.getEmail()); // Add email        userDTO.setProvider(user.getProvider()); // Include OAuth2 provider info
+        
+        // Convert LocalDate to LocalDateTime for compatibility
+        LocalDate createdDate = user.getCreatedDate();
+        if (createdDate != null) {
+            userDTO.setCreatedDate(createdDate.atStartOfDay()); // Convert LocalDate to LocalDateTime
+        }
+        
+        // Add role information
+        if (user.getRole() != null) {
+            UserDTO.RoleDTO roleDTO = new UserDTO.RoleDTO();
+            roleDTO.setId(user.getRole().getId());
+            roleDTO.setRoleName(user.getRole().getRoleName());
+            userDTO.setRole(roleDTO);
+        }
         
         if (user.getUserData() != null) {
             UserData userData = user.getUserData();

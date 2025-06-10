@@ -540,11 +540,15 @@ class RoomUserService {
    * Format room user for display
    */
   formatRoomUserForDisplay(roomUser: RoomUser): string {
-    const user = roomUser.user?.username || 'Unknown User';
+    const user = roomUser.user?.username || 'Người dùng không xác định';
     const role = roomUser.role.toLowerCase();
-    const joinedDate = new Date(roomUser.joinedAt).toLocaleDateString();
+    const joinedDate = new Date(roomUser.joinedAt).toLocaleDateString('vi-VN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     
-    return `${user} (${role}) - joined ${joinedDate}`;
+    return `${user} (${role}) - tham gia ${joinedDate}`;
   }
 
   /**

@@ -22,46 +22,45 @@ export default function MobileNavigation() {
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
-
   const sidebarItems = [
     {
       icon: <Home size={20} />,
-      label: "Home",
+      label: "Trang Chủ",
       href: "/home",
     },
     {
       icon: <User size={20} />,
-      label: "Profile",
+      label: "Hồ Sơ",
       href: "/profile",
     },
     {
       icon: <MessageCircle size={20} />,
-      label: "Messages",
+      label: "Tin Nhắn",
       href: "/messages",
     },
     {
       icon: <Bell size={20} />,
-      label: "Notifications",
+      label: "Thông Báo",
       href: "/notifications",
     },
     {
       icon: <Users size={20} />,
-      label: "Friends",
+      label: "Bạn Bè",
       href: "/friends",
     },
     {
       icon: <Search size={20} />,
-      label: "Search",
+      label: "Tìm Kiếm",
       href: "/search",
     },
     {
       icon: <Bookmark size={20} />,
-      label: "Bookmarks",
+      label: "Dấu Trang",
       href: "/bookmarks",
     },
     {
       icon: <Settings size={20} />,
-      label: "Settings",
+      label: "Cài Đặt",
       href: "/settings",
     },
   ];
@@ -73,7 +72,7 @@ export default function MobileNavigation() {
         <button
           onClick={toggleMenu}
           className="bg-blue-600 dark:bg-blue-800 text-white p-3 rounded-full shadow-lg"
-          aria-label="Toggle mobile menu"
+          aria-label="Bật/tắt menu di động"
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -113,14 +112,13 @@ export default function MobileNavigation() {
               ))}
             </ul>
           </nav>
-          
-          {/* Logout button */}
+            {/* Logout button */}
           <button 
             onClick={handleLogout}
             className="flex items-center text-lg text-gray-800 dark:text-gray-200 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6"
           >
             <span className="mr-4"><LogOut size={20} /></span>
-            Logout
+            Đăng xuất
           </button>
         </div>
       </div>

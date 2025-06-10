@@ -20,7 +20,6 @@ interface PostData {
   likes: number;
   dislikes?: number;
   comments: number;
-  shares: number;
   viewCount?: number;
   createdAt: Date;
   liked: boolean;
@@ -72,6 +71,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       };
     }
   }, [highlightPostId, posts]);
+
   // Effect to set up intersection observer for view tracking
   useEffect(() => {
     console.log('🔍 DEBUG: Setting up intersection observer for view tracking');
@@ -145,6 +145,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       }
     };
   }, []);
+
   // Effect to observe post elements when they're added
   useEffect(() => {
     console.log(`🔍 DEBUG: Posts updated, setting up observation for ${posts.length} posts`);
@@ -171,13 +172,13 @@ export default function Feed({ highlightPostId }: FeedProps) {
     }
   }, [posts]);
 
-// Transform backend post data to frontend format
+  // Transform backend post data to frontend format
   const transformBackendPost = (post: any): PostData => {
     const mediaUrls = post.media?.map((m: any) => m.mediaUrl) || post.mediaUrls || [];
     return {
       id: post.id.toString(),
-      authorName: post.author?.displayName || post.author?.username || 'Unknown User',
-      authorUsername: post.author?.username || 'unknown',
+      authorName: post.author?.displayName || post.author?.username || 'Người dùng không xác định',
+      authorUsername: post.author?.username || 'không xác định',
       authorAvatar: post.author?.profilePicture,
       content: post.content,
       image: mediaUrls[0], // Keep for backward compatibility
@@ -185,7 +186,6 @@ export default function Feed({ highlightPostId }: FeedProps) {
       likes: post.likesCount ?? post.reactionCount ?? 0,
       dislikes: post.dislikesCount ?? 0,
       comments: post.commentsCount ?? post.commentCount ?? 0,
-      shares: post.sharesCount ?? 0,
       createdAt: new Date(post.createdDate),
       liked: post.liked ?? false,
       disliked: post.disliked ?? false
@@ -230,9 +230,12 @@ export default function Feed({ highlightPostId }: FeedProps) {
     } catch (err) {
       console.error('Error processing reaction update:', err);
     }
-  }, []);  useEffect(() => {
+  }, []);
+
+  useEffect(() => {
     fetchPosts();
-      // Initialize WebSocket connection for real-time updates
+    
+    // Initialize WebSocket connection for real-time updates
     const wsService = webSocketService;
     let postUpdateSubscriptionId: string;
     let reactionSubscriptionId: string;
@@ -251,7 +254,9 @@ export default function Feed({ highlightPostId }: FeedProps) {
       .catch((err: any) => {
         console.error('WebSocket connection failed:', err);
         setWsConnected(false);
-      });    // Cleanup WebSocket on unmount
+      });
+
+    // Cleanup WebSocket on unmount
     return () => {
       if (wsService.isConnected()) {
         if (postUpdateSubscriptionId) {
@@ -263,11 +268,14 @@ export default function Feed({ highlightPostId }: FeedProps) {
       }
     };
   }, [handlePostUpdate, handleReactionUpdate]);
+
   // Effect to refetch posts when location filter or sort option changes
   useEffect(() => {
     setPage(0);
     fetchPosts(0, false);
-  }, [selectedLocationId, sortBy]);const fetchPosts = async (pageNum: number = 0, append: boolean = false) => {
+  }, [selectedLocationId, sortBy]);
+
+  const fetchPosts = async (pageNum: number = 0, append: boolean = false) => {
     try {
       if (!append) {
         setLoading(true);
@@ -275,13 +283,16 @@ export default function Feed({ highlightPostId }: FeedProps) {
         setLoadingMore(true);
       }
       setError(null);
-        let response;      // Fetch posts based on location filter
+
+      let response;
+      // Fetch posts based on location filter
       if (selectedLocationId === null) {
         response = await PostService.getAllPosts();
       } else {
         response = await PostService.getPostsByLocationId(selectedLocationId);
       }
-        // Apply client-side sorting based on sortBy option
+
+      // Apply client-side sorting based on sortBy option
       if (sortBy !== 'latest') {
         response = [...response].sort((a, b) => {
           switch (sortBy) {
@@ -300,20 +311,21 @@ export default function Feed({ highlightPostId }: FeedProps) {
       // Simulate pagination for now (since API might not support it yet)
       const startIndex = pageNum * POSTS_PER_PAGE;
       const endIndex = startIndex + POSTS_PER_PAGE;
-      const paginatedResponse = response.slice(startIndex, endIndex);      // Use backend fields directly for performance
+      const paginatedResponse = response.slice(startIndex, endIndex);
+
+      // Use backend fields directly for performance
       const transformedPosts: PostData[] = paginatedResponse.map((post) => {
         const mediaUrls = post.media?.map((m: any) => m.mediaUrl) || post.mediaUrls || [];
         return {
           id: post.id.toString(),
-          authorName: post.author?.displayName || post.author?.username || 'Unknown User',
-          authorUsername: post.author?.username || 'unknown',
+          authorName: post.author?.displayName || post.author?.username || 'Người dùng không xác định',
+          authorUsername: post.author?.username || 'không xác định',
           authorAvatar: post.author?.profilePicture,
           content: post.content,
           image: mediaUrls[0], // Keep for backward compatibility
           images: mediaUrls.length > 0 ? mediaUrls : undefined, // Pass all media URLs
           likes: post.likesCount ?? post.reactionCount ?? 0,
           comments: post.commentsCount ?? post.commentCount ?? 0,
-          shares: post.sharesCount ?? 0,
           viewCount: post.viewCount ?? 0,
           createdAt: new Date(post.createdDate),
           liked: post.liked ?? false
@@ -331,15 +343,14 @@ export default function Feed({ highlightPostId }: FeedProps) {
       
     } catch (err) {
       console.error('Error fetching posts:', err);
-      setError('Failed to load posts');
-      // Fallback to mock data only on first load
-      if (!append) {
-        setPosts(MOCK_POSTS);
-      }    } finally {
+      setError('Không thể tải bài viết. Vui lòng thử lại.');
+    } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  };  const handleLoadMore = useCallback(async () => {
+  };
+
+  const handleLoadMore = useCallback(async () => {
     if (!loadingMore && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
@@ -354,7 +365,9 @@ export default function Feed({ highlightPostId }: FeedProps) {
 
   const handleLocationChange = (locationId: number | null) => {
     setSelectedLocationId(locationId);
-  };  const handlePostCreated = (newPost: any) => {
+  };
+
+  const handlePostCreated = (newPost: any) => {
     // Add the new post to the beginning of the list
     const transformedPost: PostData = {
       id: newPost.id.toString(),
@@ -366,7 +379,6 @@ export default function Feed({ highlightPostId }: FeedProps) {
       likes: 0,
       dislikes: 0,
       comments: 0,
-      shares: 0,
       viewCount: 0,
       createdAt: new Date(newPost.createdDate),
       liked: false,
@@ -374,7 +386,9 @@ export default function Feed({ highlightPostId }: FeedProps) {
     };
     
     setPosts(prev => [transformedPost, ...prev]);
-  };const handleRetry = () => {
+  };
+
+  const handleRetry = () => {
     fetchPosts();
   };
 
@@ -385,6 +399,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="text-center text-red-500 p-4">
@@ -397,7 +412,9 @@ export default function Feed({ highlightPostId }: FeedProps) {
         </button>
       </div>
     );
-  }  return (
+  }
+
+  return (
     <div className="space-y-6">
       <CreatePostForm onPostCreated={handlePostCreated} />
       
@@ -424,7 +441,8 @@ export default function Feed({ highlightPostId }: FeedProps) {
           <SelectItem key="most_commented">Bình luận nhiều nhất</SelectItem>
         </Select>
       </div>
-        {/* Real-time status */}
+
+      {/* Real-time status */}
       <div className="flex justify-center items-center gap-4">
         {wsConnected && (
           <div className="flex items-center gap-2 text-green-600 text-sm">
@@ -439,7 +457,8 @@ export default function Feed({ highlightPostId }: FeedProps) {
           <p>Chưa có bài đăng nào. Hãy là người đầu tiên chia sẻ điều gì đó!</p>
         </div>
       ) : (
-        <>          {posts.map(post => (
+        <>
+          {posts.map(post => (
             <div 
               key={post.id}
               data-post-id={post.id}
@@ -477,65 +496,3 @@ export default function Feed({ highlightPostId }: FeedProps) {
     </div>
   );
 }
-
-// Mock data for fallback
-const MOCK_POSTS: PostData[] = [
-  {
-    id: "1",
-    authorName: "Jane Smith",
-    authorUsername: "janesmith",
-    authorAvatar: "https://i.pravatar.cc/150?u=janesmith",
-    content: "Just finished a great book on modern web development with Next.js and React. Highly recommend it! 📚",
-    likes: 42,
-    dislikes: 2,
-    comments: 7,
-    shares: 3,
-    createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-    liked: true,
-    disliked: false
-  },
-  {
-    id: "2",
-    authorName: "John Doe",
-    authorUsername: "johndoe",
-    authorAvatar: "https://i.pravatar.cc/150?u=johndoe",
-    content: "Beautiful day for a hike! 🌲 Nature is the best therapy.",
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=1000",
-    likes: 78,
-    dislikes: 1,
-    comments: 12,
-    shares: 5,
-    createdAt: new Date(Date.now() - 7200000), // 2 hours ago
-    liked: false,
-    disliked: false
-  },
-  {
-    id: "3",
-    authorName: "Alice Johnson",
-    authorUsername: "alicej",
-    authorAvatar: "https://i.pravatar.cc/150?u=alicej",
-    content: "Just launched my new portfolio website! Check it out and let me know what you think. #webdevelopment #portfolio",
-    likes: 56,
-    dislikes: 3,
-    comments: 8,
-    shares: 2,
-    createdAt: new Date(Date.now() - 10800000), // 3 hours ago
-    liked: false,
-    disliked: false
-  },
-  {
-    id: "4",
-    authorName: "Robert Wilson",
-    authorUsername: "robertw",
-    authorAvatar: "https://i.pravatar.cc/150?u=robertw",
-    content: "Made some homemade pasta today. Italian cuisine at its finest! 🍝",
-    image: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=1000",
-    likes: 89,
-    dislikes: 0,
-    comments: 15,
-    shares: 7,
-    createdAt: new Date(Date.now() - 43200000), // 12 hours ago
-    liked: true,
-    disliked: false
-  }
-];

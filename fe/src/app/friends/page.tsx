@@ -45,44 +45,6 @@ interface FriendProps {
   originalId?: number; // Store the backend ID
 }
 
-// Mock data as fallback
-const mockFriendsList: FriendProps[] = [
-  {
-    id: "f1",
-    name: "Jane Smith",
-    username: "janesmith",
-    avatar: "https://i.pravatar.cc/150?u=janesmith",
-    mutualFriends: 12
-  },
-  {
-    id: "f2",
-    name: "Alice Johnson",
-    username: "alicej",
-    avatar: "https://i.pravatar.cc/150?u=alicej",
-    mutualFriends: 8
-  },
-];
-
-const mockFriendRequests: FriendProps[] = [
-  {
-    id: "r1",
-    name: "Michael Brown",
-    username: "michaelb",
-    avatar: "https://i.pravatar.cc/150?u=michaelb",
-    mutualFriends: 4
-  },
-];
-
-const mockSuggestions: FriendProps[] = [
-  {
-    id: "s1",
-    name: "David Miller",
-    username: "davidm",
-    avatar: "https://i.pravatar.cc/150?u=davidm",
-    mutualFriends: 7
-  },
-];
-
 // Generate a consistent avatar src with fallback
 const getAvatarSrc = (avatar?: string, username?: string) => {
   if (avatar && avatar.trim() !== '') {
@@ -315,16 +277,9 @@ export default function FriendsPage() {
       const transformedSuggestions = suggestionUsers.map(user => 
         transformUserToFriendProps(user, 'suggestion')
       );
-      setSuggestions(transformedSuggestions);
-
-    } catch (err) {
+      setSuggestions(transformedSuggestions);    } catch (err) {
       console.error('Error fetching friends data:', err);
-      setError('Failed to load friends data. Using offline data.');
-      
-      // Fallback to mock data
-      setFriends(mockFriendsList);
-      setFriendRequests(mockFriendRequests);
-      setSuggestions(mockSuggestions);
+      setError('Không thể tải dữ liệu bạn bè. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -341,7 +296,7 @@ export default function FriendsPage() {
       setFriends(prev => prev.filter(f => f.id !== friendId));
     } catch (err) {
       console.error('Error removing friend:', err);
-      setError('Failed to remove friend. Please try again.');
+      setError('Không thể xóa bạn bè. Vui lòng thử lại.');
     }
   };
 
@@ -357,7 +312,7 @@ export default function FriendsPage() {
       setFriends(prev => [...prev, request]);
     } catch (err) {
       console.error('Error accepting friend request:', err);
-      setError('Failed to accept friend request. Please try again.');
+      setError('Không thể chấp nhận lời mời kết bạn. Vui lòng thử lại.');
     }
   };
 
@@ -369,7 +324,7 @@ export default function FriendsPage() {
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (err) {
       console.error('Error rejecting friend request:', err);
-      setError('Failed to reject friend request. Please try again.');
+      setError('Không thể từ chối lời mời kết bạn. Vui lòng thử lại.');
     }
   };
 
@@ -384,7 +339,7 @@ export default function FriendsPage() {
       setSuggestions(prev => prev.filter(s => s.id !== userId));
     } catch (err) {
       console.error('Error sending friend request:', err);
-      setError('Failed to send friend request. Please try again.');
+      setError('Không thể gửi lời mời kết bạn. Vui lòng thử lại.');
     }
   };
 
@@ -419,7 +374,7 @@ export default function FriendsPage() {
               <p className="text-yellow-800 dark:text-yellow-200 text-sm">{error}</p>
             </div>
           )}
-            <Tabs aria-label="Friend options" className="mb-6">            <Tab key="all-friends" title={`Tất Cả Bạn Bè (${friends.length})`}>
+            <Tabs aria-label="Tùy chọn bạn bè" className="mb-6">            <Tab key="all-friends" title={`Tất Cả Bạn Bè (${friends.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {friends.map((friend) => (
                   <FriendCard 

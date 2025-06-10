@@ -298,11 +298,14 @@ class BlockService {
 
   /**
    * Format block for display
-   */
-  formatBlockForDisplay(block: Block): string {
-    const blockedUser = block.blockedUser?.username || 'Unknown User';
-    const date = new Date(block.createdAt).toLocaleDateString();
-    return `Blocked ${blockedUser} on ${date}`;
+   */  formatBlockForDisplay(block: Block): string {
+    const blockedUser = block.blockedUser?.username || 'Người dùng không xác định';
+    const date = new Date(block.createdAt).toLocaleDateString('vi-VN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    return `Đã chặn ${blockedUser} vào ${date}`;
   }
 
   /**

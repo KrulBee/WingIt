@@ -27,33 +27,65 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtService jwtService;
 
     @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Override
+    private UserDetailsService userDetailsService;    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         try {
-            // Log information about the request for debugging
-            logger.debug("Processing request: {} {}", request.getMethod(), request.getRequestURI());
-            logger.debug("Content-Type: {}", request.getHeader("Content-Type"));
+            // Enhanced logging for admin endpoints
+            boolean isAdminRequest = request.getRequestURI().startsWith("/api/admin");
+            if (isAdminRequest) {
+                System.out.println("=== JWT FILTER: Admin Request Debug ===");
+                System.out.println("Request: " + request.getMethod() + " " + request.getRequestURI());
+                System.out.println("Authorization Header: " + request.getHeader("Authorization"));
+                System.out.println("Content-Type: " + request.getHeader("Content-Type"));
+            }
             
             String jwt = getJwtFromRequest(request);
+            
+            if (isAdminRequest) {
+                System.out.println("JWT Token extracted: " + (jwt != null ? "Present (length: " + jwt.length() + ")" : "Not found"));
+            }
 
-            if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {
-                String username = jwtService.getUsernameFromJWT(jwt);
+            if (StringUtils.hasText(jwt)) {
+                boolean isValid = jwtService.validateToken(jwt);
+                if (isAdminRequest) {
+                    System.out.println("JWT Token valid: " + isValid);
+                }
+                
+                if (isValid) {
+                    String username = jwtService.getUsernameFromJWT(jwt);
+                    if (isAdminRequest) {
+                        System.out.println("Username from JWT: " + username);
+                    }
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    if (isAdminRequest) {
+                        System.out.println("User authorities: " + userDetails.getAuthorities());
+                    }
+                    
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.debug("Set authentication to security context for user: {}", username);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    if (isAdminRequest) {
+                        System.out.println("Authentication set successfully for user: " + username);
+                    }
+                } else if (isAdminRequest) {
+                    System.out.println("JWT validation failed");
+                }
+            } else if (isAdminRequest) {
+                System.out.println("No JWT token found in request");
+            }
+            
+            if (isAdminRequest) {
+                System.out.println("=== End JWT Filter Debug ===");
             }
         } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            System.err.println("JWT Authentication error: " + ex.getMessage());
+            ex.printStackTrace();
         }
 
         filterChain.doFilter(request, response);

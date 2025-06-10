@@ -171,14 +171,13 @@ const DirectImageCrop: React.FC<DirectImageCropProps> = ({
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <div className="text-center">
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Select an image to crop and upload
-                  </p>
-                  <Button
+                    Chọn một hình ảnh để cắt và tải lên
+                  </p>                  <Button
                     color="primary"
                     onClick={handleFileSelect}
                     size="lg"
                   >
-                    Choose Image
+                    Chọn ảnh
                   </Button>
                 </div>
               </div>
@@ -208,9 +207,8 @@ const DirectImageCrop: React.FC<DirectImageCropProps> = ({
                 </div>
 
                 <div className="space-y-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Scale: {scale.toFixed(2)}
+                  <div>                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tỷ lệ: {scale.toFixed(2)}
                     </label>
                     <Slider
                       size="sm"
@@ -226,10 +224,9 @@ const DirectImageCrop: React.FC<DirectImageCropProps> = ({
                       }}
                     />
                   </div>
-                  
-                  <div>
+                    <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Rotation: {rotate}°
+                      Xoay: {rotate}°
                     </label>
                     <Slider
                       size="sm"
@@ -250,29 +247,27 @@ const DirectImageCrop: React.FC<DirectImageCropProps> = ({
             )}
           </ModalBody>
           
-          <ModalFooter>
-            <Button 
+          <ModalFooter>            <Button 
               color="danger" 
               variant="light" 
               onPress={handleClose}
             >
-              Cancel
+              Hủy
             </Button>
             {imageSrc && (
-              <>
-                <Button 
+              <>                <Button 
                   color="default" 
                   variant="light" 
                   onPress={handleFileSelect}
                 >
-                  Choose Different Image
+                  Chọn ảnh khác
                 </Button>
                 <Button 
                   color="primary" 
                   onPress={handleCropConfirm}
                   isDisabled={!completedCrop}
                 >
-                  Crop & Continue
+                  Cắt & Tiếp tục
                 </Button>
               </>
             )}

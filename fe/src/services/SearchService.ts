@@ -38,11 +38,10 @@ interface PostData {
   media?: Array<{
     id: number;
     mediaUrl: string;
-    mediaType: string;
+  mediaType: string;
   }>;
   likesCount: number;
   commentsCount: number;
-  sharesCount: number;
   liked: boolean;
   // Legacy fields for backward compatibility
   userId?: number;
@@ -98,11 +97,9 @@ export interface PostSearchResult {
     id: number;
     username: string;
     displayName?: string;
-    profilePicture?: string;
-  };
+    profilePicture?: string;  };
   likesCount?: number;
   commentsCount?: number;
-  sharesCount?: number;
   viewCount?: number;
   createdDate: string;
   location?: {
@@ -173,13 +170,11 @@ const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
       content: post.content,
       author: {
         id: post.author?.id || post.user?.id || post.userId || 0,
-        username: post.author?.username || post.user?.username || 'unknown',
+        username: post.author?.username || post.user?.username || 'không xác định',
         displayName: post.author?.displayName || post.user?.displayName,
-        profilePicture: post.author?.profilePicture || post.user?.profilePicture
-      },
+        profilePicture: post.author?.profilePicture || post.user?.profilePicture      },
       likesCount: post.likesCount || 0,
       commentsCount: post.commentsCount || 0,
-      sharesCount: post.sharesCount || 0,
       viewCount: 0, // ViewCount not available in current PostData structure
       createdDate: post.createdDate,
       location: post.location ? {
@@ -403,8 +398,7 @@ export const SearchService = {
   getRandomPosts: async (limit: number = 5): Promise<PostSearchResult[]> => {
     try {
       const posts = await PostService.getAllPosts();
-      
-      return posts
+        return posts
         .sort(() => Math.random() - 0.5) // Random shuffle
         .slice(0, limit)
         .map((post: PostData) => ({
@@ -412,13 +406,11 @@ export const SearchService = {
           content: post.content,
           author: {
             id: post.author?.id || post.user?.id || post.userId || 0,
-            username: post.author?.username || post.user?.username || 'unknown',
-            displayName: post.author?.displayName || post.user?.displayName,
+            username: post.author?.username || post.user?.username || 'không xác định',          displayName: post.author?.displayName || post.user?.displayName,
             profilePicture: post.author?.profilePicture || post.user?.profilePicture
           },
           likesCount: post.likesCount || 0,
           commentsCount: post.commentsCount || 0,
-          sharesCount: post.sharesCount || 0,
           createdDate: post.createdDate,
           media: post.mediaUrls?.map((url: string, index: number) => ({
             id: index,
@@ -446,21 +438,18 @@ export const SearchService = {
       if (query.trim()) {
         return searchPosts(postsWithMedia, query);
       }
-      
-      // Return all posts with media
+        // Return all posts with media
       return postsWithMedia
         .map((post: PostData) => ({
           id: post.id,
           content: post.content,
           author: {
             id: post.author?.id || post.user?.id || post.userId || 0,
-            username: post.author?.username || post.user?.username || 'unknown',
-            displayName: post.author?.displayName || post.user?.displayName,
+            username: post.author?.username || post.user?.username || 'không xác định',          displayName: post.author?.displayName || post.user?.displayName,
             profilePicture: post.author?.profilePicture || post.user?.profilePicture
           },
           likesCount: post.likesCount || 0,
           commentsCount: post.commentsCount || 0,
-          sharesCount: post.sharesCount || 0,
           createdDate: post.createdDate,
           media: post.mediaUrls?.map((url: string, index: number) => ({
             id: index,

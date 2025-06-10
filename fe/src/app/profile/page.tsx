@@ -57,9 +57,7 @@ interface PostProps {
   content: string;
   image?: string;
   likes: number;
-  dislikes?: number;
-  comments: number;
-  shares: number;
+  dislikes?: number;  comments: number;
   createdAt: Date;
   liked: boolean;
   disliked?: boolean;
@@ -134,45 +132,16 @@ export default function ProfilePage() {
         image: post.mediaUrls?.[0],
         likes: post.reactionCount || 0,
         dislikes: 0, // Will need backend support for dislike count
-        comments: post.commentCount || 0,
-        shares: 0, // Not available in backend yet
-        createdAt: new Date(post.createdDate),
+        comments: post.commentCount || 0,        createdAt: new Date(post.createdDate),
         liked: false, // Will need to check user reactions
         disliked: false // Will need to check user reactions
       }));
       setPosts(transformedPosts);
 
       // Fetch follow statistics
-      await fetchFollowStats();
-    } catch (err) {
+      await fetchFollowStats();    } catch (err) {
       console.error('Error fetching user data:', err);
-      setError('Failed to load profile data. Please try again.');
-
-      // Fallback to mock data if API fails
-      setUserData({
-        id: 1,
-        username: 'johndoe',
-        displayName: 'John Doe',
-        bio: 'Web Developer | JavaScript Enthusiast | React & Next.js | Creating beautiful user experiences'
-      });
-      // Mock posts as fallback
-      const mockPosts: PostProps[] = [
-        {
-          id: "p1",
-          authorName: "John Doe",
-          authorUsername: "johndoe",
-          authorAvatar: profilePicture,
-          content: "Just updated my portfolio site with some new projects. Check it out!",
-          likes: 24,
-          dislikes: 1,
-          comments: 3,
-          shares: 2,
-          createdAt: new Date(Date.now() - 86400000),
-          liked: false,
-          disliked: false
-        }
-      ];
-      setPosts(mockPosts);
+      setError('Không thể tải dữ liệu hồ sơ. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -223,7 +192,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error updating profile picture:', err);
-      setError('Failed to update profile picture. Please try again.');
+      setError('Không thể cập nhật ảnh đại diện. Vui lòng thử lại.');
     } finally {
       setUploading(false);
       setShowProfileConfirm(false);
@@ -251,7 +220,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error updating cover photo:', err);
-      setError('Failed to update cover photo. Please try again.');
+      setError('Không thể cập nhật ảnh bìa. Vui lòng thử lại.');
     } finally {
       setUploading(false);
       setShowCoverConfirm(false);
@@ -288,7 +257,7 @@ export default function ProfilePage() {
       console.log("Cover photo removed");
     } catch (err) {
       console.error('Error removing cover photo:', err);
-      setError('Failed to remove cover photo. Please try again.');
+      setError('Không thể xóa ảnh bìa. Vui lòng thử lại.');
     } finally {
       setUploading(false);
     }
@@ -326,7 +295,7 @@ export default function ProfilePage() {
       onOpenChange();
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError('Failed to update profile. Please try again.');
+      setError('Không thể cập nhật hồ sơ. Vui lòng thử lại.');
     } finally {
       setUpdating(false);
     }
@@ -426,7 +395,7 @@ export default function ProfilePage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h1 className="text-2xl font-bold">
-                    {userData?.displayName || userData?.username || 'Loading...'}
+                    {userData?.displayName || userData?.username || 'Đang tải...'}
                   </h1>
                   <p className="text-gray-500 dark:text-gray-400">
                     @{userData?.username || 'loading'}
@@ -434,7 +403,11 @@ export default function ProfilePage() {
                   {userData?.dateOfBirth && (
                     <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
                       <Calendar size={14} className="mr-1" />
-                      Joined {new Date(userData.dateOfBirth).toLocaleDateString()}
+                      Tham gia {new Date(userData.dateOfBirth).toLocaleDateString('vi-VN', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
                     </div>
                   )}
                 </div>
@@ -459,7 +432,7 @@ export default function ProfilePage() {
               </div>
             </CardBody>
           </Card>
-          <Tabs aria-label="Profile tabs" className="mb-6">
+          <Tabs aria-label="Tab hồ sơ" className="mb-6">
             <Tab key="posts" title="Bài Viết">
               <div className="space-y-4 mt-4">
                 {posts.length > 0 ? (
@@ -487,7 +460,7 @@ export default function ProfilePage() {
                 }
                 {posts.filter(post => post.image).length === 0 && (
                   <div className="col-span-3 text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">No photos yet</p>
+                    <p className="text-gray-500 dark:text-gray-400">Chưa có ảnh nào</p>
                   </div>
                 )}
               </div>
@@ -552,21 +525,18 @@ export default function ProfilePage() {
             )}
           </ModalContent>        </Modal>
 
-        {/* New Crop Modals */}
-        <DirectImageCrop
+        {/* New Crop Modals */}        <DirectImageCrop
           isOpen={showProfileCrop}
           onOpenChange={setShowProfileCrop}
           onCropComplete={handleProfileCropComplete}
           cropType="profile"
-          title="Crop Profile Picture"
-        />
-
-        <DirectImageCrop
+          title="Cắt ảnh đại diện"
+        />        <DirectImageCrop
           isOpen={showCoverCrop}
           onOpenChange={setShowCoverCrop}
           onCropComplete={handleCoverCropComplete}
           cropType="cover"
-          title="Crop Cover Photo"
+          title="Cắt ảnh bìa"
         />
 
         <CropConfirmationModal

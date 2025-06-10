@@ -79,44 +79,9 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
       setLoading(true);
       setError(null);
       const friendsData = await FriendService.getFriends();
-      setFriends(friendsData);
-    } catch (err) {
+      setFriends(friendsData);    } catch (err) {
       console.error('Error fetching friends:', err);
-      setError('Failed to load friends');
-      // Fallback to mock data for development
-      const mockFriends: Friend[] = [
-        {
-          id: 1,
-          friend: {
-            id: 2,
-            username: "janesmith",
-            displayName: "Jane Smith",
-            profilePicture: ""
-          },
-          friendshipDate: new Date().toISOString()
-        },
-        {
-          id: 2,
-          friend: {
-            id: 3,
-            username: "mikejohnson",
-            displayName: "Mike Johnson",
-            profilePicture: ""
-          },
-          friendshipDate: new Date().toISOString()
-        },
-        {
-          id: 3,
-          friend: {
-            id: 4,
-            username: "sarahwilson",
-            displayName: "Sarah Wilson",
-            profilePicture: ""
-          },
-          friendshipDate: new Date().toISOString()
-        }
-      ];
-      setFriends(mockFriends);
+      setError('Không thể tải danh sách bạn bè');
     } finally {
       setLoading(false);
     }
@@ -169,7 +134,7 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
       onClose();
     } catch (err) {
       console.error('Error creating chat:', err);
-      setError('Failed to create chat. Please try again.');
+      setError('Không thể tạo cuộc trò chuyện. Vui lòng thử lại.');
     } finally {
       setCreating(false);
     }
@@ -184,10 +149,9 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
       size="2xl"
       scrollBehavior="inside"
     >
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <h2 className="text-xl font-semibold">Start New Chat</h2>
-          <p className="text-sm text-gray-500">Select friends to start chatting with</p>
+      <ModalContent>        <ModalHeader className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Bắt đầu cuộc trò chuyện mới</h2>
+          <p className="text-sm text-gray-500">Chọn bạn bè để bắt đầu trò chuyện</p>
         </ModalHeader>
         
         <ModalBody>
@@ -199,9 +163,8 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
             </Card>
           )}
 
-          {/* Search */}
-          <Input
-            placeholder="Search friends..."
+          {/* Search */}          <Input
+            placeholder="Tìm kiếm bạn bè..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             startContent={<Search size={18} />}
@@ -225,9 +188,8 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
                 ))}
               </div>
               
-              {isGroupChat && (
-                <Input
-                  placeholder="Group chat name (optional)"
+              {isGroupChat && (                <Input
+                  placeholder="Tên nhóm trò chuyện (tùy chọn)"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   size="sm"
@@ -248,15 +210,14 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {filteredFriends.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  {friends.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">                  {friends.length === 0 ? (
                     <div className="space-y-2">
                       <Users className="mx-auto w-12 h-12 text-gray-400" />
-                      <p>No friends yet</p>
-                      <p className="text-sm">Add some friends to start chatting!</p>
+                      <p>Chưa có bạn bè</p>
+                      <p className="text-sm">Thêm một số bạn bè để bắt đầu trò chuyện!</p>
                     </div>
                   ) : (
-                    <p>No friends found matching "{searchTerm}"</p>
+                    <p>Không tìm thấy bạn bè nào phù hợp "{searchTerm}"</p>
                   )}
                 </div>
               ) : (
@@ -286,11 +247,9 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
               )}
             </div>
           )}
-        </ModalBody>
-
-        <ModalFooter>
+        </ModalBody>        <ModalFooter>
           <Button variant="light" onPress={onClose}>
-            Cancel
+            Hủy
           </Button>
           <Button
             color="primary"
@@ -299,7 +258,7 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
             isDisabled={selectedFriends.size === 0 || creating}
             startContent={!creating && <MessageCircle size={16} />}
           >
-            {creating ? 'Creating...' : `Start Chat${isGroupChat ? ' Group' : ''}`}
+            {creating ? 'Đang tạo...' : `Bắt đầu trò chuyện${isGroupChat ? ' nhóm' : ''}`}
           </Button>
         </ModalFooter>
       </ModalContent>

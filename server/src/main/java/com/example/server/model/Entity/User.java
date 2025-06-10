@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -27,9 +28,7 @@ public class User {
     private String email; // For OAuth2 users
 
     @Column(name = "provider")
-    private String provider; // google, facebook, etc. null for regular users
-
-    @Column(name = "provider_id")
+    private String provider; // google, facebook, etc. null for regular users    @Column(name = "provider_id")
     private String providerId; // OAuth2 provider user ID
 
     @ManyToOne
@@ -68,11 +67,14 @@ public class User {
     private List<Message> sentMessages;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoomUser> roomUsers;
-
-    @OneToMany(mappedBy = "user")
+    private List<RoomUser> roomUsers;    @OneToMany(mappedBy = "user")
     private List<PostReaction> postReactions;
 
     @OneToMany(mappedBy = "user")
     private List<CommentReaction> commentReactions;
+
+    // Helper methods to get data from relationships
+    public LocalDate getCreatedDate() {
+        return userData != null ? userData.getCreatedAt() : null;
+    }
 }
