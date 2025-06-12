@@ -3,11 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { Button, Textarea, Avatar, Card, CardBody, Divider } from '@nextui-org/react';
 import { Send } from 'react-feather';
 import CommentItem from './CommentItem';
+import ProfanityWarningModal from './ProfanityWarningModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import ReportModal from './ReportModal';
+import EditModal from './EditModal';
 import { Comment } from '@/types/Comment';
 import { avatarBase64 } from '@/static/images/avatarDefault';
 import { CommentService } from '@/services';
 import { AuthService } from '@/services';
+import ProfanityService from '@/services/ProfanityService';
 import CommentReactionService from '@/services/CommentReactionService';
+import ReportService from '@/services/ReportService';
 
 interface CommentSectionProps {
   postId: string;
@@ -19,12 +25,22 @@ export default function CommentSection({
   postId, 
   commentsCount, 
   onCommentsCountChange 
-}: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
+}: CommentSectionProps) {  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Profanity detection states
+  const [showProfanityWarning, setShowProfanityWarning] = useState(false);
+  const [profanityResult, setProfanityResult] = useState<any>(null);
+
+  // Modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState<string>('');
+  const [selectedCommentContent, setSelectedCommentContent] = useState<string>('');
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -115,18 +131,33 @@ export default function CommentSection({
     } finally {
       setLoadingComments(false);
     }
-  };const handleSubmitComment = async () => {
+  };  const handleSubmitComment = async () => {
     if (!newComment.trim() || loading || !currentUser) return;
-    
+
     setLoading(true);
     try {
+      // Check for profanity before submitting
+      if (newComment.trim()) {
+        const profanityResult = await ProfanityService.checkProfanity(newComment);
+
+        if (profanityResult.is_profane) {
+          // Show profanity warning modal
+          setProfanityResult(profanityResult);
+          setShowProfanityWarning(true);
+          setLoading(false);
+          return;
+        }
+      }
+
       const postIdNum = parseInt(postId);
       const commentData = {
         postId: postIdNum,
         content: newComment,
       };
 
-      const createdComment = await CommentService.createComment(commentData);      // Transform API response to match our Comment interface
+      const createdComment = await CommentService.createComment(commentData);
+      
+      // Transform API response to match our Comment interface
       const newCommentObj: Comment = {
         id: createdComment.id.toString(),
         content: (createdComment as any).text, // API uses 'text' field
@@ -144,15 +175,56 @@ export default function CommentSection({
       setComments(prev => [newCommentObj, ...prev]);
       setNewComment('');
       onCommentsCountChange?.(commentsCount + 1);
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error submitting comment:', error);
+      
+      // Check if it's a profanity error
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      
+      if (ProfanityService.isProfanityError(errorMessage)) {
+        // Show profanity warning modal
+        setProfanityResult({
+          is_profane: true,
+          confidence: 0.8, // Default confidence for backend detection
+          toxic_spans: [],
+          processed_text: newComment
+        });
+        setShowProfanityWarning(true);
+      } else {
+        alert('Không thể gửi bình luận. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
-  };  const handleReply = async (commentId: string, content: string) => {
+  };
+
+  const handleProfanityEdit = () => {
+    setShowProfanityWarning(false);
+    // Keep the comment content so user can edit it
+  };
+
+  const handleProfanityCancel = () => {
+    setShowProfanityWarning(false);
+    setProfanityResult(null);
+    // Optionally clear content
+    setNewComment("");
+  };const handleReply = async (commentId: string, content: string) => {
     try {
       if (!currentUser) return;
-      
+
+      // Check for profanity before submitting reply
+      if (content.trim()) {
+        const profanityResult = await ProfanityService.checkProfanity(content);
+
+        if (profanityResult.is_profane) {
+          // Show profanity warning modal for reply
+          setProfanityResult(profanityResult);
+          setShowProfanityWarning(true);
+          return;
+        }
+      }
+
       const commentIdNum = parseInt(commentId);
       const replyData = {
         commentId: commentIdNum,
@@ -318,6 +390,112 @@ export default function CommentSection({
     }
   };
 
+  const handleDeleteComment = (commentId: string) => {
+    setSelectedCommentId(commentId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const commentIdNum = parseInt(selectedCommentId);
+
+      // API call to delete comment
+      await CommentService.deleteComment(commentIdNum);
+
+      // Remove comment from state (recursive function to handle nested comments)
+      const removeComment = (comments: Comment[]): Comment[] => {
+        return comments.filter(comment => {
+          if (comment.id === selectedCommentId) {
+            return false; // Remove this comment
+          }
+          if (comment.replies && comment.replies.length > 0) {
+            comment.replies = removeComment(comment.replies);
+          }
+          return true;
+        });
+      };
+
+      setComments(prev => removeComment(prev));
+      onCommentsCountChange?.(commentsCount - 1);
+
+      // Show success message
+      alert('Bình luận đã được xóa thành công.');
+
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Không thể xóa bình luận. Vui lòng thử lại.');
+    }
+  };
+
+  const handleReportComment = (commentId: string) => {
+    setSelectedCommentId(commentId);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reason: string, description?: string) => {
+    try {
+      const commentIdNum = parseInt(selectedCommentId);
+
+      await ReportService.reportComment(commentIdNum, reason, description || '');
+
+      alert('Báo cáo đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
+
+    } catch (error) {
+      console.error('Error reporting comment:', error);
+      alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
+    }
+  };
+
+  const handleEditComment = (commentId: string, currentContent: string) => {
+    setSelectedCommentId(commentId);
+    setSelectedCommentContent(currentContent);
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = async (newContent: string) => {
+    try {
+      const commentIdNum = parseInt(selectedCommentId);
+
+      // Check for profanity before updating
+      const profanityResult = await ProfanityService.checkProfanity(newContent);
+
+      if (profanityResult.is_profane) {
+        // Show profanity warning
+        alert(`Nội dung chứa từ ngữ không phù hợp (độ tin cậy: ${(profanityResult.confidence * 100).toFixed(1)}%). Vui lòng chỉnh sửa và thử lại.`);
+        return;
+      }
+
+      await CommentService.updateComment(commentIdNum, { content: newContent });
+
+      // Update comment in state (recursive function to handle nested comments)
+      const updateComment = (comments: Comment[]): Comment[] => {
+        return comments.map(comment => {
+          if (comment.id === selectedCommentId) {
+            return { ...comment, content: newContent };
+          }
+          if (comment.replies && comment.replies.length > 0) {
+            return { ...comment, replies: updateComment(comment.replies) };
+          }
+          return comment;
+        });
+      };
+
+      setComments(prev => updateComment(prev));
+
+      alert('Bình luận đã được cập nhật thành công.');
+
+    } catch (error: any) {
+      console.error('Error updating comment:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+
+      if (ProfanityService.isProfanityError(errorMessage)) {
+        alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.');
+      } else {
+        alert('Không thể cập nhật bình luận. Vui lòng thử lại.');
+      }
+    }
+  };
+
   const getUserAvatarSrc = () => {
     if (currentUser?.avatar && currentUser.avatar.trim() !== '') {
       return currentUser.avatar;
@@ -384,12 +562,55 @@ export default function CommentSection({
                 onReply={handleReply}
                 onLike={handleLikeComment}
                 onDislike={handleDislikeComment}
+                onDelete={handleDeleteComment}
+                onReport={handleReportComment}
+                onEdit={handleEditComment}
                 currentUser={currentUser}
               />
-            ))}
-          </div>
+            ))}          </div>
         )}
       </CardBody>
+      
+      {/* Profanity Warning Modal */}
+      <ProfanityWarningModal
+        isOpen={showProfanityWarning}
+        onClose={handleProfanityCancel}
+        onEdit={handleProfanityEdit}
+        content={newComment}
+        toxicSpans={profanityResult?.toxic_spans || []}
+        confidence={profanityResult?.confidence || 0}
+        type="comment"
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Xóa bình luận"
+        message="Bạn có chắc chắn muốn xóa bình luận này? Hành động này không thể hoàn tác."
+        itemType="comment"
+        isLoading={loading}
+      />
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReportSubmit}
+        itemType="comment"
+        isLoading={loading}
+      />
+
+      {/* Edit Modal */}
+      <EditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleEditSave}
+        initialContent={selectedCommentContent}
+        itemType="comment"
+        isLoading={loading}
+      />
     </Card>
   );
 }

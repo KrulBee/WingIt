@@ -11,23 +11,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class CommentService {
-
-    private final CommentRepository commentRepository;
+public class CommentService {    private final CommentRepository commentRepository;
     private final CommentReplyRepository commentReplyRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ProfanityDetectionService profanityDetectionService;
 
     @Autowired
     public CommentService(CommentRepository commentRepository, CommentReplyRepository commentReplyRepository, 
                          PostRepository postRepository, UserRepository userRepository,
-                         NotificationService notificationService) {
+                         NotificationService notificationService, ProfanityDetectionService profanityDetectionService) {
         this.commentRepository = commentRepository;
         this.commentReplyRepository = commentReplyRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.profanityDetectionService = profanityDetectionService;
     }
     
     public List<CommentDTO> getCommentsByPostId(Long postId) {
@@ -40,14 +40,22 @@ public class CommentService {
     public CommentDTO createComment(Long postId, CreateCommentRequest request, Integer userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
-        User user = userRepository.findById(userId)
+          User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check for profanity in comment content
+        String commentText = request.getActualText();
+        ProfanityDetectionService.ProfanityResult profanityResult = 
+            profanityDetectionService.checkProfanity(commentText);
+        
+        if (profanityResult.isProfane()) {
+            throw new RuntimeException("Bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+        }
 
         Comment comment = new Comment();
         comment.setPost(post);
         comment.setUser(user);
-        comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
+        comment.setText(commentText);
         comment.setIsReply(false); // Root comment
         comment.setCreatedDate(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
@@ -69,17 +77,47 @@ public class CommentService {
         
         return convertToDTO(savedComment);    }
 
-    public CommentDTO updateComment(Long id, CreateCommentRequest request) {
+    public CommentDTO updateComment(Long id, CreateCommentRequest request, Integer userId) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
-        
+
+        // Check if user owns the comment
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only edit your own comments");
+        }
+
         comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
         comment.setUpdatedAt(LocalDateTime.now());
-        
+
         Comment updatedComment = commentRepository.save(comment);
         return convertToDTO(updatedComment);
     }
 
+    // Keep the old method for backward compatibility (admin use)
+    public CommentDTO updateComment(Long id, CreateCommentRequest request) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
+        comment.setUpdatedAt(LocalDateTime.now());
+
+        Comment updatedComment = commentRepository.save(comment);
+        return convertToDTO(updatedComment);
+    }
+
+    public void deleteComment(Long id, Integer userId) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        // Check if user owns the comment
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only delete your own comments");
+        }
+
+        commentRepository.delete(comment);
+    }
+
+    // Keep the old method for backward compatibility (admin use)
     public void deleteComment(Long id) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));

@@ -23,6 +23,7 @@ import com.example.server.service.OAuth2AuthenticationSuccessHandler;
 import com.example.server.service.OAuth2AuthenticationFailureHandler;
 
 import java.io.IOException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
@@ -72,24 +73,38 @@ public class SecurityConfig {    @Autowired
             )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
-                    // For API endpoints, return 401 instead of redirecting to OAuth2
-                    if (request.getRequestURI().startsWith("/api/")) {
-                        response.setStatus(401);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
-                    } else {
-                        // For non-API endpoints, redirect to OAuth2 login
-                        response.sendRedirect("/oauth2/authorization/google");
-                    }
+                    // Enhanced debugging for authentication failures
+                    System.out.println("=== AUTHENTICATION FAILURE DEBUG ===");
+                    System.out.println("Request URI: " + request.getRequestURI());
+                    System.out.println("Request Method: " + request.getMethod());
+                    System.out.println("Authorization Header: " + request.getHeader("Authorization"));
+                    System.out.println("Exception: " + authException.getMessage());
+                    System.out.println("Exception Type: " + authException.getClass().getSimpleName());
+
+                    // ALWAYS return 401 for API endpoints - NO redirects
+                    String requestURI = request.getRequestURI();
+                    System.out.println("API endpoint detected - returning 401: " + requestURI);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+                    response.setHeader("Access-Control-Allow-Credentials", "true");
+                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                    response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                    response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication required\"}");
+                    response.getWriter().flush();
+                    System.out.println("=== END AUTHENTICATION FAILURE DEBUG ===");
                 })
-            ).oauth2Login(oauth2 -> oauth2
+            )
+            // Temporarily disable OAuth2 to test JWT authentication
+            /*.oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(googleOAuth2UserService)
                     .oidcUserService(googleOidcUserService)
                 )
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)
-            )
+            )*/
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

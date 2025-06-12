@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import { Card, CardBody, Avatar, Button, Textarea, Select, SelectItem } from "@nextui-org/react";
 import { Image as ImageIcon, Smile, MapPin } from "react-feather";
 import MediaUpload from "./MediaUpload";
+import ProfanityWarningModal from "./ProfanityWarningModal";
 import { PostService } from "@/services";
+import ProfanityService from "@/services/ProfanityService";
 import LocationService, { Location } from "@/services/LocationService";
 import PostTypeService, { PostType } from "@/services/PostTypeService";
 import { AuthService } from "@/services";
@@ -22,15 +24,22 @@ interface UserData {
   dateOfBirth?: string;
 }
 
-export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {  const [content, setContent] = useState("");
+export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {  
+  const [content, setContent] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [selectedPostTypeId, setSelectedPostTypeId] = useState<number | null>(2); // Default to 'scenic'
   const [locations, setLocations] = useState<Location[]>([]);
   const [postTypes, setPostTypes] = useState<PostType[]>([]);
-  const [showMediaUpload, setShowMediaUpload] = useState(false);  const [isSubmitting, setIsSubmitting] = useState(false);  const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);  
+  const [isSubmitting, setIsSubmitting] = useState(false);  
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
   const [postTypesLoaded, setPostTypesLoaded] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(null);const loadLocations = async () => {
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  
+  // Profanity detection states
+  const [showProfanityWarning, setShowProfanityWarning] = useState(false);
+  const [profanityResult, setProfanityResult] = useState<any>(null);const loadLocations = async () => {
     if (!locationsLoaded) {
       try {
         const locationData = await LocationService.getAllLocations();
@@ -66,10 +75,10 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
     loadPostTypes();
     loadCurrentUser();
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-      if (!content.trim() && mediaUrls.length === 0) return;
+
+    if (!content.trim() && mediaUrls.length === 0) return;
     if (!selectedLocationId) {
       alert('Vui lòng chọn địa điểm cho bài viết của bạn');
       return;
@@ -78,8 +87,23 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       alert('Vui lòng chọn loại bài viết');
       return;
     }
-    
-    setIsSubmitting(true);    try {
+
+    setIsSubmitting(true);
+
+    try {
+      // Check for profanity before submitting
+      if (content.trim()) {
+        const profanityResult = await ProfanityService.checkProfanity(content);
+
+        if (profanityResult.is_profane) {
+          // Show profanity warning modal
+          setProfanityResult(profanityResult);
+          setShowProfanityWarning(true);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const postData = {
         content,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
@@ -88,21 +112,52 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       };
 
       const newPost = await PostService.createPost(postData);
-      
+
       // Call the callback if provided
       if (onPostCreated) {
         onPostCreated(newPost);
-      }      // Reset form
+      }
+
+      // Reset form
       setContent("");
       setMediaUrls([]);
       setSelectedLocationId(null);
       setShowMediaUpload(false);
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error("Failed to create post:", error);
-      alert('Không thể tạo bài viết. Vui lòng thử lại.');
+      
+      // Check if it's a profanity error
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      
+      if (ProfanityService.isProfanityError(errorMessage)) {
+        // Show profanity warning modal instead of alert
+        setProfanityResult({
+          is_profane: true,
+          confidence: 0.8, // Default confidence for backend detection
+          toxic_spans: [],
+          processed_text: content
+        });
+        setShowProfanityWarning(true);
+      } else {
+        alert('Không thể tạo bài viết. Vui lòng thử lại.');
+      }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleProfanityEdit = () => {
+    setShowProfanityWarning(false);
+    // Keep the content so user can edit it
+    // Focus back to textarea would be nice but we'll keep it simple
+  };
+
+  const handleProfanityCancel = () => {
+    setShowProfanityWarning(false);
+    setProfanityResult(null);
+    // Optionally clear content
+    setContent("");
   };
   
   const handleMediaUploadComplete = (urls: string[]) => {
@@ -132,10 +187,11 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 
           {showMediaUpload && (
             <div className="mt-4">
-              <MediaUpload 
-                type="post" 
-                onUploadComplete={handleMediaUploadComplete} 
-                maxFiles={4} 
+              <MediaUpload
+                type="post"
+                onUploadComplete={handleMediaUploadComplete}
+                maxFiles={4}
+                allowVideo={true}
               />
             </div>
           )}
@@ -218,8 +274,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
                 <Smile size={18} />
               </Button>
             </div>
-            
-            <Button 
+              <Button 
               color="primary" 
               size="sm" 
               type="submit" 
@@ -231,6 +286,17 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
           </div>
         </form>
       </CardBody>
+      
+      {/* Profanity Warning Modal */}
+      <ProfanityWarningModal
+        isOpen={showProfanityWarning}
+        onClose={handleProfanityCancel}
+        onEdit={handleProfanityEdit}
+        content={content}
+        toxicSpans={profanityResult?.toxic_spans || []}
+        confidence={profanityResult?.confidence || 0}
+        type="post"
+      />
     </Card>
   );
 }

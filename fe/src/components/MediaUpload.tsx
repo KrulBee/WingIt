@@ -9,11 +9,13 @@ type MediaUploadProps = {
   type: 'post' | 'profile' | 'cover';
   maxFiles?: number;
   enableCropping?: boolean;
+  allowVideo?: boolean;
 };
 
-export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enableCropping = false }: MediaUploadProps) {
+export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enableCropping = false, allowVideo = false }: MediaUploadProps) {
   const [previews, setPreviews] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileTypes, setFileTypes] = useState<string[]>([]); // Track file types
   const [selectedImageForCrop, setSelectedImageForCrop] = useState<string>('');
   const [croppedFiles, setCroppedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,28 +24,45 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
-    
+
     const selectedFiles = Array.from(e.target.files);
+
+    // Check file sizes before processing
+    for (const file of selectedFiles) {
+      const fileSizeMB = Math.round(file.size / 1024 / 1024);
+      if (file.size > 50 * 1024 * 1024) { // 50MB
+        alert(`${file.type.startsWith('video/') ? 'Video' : 'Ảnh'} "${file.name}" quá lớn (${fileSizeMB}MB). Hãy chọn file dưới 50MB.`);
+        return;
+      }
+      if (file.size > 30 * 1024 * 1024 && file.type.startsWith('video/')) { // 30MB warning for videos
+        if (!confirm(`Video "${file.name}" khá lớn (${fileSizeMB}MB). Có thể tải lên chậm. Bạn có muốn tiếp tục?`)) {
+          return;
+        }
+      }
+    }
+
     const newFiles = type === 'profile' || type === 'cover'
       ? [selectedFiles[0]] // Only take one file for profile pictures and cover photos
-      : files.length + selectedFiles.length > maxFiles 
-        ? selectedFiles.slice(0, maxFiles - files.length) 
+      : files.length + selectedFiles.length > maxFiles
+        ? selectedFiles.slice(0, maxFiles - files.length)
         : selectedFiles;
-    
-    // If cropping is enabled and it's a profile or cover photo, show crop modal
-    if (enableCropping && (type === 'profile' || type === 'cover') && newFiles.length > 0) {
+
+    // If cropping is enabled and it's a profile or cover photo, show crop modal (only for images)
+    if (enableCropping && (type === 'profile' || type === 'cover') && newFiles.length > 0 && newFiles[0].type.startsWith('image/')) {
       const imageUrl = URL.createObjectURL(newFiles[0]);
       setSelectedImageForCrop(imageUrl);
       onOpen();
       return;
     }
-    
+
     // Create object URLs for previews
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    
+    const newFileTypes = newFiles.map(file => file.type);
+
     setFiles(prevFiles => [...prevFiles, ...newFiles]);
     setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
-    
+    setFileTypes(prevTypes => [...prevTypes, ...newFileTypes]);
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -71,9 +90,10 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
   const removeFile = (index: number) => {
     // Revoke object URL to prevent memory leaks
     URL.revokeObjectURL(previews[index]);
-    
+
     setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
     setPreviews(prevPreviews => prevPreviews.filter((_, i) => i !== index));
+    setFileTypes(prevTypes => prevTypes.filter((_, i) => i !== index));
     setCroppedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
@@ -88,6 +108,7 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
       previews.forEach(preview => URL.revokeObjectURL(preview));
       setPreviews([]);
       setFiles([]);
+      setFileTypes([]);
       setCroppedFiles([]);
     }
   };
@@ -98,7 +119,7 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
       case 'cover':
         return 'Chọn ảnh bìa';
       default:
-        return 'Thêm ảnh';
+        return allowVideo ? 'Thêm ảnh/video' : 'Thêm ảnh';
     }
   };
 
@@ -139,7 +160,7 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={allowVideo ? "image/*,video/*" : "image/*"}
         onChange={handleFileChange}
         className="hidden"
         multiple={type === 'post'}
@@ -153,15 +174,26 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
           {previews.map((preview, index) => (
             <div key={index} className="relative">
-              <Image
-                src={preview}
-                alt="Preview"
-                width={200}
-                height={200}
-                className={`rounded object-cover w-full ${
-                  type === 'cover' ? 'h-20' : 'h-32'
-                }`}
-              />
+              {fileTypes[index]?.startsWith('video/') ? (
+                <video
+                  src={preview}
+                  className={`rounded object-cover w-full ${
+                    type === 'cover' ? 'h-20' : 'h-32'
+                  }`}
+                  controls
+                  muted
+                />
+              ) : (
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={200}
+                  height={200}
+                  className={`rounded object-cover w-full ${
+                    type === 'cover' ? 'h-20' : 'h-32'
+                  }`}
+                />
+              )}
               <button
                 type="button"
                 onClick={() => removeFile(index)}
@@ -174,9 +206,14 @@ export default function MediaUpload({ onUploadComplete, type, maxFiles = 4, enab
         </div>
       )}
         {type === 'post' && (
-        <p className="text-sm text-gray-500 mt-1">
-          {previews.length}/{maxFiles} ảnh đã chọn
-        </p>
+        <div className="text-sm text-gray-500 mt-1">
+          <p>{previews.length}/{maxFiles} {allowVideo ? 'tệp' : 'ảnh'} đã chọn</p>
+          {allowVideo && (
+            <p className="text-xs mt-1 text-blue-600 dark:text-blue-400">
+              💡 Gợi ý: Hãy gửi video dưới 50MB để tải lên thành công
+            </p>
+          )}
+        </div>
       )}
 
       {/* Image Crop Modal */}

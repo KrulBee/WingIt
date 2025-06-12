@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class FriendService {    private final FriendRepository friendRepository;
@@ -239,6 +241,79 @@ public class FriendService {    private final FriendRepository friendRepository;
         }
         
         return false;
+    }
+
+    public List<UserDTO> getFriendSuggestions(Integer userId) {
+        // Get current user's friends
+        List<Friend> userFriends = friendRepository.findAll().stream()
+                .filter(friend -> friend.getUser1().getId().equals(userId) || friend.getUser2().getId().equals(userId))
+                .collect(Collectors.toList());
+
+        Set<Integer> friendIds = userFriends.stream()
+                .map(friend -> friend.getUser1().getId().equals(userId) ? friend.getUser2().getId() : friend.getUser1().getId())
+                .collect(Collectors.toSet());
+
+        // Get pending friend requests (sent and received)
+        Set<Integer> pendingRequestIds = friendRequestRepository.findAll().stream()
+                .filter(request -> request.getSender().getId().equals(userId) || request.getReceiver().getId().equals(userId))
+                .flatMap(request -> Stream.of(request.getSender().getId(), request.getReceiver().getId()))
+                .collect(Collectors.toSet());
+
+        // Get all users and filter out current user, friends, and pending requests
+        List<User> allUsers = userRepository.findAll();
+        List<User> eligibleUsers = allUsers.stream()
+                .filter(user -> !user.getId().equals(userId) &&
+                               !friendIds.contains(user.getId()) &&
+                               !pendingRequestIds.contains(user.getId()))
+                .collect(Collectors.toList());
+
+        // Calculate mutual friends for each eligible user and create suggestions
+        List<UserDTO> suggestions = eligibleUsers.stream()
+                .map(user -> {
+                    // Calculate mutual friends count
+                    List<Friend> userFriendsList = friendRepository.findAll().stream()
+                            .filter(friend -> friend.getUser1().getId().equals(user.getId()) || friend.getUser2().getId().equals(user.getId()))
+                            .collect(Collectors.toList());
+
+                    Set<Integer> userFriendIds = userFriendsList.stream()
+                            .map(friend -> friend.getUser1().getId().equals(user.getId()) ? friend.getUser2().getId() : friend.getUser1().getId())
+                            .collect(Collectors.toSet());
+
+                    long mutualFriendsCount = friendIds.stream()
+                            .filter(userFriendIds::contains)
+                            .count();
+
+                    // Create UserDTO with suggestion score
+                    UserDTO userDTO = new UserDTO();
+                    userDTO.setId(user.getId());
+                    userDTO.setUsername(user.getUsername());
+
+                    // Get user data from UserData entity
+                    String displayName = user.getUserData() != null ? user.getUserData().getDisplayName() : null;
+                    String profilePicture = user.getUserData() != null ? user.getUserData().getProfilePicture() : null;
+                    String bio = user.getUserData() != null ? user.getUserData().getBio() : null;
+
+                    userDTO.setDisplayName(displayName);
+                    userDTO.setProfilePicture(profilePicture);
+                    userDTO.setBio(bio);
+
+                    // Calculate suggestion score
+                    int score = (int) (mutualFriendsCount * 10);
+                    if (displayName != null && !displayName.isEmpty()) score += 2;
+                    if (profilePicture != null && !profilePicture.isEmpty()) score += 2;
+                    if (bio != null && !bio.isEmpty()) score += 1;
+
+                    // Store score in a custom field (we'll use email field temporarily for sorting)
+                    userDTO.setEmail(String.valueOf(score));
+
+                    return userDTO;
+                })
+                .sorted((a, b) -> Integer.compare(Integer.parseInt(b.getEmail()), Integer.parseInt(a.getEmail())))
+                .limit(10)
+                .peek(userDTO -> userDTO.setEmail(null)) // Clear the temporary score field
+                .collect(Collectors.toList());
+
+        return suggestions;
     }
 
     private FriendDTO convertToDTO(Friend friend, Integer currentUserId) {

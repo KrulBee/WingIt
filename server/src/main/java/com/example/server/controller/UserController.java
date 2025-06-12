@@ -163,6 +163,24 @@ public class UserController {    @Autowired
         }
     }
 
+    @DeleteMapping("/account")
+    public ResponseEntity<?> deleteCurrentUserAccount() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            userService.deleteUser(userId);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Account deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
     /**
      * Upload a profile picture
      * 

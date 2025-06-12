@@ -1,17 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { MessageCircle, MoreHorizontal, Bookmark } from "react-feather";
+import { MessageCircle, MoreHorizontal, Bookmark, Edit3, Trash2 } from "react-feather";
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
 import PostDetailModal from './PostDetailModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import ReportModal from './ReportModal';
+import EditModal from './EditModal';
 import { Card, CardHeader, CardBody, CardFooter, Avatar, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { PostReactionService, BookmarkService, ReactionTypeService, viewService } from "@/services";
+import { PostReactionService, BookmarkService, ReactionTypeService, viewService, PostService, AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
-import { AuthService } from "@/services";
+import ReportService from "@/services/ReportService";
+import ProfanityService from "@/services/ProfanityService";
+import MediaService from "@/services/MediaService";
 
 interface PostProps {
   id: string;
@@ -55,7 +60,11 @@ export default function Post({
   const [showComments, setShowComments] = useState(false);  const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [postContent, setPostContent] = useState(content);
   const [likeReactionTypeId, setLikeReactionTypeId] = useState<number | null>(null);
   const [dislikeReactionTypeId, setDislikeReactionTypeId] = useState<number | null>(null);
   const { navigateToProfile } = useProfileNavigation();
@@ -227,23 +236,88 @@ export default function Post({
     } finally {
       setLoading(false);
     }  };
-  const handleReport = async () => {
-    if (loading) return;
+  const handleReport = () => {
+    setShowReportModal(true);
+  };
 
+  const handleReportSubmit = async (reason: string, description?: string) => {
     try {
       setLoading(true);
       const postId = parseInt(id);
-      
-      // For now, just show a success alert since admin functionality is for future work
-      // TODO: Implement actual report API endpoint and admin system
+
+      await ReportService.reportPost(postId, reason, description || '');
+
+      // Show success message (you could use a toast notification instead)
       alert("Báo cáo đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.");
-      
-      // You can add actual API call here when backend report system is implemented
-      // await ReportService.reportPost(postId, reportReason);
-      
+
     } catch (error) {
       console.error('Error reporting post:', error);
       alert("Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePost = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setLoading(true);
+      const postId = parseInt(id);
+
+      await PostService.deletePost(postId);
+
+      // Notify parent component or redirect
+      alert('Bài viết đã được xóa thành công.');
+
+      // Reload the page to refresh the feed
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Không thể xóa bài viết. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditPost = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = async (newContent: string) => {
+    try {
+      setLoading(true);
+      const postId = parseInt(id);
+
+      // Check for profanity before updating
+      const profanityResult = await ProfanityService.checkProfanity(newContent);
+
+      if (profanityResult.is_profane) {
+        // Show profanity warning
+        alert(`Nội dung chứa từ ngữ không phù hợp (độ tin cậy: ${(profanityResult.confidence * 100).toFixed(1)}%). Vui lòng chỉnh sửa và thử lại.`);
+        setLoading(false);
+        return;
+      }
+
+      await PostService.updatePost(postId, { content: newContent });
+
+      // Update local state
+      setPostContent(newContent);
+
+      alert('Bài viết đã được cập nhật thành công.');
+
+    } catch (error: any) {
+      console.error('Error updating post:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+
+      if (ProfanityService.isProfanityError(errorMessage)) {
+        alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.');
+      } else {
+        alert('Không thể cập nhật bài viết. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -255,7 +329,11 @@ export default function Post({
 
   const handleCommentsCountChange = (newCount: number) => {
     setCommentCount(newCount);
-  };  return (
+  };
+
+
+
+  return (
     <div className="mb-4">
       <Card className={`border border-gray-200 dark:border-gray-700 transition-all duration-300 ${
         highlighted 
@@ -277,81 +355,242 @@ export default function Post({
             </div>
           </div>          <Dropdown>
             <DropdownTrigger>
-              <Button 
-                isIconOnly 
-                variant="light" 
+              <Button
+                isIconOnly
+                variant="light"
                 size="sm"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal size={20} />
               </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label="Hành động bài viết">
+
+            <DropdownMenu
+              aria-label="Hành động bài viết"
+              onAction={(key) => {
+                switch (key) {
+                  case 'bookmark':
+                    handleBookmark();
+                    break;
+                  case 'edit':
+                    handleEditPost();
+                    break;
+                  case 'delete':
+                    handleDeletePost();
+                    break;
+                  case 'report':
+                    handleReport();
+                    break;
+                  default:
+                    break;
+                }
+              }}
+            >
               <DropdownItem
                 key="bookmark"
-                onClick={handleBookmark}
                 startContent={<Bookmark size={16} />}
               >
                 {isBookmarked ? 'Bỏ Lưu' : 'Lưu Bài Viết'}
               </DropdownItem>
-              <DropdownItem
-                key="report"
-                onClick={handleReport}
-              >
-                Báo Cáo
-              </DropdownItem>
-              <DropdownItem key="hide">Ẩn</DropdownItem>
+
+
+
+              {/* Show edit and delete options only for post owner */}
+              {currentUser && currentUser.username === authorUsername && [
+                <DropdownItem
+                  key="edit"
+                  startContent={<Edit3 size={16} />}
+                >
+                  Chỉnh sửa
+                </DropdownItem>,
+                <DropdownItem
+                  key="delete"
+                  className="text-danger"
+                  color="danger"
+                  startContent={<Trash2 size={16} />}
+                >
+                  Xóa Bài Viết
+                </DropdownItem>
+              ]}
+
+              {/* Show report option for others */}
+              {currentUser && currentUser.username !== authorUsername && (
+                <DropdownItem key="report">
+                  Báo Cáo
+                </DropdownItem>
+              )}
+
+              {/* Fallback options if no user */}
+              {!currentUser && (
+                <DropdownItem key="login" isReadOnly>
+                  Đăng nhập để xem thêm tùy chọn
+                </DropdownItem>
+              )}
             </DropdownMenu>
           </Dropdown>
         </CardHeader>        <CardBody 
           className="px-3 py-0 text-sm cursor-pointer" 
           onClick={handleOpenModal}
         >
-          <p>{content}</p>
-          {/* Single image display */}
-          {image && (
-            <div className="mt-3 relative w-full max-w-lg mx-auto rounded-lg overflow-hidden">
-              <Image
-                src={image}
-                alt="Post image"
-                width={500}
-                height={300}
-                className="w-full h-auto object-cover"
-                style={{ maxHeight: '400px' }}
-              />
-            </div>
-          )}
+          <p>{postContent}</p>
+          {/* Media display - Facebook style grid */}
+          {(() => {
+            // Combine all media sources and remove duplicates
+            const allMedia = [];
+            if (image) allMedia.push(image);
+            if (images && images.length > 0) allMedia.push(...images);
 
-          {/* Multiple images display */}
-          {images && images.length > 0 && (
-            <div className="mt-3 grid gap-2"
-              style={{
-                gridTemplateColumns: images.length === 1 ? '1fr' :
-                  images.length === 2 ? '1fr 1fr' :
-                    images.length === 3 ? '1fr 1fr 1fr' :
-                      '1fr 1fr'
-              }}>
-              {images.slice(0, 4).map((img, index) => (
-                <div key={index} className="relative rounded-lg overflow-hidden">
-                  <Image
-                    src={img}
-                    alt={`Post image ${index + 1}`}
-                    width={250}
-                    height={250}
-                    className="w-full h-full object-cover"
-                    style={{ aspectRatio: '1/1' }}
-                  />
-                  {images.length > 4 && index === 3 && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <span className="text-white text-lg font-semibold">
-                        +{images.length - 4}
-                      </span>
-                    </div>
+            // Remove duplicates by converting to Set and back to array
+            const uniqueMedia = [...new Set(allMedia)];
+
+            if (uniqueMedia.length === 0) return null;
+
+            // Single media - full width
+            if (uniqueMedia.length === 1) {
+              return (
+                <div className="mt-3 relative w-full max-w-lg mx-auto rounded-lg overflow-hidden">
+                  {MediaService.isVideoUrl(uniqueMedia[0]) ? (
+                    <video
+                      src={uniqueMedia[0]}
+                      controls
+                      className="w-full h-auto object-cover"
+                      style={{ maxHeight: '400px' }}
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <Image
+                      src={uniqueMedia[0]}
+                      alt="Post media"
+                      width={500}
+                      height={300}
+                      className="w-full h-auto object-cover"
+                      style={{ maxHeight: '400px' }}
+                    />
                   )}
                 </div>
-              ))}
-            </div>
-          )}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
+              );
+            }
+
+            // Multiple media - Facebook style grid
+            return (
+              <div className="mt-3 rounded-lg overflow-hidden max-w-lg mx-auto">
+                {uniqueMedia.length === 2 && (
+                  // 2 images: side by side
+                  <div className="grid grid-cols-2 gap-1">
+                    {uniqueMedia.slice(0, 2).map((media, index) => (
+                      <div key={index} className="aspect-square">
+                        {MediaService.isVideoUrl(media) ? (
+                          <video
+                            src={media}
+                            controls
+                            className="w-full h-full object-cover"
+                            preload="metadata"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <Image
+                            src={media}
+                            alt={`Post media ${index + 1}`}
+                            width={250}
+                            height={250}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uniqueMedia.length === 3 && (
+                  // 3 images: first large, two small on right
+                  <div className="grid grid-cols-2 gap-1" style={{ height: '320px' }}>
+                    <div className="relative">
+                      {MediaService.isVideoUrl(uniqueMedia[0]) ? (
+                        <video
+                          src={uniqueMedia[0]}
+                          controls
+                          className="w-full h-full object-cover"
+                          preload="metadata"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <Image
+                          src={uniqueMedia[0]}
+                          alt="Post media 1"
+                          width={250}
+                          height={320}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="grid grid-rows-2 gap-1">
+                      {uniqueMedia.slice(1, 3).map((media, index) => (
+                        <div key={index + 1} className="relative">
+                          {MediaService.isVideoUrl(media) ? (
+                            <video
+                              src={media}
+                              controls
+                              className="w-full h-full object-cover"
+                              preload="metadata"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          ) : (
+                            <Image
+                              src={media}
+                              alt={`Post media ${index + 2}`}
+                              width={250}
+                              height={155}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {uniqueMedia.length >= 4 && (
+                  // 4+ images: 2x2 grid, with overlay on 4th if more than 4
+                  <div className="grid grid-cols-2 gap-1" style={{ height: '320px' }}>
+                    {uniqueMedia.slice(0, 4).map((media, index) => (
+                      <div key={index} className="relative">
+                        {MediaService.isVideoUrl(media) ? (
+                          <video
+                            src={media}
+                            controls
+                            className="w-full h-full object-cover"
+                            preload="metadata"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <Image
+                            src={media}
+                            alt={`Post media ${index + 1}`}
+                            width={250}
+                            height={155}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                        {uniqueMedia.length > 4 && index === 3 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                            <span className="text-white text-xl font-semibold">
+                              +{uniqueMedia.length - 4}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
             <span>{formatDistanceToNow(createdAt, { addSuffix: true, locale: vi })}</span>
           </div>
         </CardBody>        <CardFooter className="gap-3" onClick={(e) => e.stopPropagation()}>
@@ -433,6 +672,36 @@ export default function Post({
           liked: isLiked,
           disliked: isDisliked
         }}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Xóa bài viết"
+        message="Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác và tất cả bình luận cũng sẽ bị xóa."
+        itemType="post"
+        isLoading={loading}
+      />
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReportSubmit}
+        itemType="post"
+        isLoading={loading}
+      />
+
+      {/* Edit Modal */}
+      <EditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleEditSave}
+        initialContent={content}
+        itemType="post"
+        isLoading={loading}
       />
     </div>
   );

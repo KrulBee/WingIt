@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import { Avatar, Button, Textarea } from '@nextui-org/react';
+import { Avatar, Button, Textarea, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { MoreHorizontal, MessageCircle } from 'react-feather';
+import { MoreHorizontal, MessageCircle, Trash2, Flag, Edit3 } from 'react-feather';
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import { Comment } from '@/types/Comment';
 import { avatarBase64 } from '@/static/images/avatarDefault';
@@ -14,17 +14,23 @@ interface CommentItemProps {
   onReply?: (commentId: string, content: string) => void;
   onLike?: (commentId: string) => void;
   onDislike?: (commentId: string) => void;
+  onDelete?: (commentId: string) => void;
+  onReport?: (commentId: string) => void;
+  onEdit?: (commentId: string, newContent: string) => void;
   currentUser?: any;
   level?: number; // For nested comments
 }
 
-export default function CommentItem({ 
-  comment, 
-  onReply, 
-  onLike, 
-  onDislike, 
+export default function CommentItem({
+  comment,
+  onReply,
+  onLike,
+  onDislike,
+  onDelete,
+  onReport,
+  onEdit,
   currentUser,
-  level = 0 
+  level = 0
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -138,14 +144,53 @@ export default function CommentItem({
               Trả lời
             </Button>
 
-            <Button 
-              isIconOnly 
-              size="sm" 
-              variant="light"
-              className="text-default-400"
-            >
-              <MoreHorizontal size={14} />
-            </Button>
+            {/* More Options Dropdown */}
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  className="text-default-400"
+                >
+                  <MoreHorizontal size={14} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Comment actions">
+                {/* Show edit and delete options only for comment owner */}
+                {currentUser && currentUser.username === comment.authorUsername && (
+                  <>
+                    <DropdownItem
+                      key="edit"
+                      startContent={<Edit3 size={14} />}
+                      onClick={() => onEdit?.(comment.id, comment.content)}
+                    >
+                      Chỉnh sửa
+                    </DropdownItem>
+                    <DropdownItem
+                      key="delete"
+                      className="text-danger"
+                      color="danger"
+                      startContent={<Trash2 size={14} />}
+                      onClick={() => onDelete?.(comment.id)}
+                    >
+                      Xóa bình luận
+                    </DropdownItem>
+                  </>
+                )}
+
+                {/* Show report option for others */}
+                {currentUser && currentUser.username !== comment.authorUsername && (
+                  <DropdownItem
+                    key="report"
+                    startContent={<Flag size={14} />}
+                    onClick={() => onReport?.(comment.id)}
+                  >
+                    Báo cáo bình luận
+                  </DropdownItem>
+                )}
+              </DropdownMenu>
+            </Dropdown>
           </div>
 
           {/* Reply Form */}
@@ -190,6 +235,9 @@ export default function CommentItem({
                   onReply={onReply}
                   onLike={onLike}
                   onDislike={onDislike}
+                  onDelete={onDelete}
+                  onReport={onReport}
+                  onEdit={onEdit}
                   currentUser={currentUser}
                   level={level + 1}
                 />

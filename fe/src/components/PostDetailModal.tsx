@@ -27,6 +27,7 @@ import { PostReactionService, BookmarkService, ReactionTypeService, viewService 
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
+import MediaService from "@/services/MediaService";
 
 interface PostDetailModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showComments, setShowComments] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   
   // Reaction type IDs
   const [likeReactionTypeId, setLikeReactionTypeId] = useState<number | null>(null);
@@ -66,10 +67,10 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [modalCleanup, setModalCleanup] = useState<(() => void) | null>(null);
 
-  // Get all images (single image or multiple images)
-  const allImages = post.images && post.images.length > 0 ? post.images : (post.image ? [post.image] : []);
-  const hasMultipleImages = allImages.length > 1;
-  const hasImages = allImages.length > 0;
+  // Get all media (single image/video or multiple media)
+  const allMedia = post.images && post.images.length > 0 ? post.images : (post.image ? [post.image] : []);
+  const hasMultipleMedia = allMedia.length > 1;
+  const hasMedia = allMedia.length > 0;
   useEffect(() => {
     const initializeModal = async () => {
       try {
@@ -217,22 +218,22 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
     setCommentCount(newCount);
   };
 
-  const nextImage = () => {
-    if (hasMultipleImages) {
-      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  const nextMedia = () => {
+    if (hasMultipleMedia) {
+      setCurrentMediaIndex((prev) => (prev + 1) % allMedia.length);
     }
   };
 
-  const prevImage = () => {
-    if (hasMultipleImages) {
-      setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  const prevMedia = () => {
+    if (hasMultipleMedia) {
+      setCurrentMediaIndex((prev) => (prev - 1 + allMedia.length) % allMedia.length);
     }
   };
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={onClose}
-      size={hasImages ? "5xl" : "2xl"}
+      size={hasMedia ? "5xl" : "2xl"}
       classNames={{
         base: "max-h-[90vh]",
         body: "p-0"
@@ -243,24 +244,35 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
     >
       <ModalContent>
         <ModalBody>
-          <div className={`flex h-[85vh] ${!hasImages ? 'justify-center' : ''}`}>            {hasImages && (
+          <div className={`flex h-[85vh] ${!hasMedia ? 'justify-center' : ''}`}>            {hasMedia && (
               <div className="flex-1 relative bg-black flex items-center justify-center">
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <Image
-                    src={allImages[currentImageIndex]}
-                    alt="Post image"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
+                  {MediaService.isVideoUrl(allMedia[currentMediaIndex]) ? (
+                    <video
+                      src={allMedia[currentMediaIndex]}
+                      controls
+                      className="max-w-full max-h-full object-contain"
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <Image
+                      src={allMedia[currentMediaIndex]}
+                      alt="Post media"
+                      fill
+                      className="object-contain"
+                      priority
+                    />
+                  )}
                   
-                  {hasMultipleImages && (
+                  {hasMultipleMedia && (
                     <>
                       <Button
                         isIconOnly
                         variant="light"
                         className="absolute left-4 text-white bg-black/50 hover:bg-black/70"
-                        onClick={prevImage}
+                        onClick={prevMedia}
                       >
                         <ChevronLeft size={24} />
                       </Button>
@@ -268,19 +280,19 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                         isIconOnly
                         variant="light"
                         className="absolute right-4 text-white bg-black/50 hover:bg-black/70"
-                        onClick={nextImage}
+                        onClick={nextMedia}
                       >
                         <ChevronRight size={24} />
                       </Button>
                       
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                        {allImages.map((_, index) => (
+                        {allMedia.map((_, index) => (
                           <button
                             key={index}
                             className={`w-2 h-2 rounded-full transition-colors ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                              index === currentMediaIndex ? 'bg-white' : 'bg-white/50'
                             }`}
-                            onClick={() => setCurrentImageIndex(index)}
+                            onClick={() => setCurrentMediaIndex(index)}
                           />
                         ))}
                       </div>
@@ -289,7 +301,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                 </div>
               </div>
             )}            <div className={`flex flex-col border-gray-200 dark:border-gray-700 ${
-              hasImages ? 'w-96 border-l' : 'w-full max-w-2xl'
+              hasMedia ? 'w-96 border-l' : 'w-full max-w-2xl'
             }`}>
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
@@ -314,8 +326,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                       <Button isIconOnly variant="light" size="sm">
                         <MoreHorizontal size={20} />
                       </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Hành động bài viết">
+                    </DropdownTrigger>                    <DropdownMenu aria-label="Hành động bài viết">
                       <DropdownItem
                         key="bookmark"
                         onClick={handleBookmark}
@@ -329,7 +340,6 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                       >
                         Báo Cáo
                       </DropdownItem>
-                      <DropdownItem key="hide">Ẩn</DropdownItem>
                     </DropdownMenu>
                   </Dropdown>
                 </div>

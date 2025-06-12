@@ -75,7 +75,7 @@ const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; 
         />
         <div>
           <h3 className="font-medium">{friend.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {friend.mutualFriends} bạn chung
             </p>
@@ -125,7 +125,7 @@ const RequestCard = ({ request, onAccept, onReject, currentUser }: { request: Fr
         />
         <div>
           <h3 className="font-medium">{request.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {request.mutualFriends} bạn chung
             </p>
@@ -176,7 +176,7 @@ const SuggestionCard = ({ suggestion, onAddFriend, currentUser }: { suggestion: 
         />
         <div>
           <h3 className="font-medium">{suggestion.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>{suggestion.mutualFriends && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>{suggestion.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {suggestion.mutualFriends} bạn chung
             </p>
@@ -203,6 +203,7 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUserFriends, setCurrentUserFriends] = useState<FriendDTO[]>([]);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -218,13 +219,39 @@ export default function FriendsPage() {
       console.error('Error getting current user:', error);
     }  };
 
+  // Calculate mutual friends between current user and another user
+  const calculateMutualFriends = async (userId: number): Promise<number> => {
+    try {
+      if (!currentUser || currentUser.id === userId) {
+        return 0;
+      }
+
+      // Get friends of the target user
+      const targetUserFriends = await FriendService.getFriendsByUserId(userId);
+
+      // Get current user's friends (use cached data if available)
+      const myFriends = currentUserFriends.length > 0
+        ? currentUserFriends
+        : await FriendService.getFriends();
+
+      // Find mutual friends by comparing friend IDs
+      const myFriendIds = new Set(myFriends.map(f => f.friend.id));
+      const mutualCount = targetUserFriends.filter(f => myFriendIds.has(f.friend.id)).length;
+
+      return mutualCount;
+    } catch (error) {
+      console.error('Error calculating mutual friends:', error);
+      return 0;
+    }
+  };
+
   // Transform backend data to UI format
   const transformUserToFriendProps = (user: UserDTO, type: 'friend' | 'suggestion', originalId?: number): FriendProps => ({
     id: user.id.toString(),
     name: user.displayName || user.username,
     username: user.username,
     avatar: getAvatarSrc(user.profilePicture, user.username),
-    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    mutualFriends: 0, // Will be calculated properly
     originalId: originalId || user.id
   });
 
@@ -233,7 +260,7 @@ export default function FriendsPage() {
     name: friendDTO.friend.displayName || friendDTO.friend.username,
     username: friendDTO.friend.username,
     avatar: getAvatarSrc(friendDTO.friend.profilePicture, friendDTO.friend.username),
-    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    mutualFriends: 0, // Will be calculated properly
     originalId: friendDTO.friend.id
   });
 
@@ -242,7 +269,7 @@ export default function FriendsPage() {
     name: requestDTO.sender.displayName || requestDTO.sender.username,
     username: requestDTO.sender.username,
     avatar: getAvatarSrc(requestDTO.sender.profilePicture, requestDTO.sender.username),
-    mutualFriends: Math.floor(Math.random() * 10), // Mock mutual friends count
+    mutualFriends: 0, // Will be calculated properly
     originalId: requestDTO.sender.id
   });
 
@@ -251,31 +278,41 @@ export default function FriendsPage() {
       setLoading(true);
       setError(null);
 
-      // Fetch friends, friend requests, and user suggestions in parallel
-      const [friendsData, requestsData, usersData] = await Promise.all([
+      // Fetch friends, friend requests, and smart suggestions in parallel
+      const [friendsData, requestsData, suggestionsData] = await Promise.all([
         FriendService.getFriends().catch(() => []),
         FriendService.getReceivedFriendRequests().catch(() => []),
-        UserService.getAllUsers().catch(() => [])
+        FriendService.getFriendSuggestions().catch(() => [])
       ]);
 
-      // Transform friends data
+      // Store current user's friends for mutual friends calculation
+      setCurrentUserFriends(friendsData);
+
+      // Transform friends data (no mutual friends needed for current user's friends)
       const transformedFriends = friendsData.map(transformFriendDTOToFriendProps);
       setFriends(transformedFriends);
 
-      // Transform friend requests data
-      const transformedRequests = requestsData.map(transformFriendRequestDTOToFriendProps);
+      // Transform friend requests data with mutual friends calculation
+      const transformedRequests = await Promise.all(
+        requestsData.map(async (requestDTO) => {
+          const mutualCount = await calculateMutualFriends(requestDTO.sender.id);
+          return {
+            ...transformFriendRequestDTOToFriendProps(requestDTO),
+            mutualFriends: mutualCount
+          };
+        })
+      );
       setFriendRequests(transformedRequests);
 
-      // Transform users data to suggestions (filter out current user and existing friends)
-      const currentFriendIds = new Set(friendsData.map(f => f.friend.id));
-      const requestSenderIds = new Set(requestsData.map(r => r.sender.id));
-      
-      const suggestionUsers = usersData
-        .filter(user => !currentFriendIds.has(user.id) && !requestSenderIds.has(user.id))
-        .slice(0, 6); // Limit to 6 suggestions
-        
-      const transformedSuggestions = suggestionUsers.map(user => 
-        transformUserToFriendProps(user, 'suggestion')
+      // Transform smart suggestions from backend (already filtered and scored)
+      const transformedSuggestions = await Promise.all(
+        suggestionsData.slice(0, 6).map(async (user) => {
+          const mutualCount = await calculateMutualFriends(user.id);
+          return {
+            ...transformUserToFriendProps(user, 'suggestion'),
+            mutualFriends: mutualCount
+          };
+        })
       );
       setSuggestions(transformedSuggestions);    } catch (err) {
       console.error('Error fetching friends data:', err);

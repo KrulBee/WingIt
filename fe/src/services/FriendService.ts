@@ -297,6 +297,26 @@ const FriendService = {
     }
   },
 
+  // Get friend suggestions
+  getFriendSuggestions: async (): Promise<UserDTO[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/friends/suggestions`, {
+        method: 'GET',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch friend suggestions');
+      }
+
+      const suggestions: UserDTO[] = await response.json();
+      return suggestions;
+    } catch (error) {
+      console.error('Get friend suggestions error:', error);
+      throw error;
+    }
+  },
+
   // Backward compatibility methods
   respondToFriendRequest: async (requestId: number, accept: boolean): Promise<FriendRequestDTO | FriendDTO> => {
     if (accept) {

@@ -67,17 +67,23 @@ public class CommentController {
     @PutMapping("/{id}")
     public ResponseEntity<CommentDTO> updateComment(@PathVariable Long id, @RequestBody CreateCommentRequest request) {
         try {
-            CommentDTO updatedComment = commentService.updateComment(id, request);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            CommentDTO updatedComment = commentService.updateComment(id, request, userId);
             return ResponseEntity.ok(updatedComment);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
         try {
-            commentService.deleteComment(id);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            commentService.deleteComment(id, userId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

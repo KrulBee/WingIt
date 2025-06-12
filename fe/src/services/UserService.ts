@@ -381,6 +381,24 @@ const UserService = {
     }
   },
 
+  // Delete current user's account
+  deleteCurrentUserAccount: async (): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/account`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      throw error;
+    }
+  },
+
   // Backward compatibility methods
   getUserProfile: async (userId: number): Promise<UserData> => {
     return UserService.getUserById(userId);

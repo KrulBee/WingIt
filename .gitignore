@@ -1,0 +1,304 @@
+# ===================================
+# WingIt Social Media Platform
+# Comprehensive Root .gitignore
+# ===================================
+
+# ===================================
+# AI & Machine Learning Models (HEAVY FILES - CRITICAL TO EXCLUDE)
+# ===================================
+# Heavy AI model files (usually >100MB)
+*.pth
+*.pt
+*.h5
+*.pkl
+*.joblib
+*.model
+*.bin
+*.onnx
+*.pb
+*.tflite
+*.safetensors
+*.pth.tar
+best_phobert_model.pth
+
+# AI training data and datasets
+AI/datasets/
+AI/data/
+AI/models/
+AI/checkpoints/
+AI/logs/
+AI/runs/
+AI/wandb/
+AI/tensorboard/
+
+# Python virtual environments (HEAVY)
+AI/venv/
+AI/env/
+AI/.venv/
+AI/.env/
+AI/conda_env/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===================================
+# Node.js & Frontend (HEAVY)
+# ===================================
+# Dependencies (VERY HEAVY - can be 100MB+)
+node_modules/
+fe/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js build outputs
+.next/
+fe/.next/
+out/
+fe/out/
+.vercel/
+fe/.vercel/
+.swc/
+
+# Build outputs
+build/
+fe/build/
+*.tsbuildinfo
+fe/*.tsbuildinfo
+
+# Coverage and testing
+coverage/
+fe/coverage/
+*.lcov
+.nyc_output
+
+# ===================================
+# Java & Spring Boot (HEAVY)
+# ===================================
+# Maven target directory (HEAVY)
+target/
+server/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Spring Boot JAR files (can be large)
+*.jar
+*.war
+*.nar
+*.ear
+
+# JVM crash logs
+hs_err_pid*
+
+# ===================================
+# IDE Files
+# ===================================
+# IntelliJ IDEA
+.idea/
+server/.idea/
+*.iws
+*.iml
+*.ipr
+/shelf/
+/workspace.xml
+/httpRequests/
+/dataSources/
+/dataSources.local.xml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ===================================
+# Environment & Secrets
+# ===================================
+# Environment files (CONTAINS SECRETS)
+.env
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+fe/.env*
+server/.env*
+AI/.env*
+
+# Configuration files with secrets
+application-*.properties
+application-*.yml
+application-*.yaml
+
+# ===================================
+# Media & Large Files (HEAVY)
+# ===================================
+# Large video files (can be GB)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+
+# Large image files
+*.psd
+*.ai
+*.eps
+*.tiff
+*.tif
+*.bmp
+*.raw
+*.cr2
+*.nef
+*.orf
+*.sr2
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.rar
+*.tar
+*.zip
+
+# ===================================
+# Logs & Temporary Files
+# ===================================
+# Log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ===================================
+# Backup & Version Files
+# ===================================
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# ===================================
+# Project Specific Exclusions
+# ===================================
+# Remove duplicate WingIt folder if it exists
+WingIt/
+
+# Startup scripts (contain local paths)
+start_all_servers*.bat
+demo_*.bat
+
+# ===================================
+# Keep These Important Files
+# ===================================
+# Force include important config files
+!.gitkeep
+!.gitignore
+!README.md
+!package.json
+!pom.xml
+!requirements.txt
+!requirements_deploy.txt
+!docker-compose.yml
+!Dockerfile
+!database.sql
+!schema.sql
+
+# Keep small UI assets
+!**/public/images/
+!**/src/assets/images/
+!**/static/images/

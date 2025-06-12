@@ -40,6 +40,19 @@ public class FriendController {
     public ResponseEntity<List<FriendDTO>> getFriendsByUserId(@PathVariable Integer userId) {
         List<FriendDTO> friends = friendService.getFriendsByUserId(userId);
         return ResponseEntity.ok(friends);
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<UserDTO>> getFriendSuggestions() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            List<UserDTO> suggestions = friendService.getFriendSuggestions(userId);
+            return ResponseEntity.ok(suggestions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }    @PostMapping("/send-request/{receiverId}")
     public ResponseEntity<?> sendFriendRequest(@PathVariable Integer receiverId) {
         try {

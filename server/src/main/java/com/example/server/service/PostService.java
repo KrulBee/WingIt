@@ -18,17 +18,17 @@ public class PostService {
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final NotificationService notificationService;
-
-    @Autowired
-    public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
+    private final ProfanityDetectionService profanityDetectionService;    public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
                       PostMediaRepository postMediaRepository, UserRepository userRepository,
-                      LocationRepository locationRepository, NotificationService notificationService) {
+                      LocationRepository locationRepository, NotificationService notificationService,
+                      ProfanityDetectionService profanityDetectionService) {
         this.postRepository = postRepository;
         this.postTypeRepository = postTypeRepository;
         this.postMediaRepository = postMediaRepository;
         this.userRepository = userRepository;
         this.locationRepository = locationRepository;
         this.notificationService = notificationService;
+        this.profanityDetectionService = profanityDetectionService;
     }
 
     public List<PostDTO> getAllPosts() {
@@ -54,9 +54,16 @@ public class PostService {
         if (request.getLocationId() == null) {
             throw new RuntimeException("Location is required for posts");
         }
-        
-        Location location = locationRepository.findById(request.getLocationId())
+          Location location = locationRepository.findById(request.getLocationId())
                 .orElseThrow(() -> new RuntimeException("Location not found"));
+
+        // Check for profanity in post content
+        ProfanityDetectionService.ProfanityResult profanityResult = 
+            profanityDetectionService.checkProfanity(request.getContent());
+        
+        if (profanityResult.isProfane()) {
+            throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+        }
 
         Post post = new Post();
         post.setContent(request.getContent());
@@ -89,19 +96,63 @@ public class PostService {
         }
 
         return convertToDTO(savedPost);
-    }
-
-    public PostDTO updatePost(Long id, CreatePostRequest request) {
+    }    public PostDTO updatePost(Long id, CreatePostRequest request, Integer userId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
+        // Check if user owns the post
+        if (!post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only edit your own posts");
+        }
+
+        // Check for profanity in updated content
+        ProfanityDetectionService.ProfanityResult profanityResult =
+            profanityDetectionService.checkProfanity(request.getContent());
+
+        if (profanityResult.isProfane()) {
+            throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+        }
+
         post.setContent(request.getContent());
         post.setUpdatedAt(LocalDateTime.now());
-        
+
         Post updatedPost = postRepository.save(post);
         return convertToDTO(updatedPost);
     }
 
+    // Keep the old method for backward compatibility (admin use)
+    public PostDTO updatePost(Long id, CreatePostRequest request) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Check for profanity in updated content
+        ProfanityDetectionService.ProfanityResult profanityResult =
+            profanityDetectionService.checkProfanity(request.getContent());
+
+        if (profanityResult.isProfane()) {
+            throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+        }
+
+        post.setContent(request.getContent());
+        post.setUpdatedAt(LocalDateTime.now());
+
+        Post updatedPost = postRepository.save(post);
+        return convertToDTO(updatedPost);
+    }
+
+    public void deletePost(Long id, Integer userId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Check if user owns the post
+        if (!post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only delete your own posts");
+        }
+
+        postRepository.delete(post);
+    }
+
+    // Keep the old method for backward compatibility (admin use)
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));

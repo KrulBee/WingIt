@@ -3,14 +3,15 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
-import { Card, CardHeader, CardBody, Avatar, Tabs, Tab, Button, Spinner } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Avatar, Tabs, Tab, Button, Spinner, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import Post from "@/components/Post";
-import { UserPlus, MessageCircle, MoreHorizontal, UserCheck } from "react-feather";
+import { UserPlus, MessageCircle, MoreHorizontal, UserCheck, UserX, Flag } from "react-feather";
 import UserService from "@/services/UserService";
 import PostService from "@/services/PostService";
 import FriendService from "@/services/FriendService";
 import AuthService from "@/services/AuthService";
+import BlockService from "@/services/BlockService";
 import AuthGuard from "@/components/AuthGuard";
 
 // Types matching the backend API
@@ -74,6 +75,8 @@ export default function UserProfilePage() {
   const [isFriend, setIsFriend] = useState(false);
   const [friendRequestSent, setFriendRequestSent] = useState(false);
   const [addingFriend, setAddingFriend] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // Fetch user profile and posts on component mount
   useEffect(() => {
@@ -111,7 +114,10 @@ export default function UserProfilePage() {
       
       // Check friendship status
       await checkFriendshipStatus(user.id);
-      
+
+      // Check if user is blocked
+      await checkBlockStatus(user.id);
+
       // Fetch user posts
       const userPosts = await PostService.getPostsByUserId(user.id);
       
@@ -150,6 +156,16 @@ export default function UserProfilePage() {
       }
     } catch (err) {
       console.error('Error checking friendship status:', err);
+    }
+  };
+
+  const checkBlockStatus = async (userId: number) => {
+    try {
+      const blocked = await BlockService.isUserBlocked(userId);
+      setIsBlocked(blocked);
+    } catch (err) {
+      console.error('Error checking block status:', err);
+      setIsBlocked(false);
     }
   };  const handleAddFriend = async () => {
     if (!userData || !currentUser) {
@@ -224,6 +240,64 @@ export default function UserProfilePage() {
   const handleMessage = () => {
     // Navigate to messages page with this user
     router.push(`/messages?user=${username}`);
+  };
+
+  const handleBlockUser = async () => {
+    if (!userData || !currentUser || blocking) return;
+
+    const confirmBlock = window.confirm(
+      `Bạn có chắc chắn muốn chặn @${userData.username}?\n\n` +
+      `Khi chặn người này:\n` +
+      `• Họ sẽ không thể xem hồ sơ của bạn\n` +
+      `• Họ sẽ không thể gửi tin nhắn cho bạn\n` +
+      `• Bạn sẽ không thấy bài viết của họ\n` +
+      `• Tình bạn hiện tại (nếu có) sẽ bị hủy`
+    );
+
+    if (!confirmBlock) return;
+
+    try {
+      setBlocking(true);
+      await BlockService.blockUser(userData.id);
+
+      setIsBlocked(true);
+      alert(`Đã chặn @${userData.username} thành công.`);
+
+    } catch (error: any) {
+      console.error('Error blocking user:', error);
+      alert(error.message || 'Không thể chặn người dùng. Vui lòng thử lại.');
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!userData || !currentUser || blocking) return;
+
+    const confirmUnblock = window.confirm(
+      `Bạn có chắc chắn muốn bỏ chặn @${userData.username}?`
+    );
+
+    if (!confirmUnblock) return;
+
+    try {
+      setBlocking(true);
+      await BlockService.unblockUserById(userData.id);
+
+      setIsBlocked(false);
+      alert(`Đã bỏ chặn @${userData.username} thành công.`);
+
+    } catch (error: any) {
+      console.error('Error unblocking user:', error);
+      alert(error.message || 'Không thể bỏ chặn người dùng. Vui lòng thử lại.');
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const handleReportUser = () => {
+    // TODO: Implement user reporting
+    alert('Tính năng báo cáo người dùng sẽ được triển khai sớm.');
   };
 
   if (loading) {
@@ -371,13 +445,61 @@ export default function UserProfilePage() {
                     >
                       Nhắn tin
                     </Button>
-                    <Button
-                      isIconOnly
-                      variant="flat"
-                      size="sm"
-                    >
-                      <MoreHorizontal size={16} />
-                    </Button>
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button
+                          isIconOnly
+                          variant="flat"
+                          size="sm"
+                        >
+                          <MoreHorizontal size={16} />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu
+                        aria-label="Hành động người dùng"
+                        onAction={(key) => {
+                          switch (key) {
+                            case 'block':
+                              handleBlockUser();
+                              break;
+                            case 'unblock':
+                              handleUnblockUser();
+                              break;
+                            case 'report':
+                              handleReportUser();
+                              break;
+                            default:
+                              break;
+                          }
+                        }}
+                      >
+                        {isBlocked ? (
+                          <DropdownItem
+                            key="unblock"
+                            className="text-success"
+                            color="success"
+                            startContent={<UserX size={16} />}
+                          >
+                            Bỏ chặn người dùng
+                          </DropdownItem>
+                        ) : (
+                          <DropdownItem
+                            key="block"
+                            className="text-danger"
+                            color="danger"
+                            startContent={<UserX size={16} />}
+                          >
+                            Chặn người dùng
+                          </DropdownItem>
+                        )}
+                        <DropdownItem
+                          key="report"
+                          startContent={<Flag size={16} />}
+                        >
+                          Báo cáo người dùng
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
                   </div>
                 </div>
                 

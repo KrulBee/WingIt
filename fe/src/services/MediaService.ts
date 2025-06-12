@@ -157,9 +157,28 @@ const MediaService = {
 
   // Check if URL is a video
   isVideoUrl: (url: string): boolean => {
-    const videoExtensions = ['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv'];
+    if (!url) return false;
+
+    const videoExtensions = ['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv', 'ogg'];
     const extension = MediaService.getFileExtension(url).toLowerCase();
-    return videoExtensions.includes(extension);
+
+    // Check file extension
+    if (videoExtensions.includes(extension)) {
+      return true;
+    }
+
+    // Check Cloudinary video URLs (they often contain 'video' in the path)
+    const urlLower = url.toLowerCase();
+    if (urlLower.includes('cloudinary') && urlLower.includes('/video/')) {
+      return true;
+    }
+
+    // Check for video MIME types in URL parameters
+    if (urlLower.includes('video/')) {
+      return true;
+    }
+
+    return false;
   },
 
   // Generate thumbnail URL for Cloudinary images

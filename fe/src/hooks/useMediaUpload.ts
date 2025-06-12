@@ -36,8 +36,22 @@ export const useMediaUpload = () => {
   const uploadMedia = async (files: File[], type: 'post' | 'profile' | 'cover'): Promise<string[]> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
+      // Validate file sizes before upload (50MB limit)
+      const maxFileSize = 50 * 1024 * 1024; // 50MB
+
+      for (const file of files) {
+        const fileSizeMB = Math.round(file.size / 1024 / 1024);
+
+        if (file.size > maxFileSize) {
+          if (file.type.startsWith('video/')) {
+            throw new Error(`Video "${file.name}" quá lớn (${fileSizeMB}MB). Hãy gửi video dưới 50MB.`);
+          } else {
+            throw new Error(`Ảnh "${file.name}" quá lớn (${fileSizeMB}MB). Hãy gửi ảnh dưới 50MB.`);
+          }
+        }
+      }
       const formData = new FormData();
       
       if (type === 'profile') {
@@ -80,7 +94,7 @@ export const useMediaUpload = () => {
           headers: createFileUploadHeaders(),
           body: formData,
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to upload media');
         }
@@ -89,7 +103,21 @@ export const useMediaUpload = () => {
         return data.urls;
       }
     } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi trong quá trình tải lên');
+      // Enhanced Vietnamese error messages
+      let errorMessage = 'Đã xảy ra lỗi trong quá trình tải lên';
+
+      if (err.message?.includes('quá lớn')) {
+        // File size error - use the specific message
+        errorMessage = err.message;
+      } else if (err.message?.includes('413') || err.message?.includes('Payload Too Large')) {
+        errorMessage = 'File quá lớn! Hãy gửi video dưới 50MB.';
+      } else if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('ERR_CONNECTION_RESET')) {
+        errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại.';
+      }
+
+      setError(errorMessage);
       return [];
     } finally {
       setIsLoading(false);
@@ -126,7 +154,7 @@ export const useMediaUpload = () => {
       
       return true;
     } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi trong quá trình xóa');
+      setError(err.message || 'An error occurred during deletion');
       return false;
     } finally {
       setIsLoading(false);

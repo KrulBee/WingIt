@@ -91,6 +91,8 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchUserSettings();
@@ -263,6 +265,36 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'XÓA TÀI KHOẢN') {
+      setError('Vui lòng nhập chính xác "XÓA TÀI KHOẢN" để xác nhận');
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      setError(null);
+
+      await UserService.deleteCurrentUserAccount();
+
+      // Clear local storage and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+
+      alert('Tài khoản đã được xóa thành công. Bạn sẽ được chuyển hướng đến trang đăng nhập.');
+
+      // Redirect to login page
+      window.location.href = '/login';
+
+    } catch (err: any) {
+      console.error('Error deleting account:', err);
+      setError(err.message || 'Không thể xóa tài khoản. Vui lòng thử lại.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -279,8 +311,9 @@ export default function SettingsPage() {
   return (
     <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       <Sidebar />
-      
-      <main className="flex-1 ml-0 md:ml-64 p-6 max-w-6xl">
+
+      <main className="flex-1 ml-0 md:ml-64 p-6">
+        <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -640,6 +673,8 @@ export default function SettingsPage() {
               <Input
                 label="Để xác nhận, hãy nhập 'XÓA TÀI KHOẢN'"
                 placeholder="XÓA TÀI KHOẢN"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
                 variant="bordered"
               />
             </ModalBody>
@@ -647,7 +682,12 @@ export default function SettingsPage() {
               <Button variant="flat" onPress={onDeleteClose}>
                 Hủy
               </Button>
-              <Button color="danger" onPress={onDeleteClose}>
+              <Button
+                color="danger"
+                onPress={handleDeleteAccount}
+                isLoading={deleting}
+                isDisabled={deleteConfirmText !== 'XÓA TÀI KHOẢN'}
+              >
                 Xóa tài khoản
               </Button>
             </ModalFooter>
@@ -679,6 +719,7 @@ export default function SettingsPage() {
             </ModalFooter>
           </ModalContent>
         </Modal>
+        </div>
       </main>
     </div>
   );

@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -68,20 +71,26 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody CreatePostRequest request) {
         try {
-            PostDTO updatedPost = postService.updatePost(id, request);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            PostDTO updatedPost = postService.updatePost(id, request, userId);
             return ResponseEntity.ok(updatedPost);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         try {
-            postService.deletePost(id);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer userId = getUserIdFromAuth(auth);
+
+            postService.deletePost(id, userId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
@@ -104,8 +113,22 @@ public class PostController {
      * @return A list of URLs for the uploaded files
      */
     @PostMapping("/upload-media")
-    public ResponseEntity<?> uploadPostMedia(@RequestParam("files") List<MultipartFile> files) {
+    public ResponseEntity<?> uploadPostMedia(@RequestParam("files") List<MultipartFile> files, HttpServletRequest request) {
         try {
+            // Debug authentication
+            System.out.println("=== UPLOAD ENDPOINT DEBUG ===");
+            System.out.println("Authorization Header: " + request.getHeader("Authorization"));
+            System.out.println("Files count: " + files.size());
+            System.out.println("Authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated()) {
+                System.out.println("No authentication found in upload endpoint!");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Authentication required"));
+            }
+
+            System.out.println("User authenticated: " + auth.getName());
             List<String> mediaUrls = new ArrayList<>();
             
             for (MultipartFile file : files) {
@@ -144,6 +167,8 @@ public class PostController {
                     .body("Failed to delete media: " + e.getMessage());
         }
     }
+
+
 
     // Helper method to extract user ID from authentication
     private Integer getUserIdFromAuth(Authentication auth) {

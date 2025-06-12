@@ -11,6 +11,7 @@ import com.example.server.repository.RoleRepository;
 import com.example.server.service.UserSettingsService;
 import com.example.server.service.TempOAuth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ import com.example.server.dto.LoginRequest;
 import com.example.server.dto.RegisterRequest;
 import com.example.server.dto.AuthResponse;
 import com.example.server.dto.UserDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,27 +146,54 @@ public class AuthController {
 
     @GetMapping(value = "/me",
                 produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDTO> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
-        
-        if (user != null) {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setId(user.getId());
-            userDTO.setUsername(user.getUsername());
-            if (user.getUserData() != null) {
-                userDTO.setDisplayName(user.getUserData().getDisplayName());
-                userDTO.setBio(user.getUserData().getBio());
-                userDTO.setProfilePicture(user.getUserData().getProfilePicture());
-                if (user.getUserData().getDateOfBirth() != null) {
-                    userDTO.setDateOfBirth(user.getUserData().getDateOfBirth().toString());
-                }
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            // Enhanced debugging for auth issues
+            System.out.println("=== AUTH DEBUG /me endpoint ===");
+            System.out.println("Authentication: " + authentication);
+            System.out.println("Is authenticated: " + (authentication != null ? authentication.isAuthenticated() : "null"));
+            System.out.println("Principal: " + (authentication != null ? authentication.getPrincipal() : "null"));
+            System.out.println("Name: " + (authentication != null ? authentication.getName() : "null"));
+
+            if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
+                System.out.println("Authentication failed - returning 401");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Not authenticated"));
             }
-            return ResponseEntity.ok(userDTO);
+
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username);
+
+            if (user != null) {
+                System.out.println("User found: " + user.getUsername() + " (ID: " + user.getId() + ")");
+
+                UserDTO userDTO = new UserDTO();
+                userDTO.setId(user.getId());
+                userDTO.setUsername(user.getUsername());
+                if (user.getUserData() != null) {
+                    userDTO.setDisplayName(user.getUserData().getDisplayName());
+                    userDTO.setBio(user.getUserData().getBio());
+                    userDTO.setProfilePicture(user.getUserData().getProfilePicture());
+                    if (user.getUserData().getDateOfBirth() != null) {
+                        userDTO.setDateOfBirth(user.getUserData().getDateOfBirth().toString());
+                    }
+                }
+                return ResponseEntity.ok(userDTO);
+            } else {
+                System.out.println("User not found for username: " + username);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "User not found"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error in /me endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to get current user", "message", e.getMessage()));
         }
-          return ResponseEntity.notFound().build();
-    }    
+    }
 
     @PostMapping("/oauth2/setup")
     @Transactional
@@ -265,5 +294,33 @@ public class AuthController {
     public void initiateGoogleLogin(HttpServletResponse response) throws IOException {
         // Redirect directly to Spring Security's OAuth2 authorization endpoint
         response.sendRedirect("/oauth2/authorization/google");
+    }
+
+    @GetMapping("/debug-token")
+    public ResponseEntity<?> debugToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        System.out.println("=== TOKEN DEBUG ===");
+        System.out.println("Authorization Header: " + authHeader);
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            System.out.println("Token length: " + token.length());
+            System.out.println("Token first 20 chars: " + token.substring(0, Math.min(20, token.length())));
+
+            // Test token validation
+            try {
+                boolean isValid = jwtService.validateToken(token);
+                System.out.println("Token valid: " + isValid);
+
+                if (isValid) {
+                    String username = jwtService.getUsernameFromJWT(token);
+                    System.out.println("Username from token: " + username);
+                }
+            } catch (Exception e) {
+                System.out.println("Token validation error: " + e.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok(Map.of("message", "Check server console for debug info"));
     }
 }
