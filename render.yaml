@@ -5,9 +5,10 @@ services:
   # Frontend Service (Next.js)
   - type: web
     name: wingit-frontend
-    runtime: node
-    buildCommand: cd fe && npm install && npm run build
-    startCommand: cd fe && npm start
+    env: node
+    rootDir: fe
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://wingit-backend.onrender.com
@@ -20,9 +21,10 @@ services:
   # Backend Service (Spring Boot)
   - type: web
     name: wingit-backend
-    runtime: java
-    buildCommand: cd server && ./mvnw clean package -DskipTests
-    startCommand: cd server && java -jar target/server-0.0.1-SNAPSHOT.jar
+    env: java
+    rootDir: server
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/server-0.0.1-SNAPSHOT.jar
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -55,9 +57,10 @@ services:
   # AI Server Service (Python Flask)
   - type: web
     name: wingit-ai
-    runtime: python
-    buildCommand: cd AI && pip install -r requirements_deploy.txt
-    startCommand: cd AI && python real_ai_server.py
+    env: python
+    rootDir: AI
+    buildCommand: pip install -r requirements_deploy.txt
+    startCommand: python real_ai_server.py
     envVars:
       - key: MODEL_PATH
         value: ./best_phobert_model.pth
