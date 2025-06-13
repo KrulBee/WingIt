@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
@@ -21,7 +21,7 @@ function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (.
   };
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -504,5 +504,28 @@ export default function SearchPage() {
       {/* Right sidebar */}
       <RightSidebar />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <div className="flex-1 ml-0 md:ml-64 p-6 lg:pr-80">
+          <div className="max-w-2xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-6"></div>
+              <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded mb-6"></div>
+              <div className="space-y-4">
+                <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
   );
 }
