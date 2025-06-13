@@ -1,8 +1,8 @@
 # Deployment Requirements for Render/Cloud Platforms
-# Optimized for cloud deployment (smaller, faster installs)
+# Optimized for cloud deployment
 
-# Core PyTorch (CPU-only for cloud deployment)
-torch==2.5.1+cpu --find-links https://download.pytorch.org/whl/torch_stable.html
+# Core PyTorch (regular version - works on all platforms)
+torch==2.5.1
 transformers==4.35.0
 
 # Web Framework
@@ -13,5 +13,5 @@ flask-cors==4.0.0
 numpy==1.24.3
 requests==2.31.0
 
-# Optional: Reduce memory usage
-# --no-deps  # Uncomment to skip automatic dependency resolution
+# Tokenization
+tokenizers==0.15.0
