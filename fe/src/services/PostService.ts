@@ -73,8 +73,10 @@ interface PostData {
     mediaUrl: string;
     mediaType: string;
   }>;  likesCount: number;
+  dislikesCount?: number;
   commentsCount: number;
   liked: boolean;
+  disliked?: boolean;
   // Legacy fields for backward compatibility
   userId?: number;
   user?: {
