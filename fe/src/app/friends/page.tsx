@@ -75,7 +75,7 @@ const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; 
         />
         <div>
           <h3 className="font-medium">{friend.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends > 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends && friend.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {friend.mutualFriends} bạn chung
             </p>
