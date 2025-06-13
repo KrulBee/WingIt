@@ -57,6 +57,7 @@ DATABASE_URL=postgresql://wingit_user:password@host:port/wingit
 JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
 PROFANITY_DETECTION_URL=https://wingit-ai.onrender.com
 SPRING_PROFILES_ACTIVE=production
+PORT=8080
 
 # Optional (for full features):
 GOOGLE_CLIENT_ID=your-google-client-id
@@ -66,6 +67,7 @@ CLOUDINARY_API_KEY=your-cloudinary-key
 CLOUDINARY_API_SECRET=your-cloudinary-secret
 EMAIL_USERNAME=your-email@gmail.com
 EMAIL_PASSWORD=your-gmail-app-password
+FRONTEND_URL=https://wingit-frontend.onrender.com
 ```
 
 5. **Click "Create Web Service"**

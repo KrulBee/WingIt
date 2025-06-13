@@ -64,6 +64,7 @@ public class SecurityConfig {    @Autowired
                 return config;
             }))            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                .requestMatchers("/api/v1/health", "/api/v1/ready").permitAll() // Health check endpoints
                 .requestMatchers("/api/v1/auth/**").permitAll() // This covers all auth endpoints
                 .requestMatchers("/api/v1/password-reset/**").permitAll() // Allow password reset endpoints
                 .requestMatchers("/api/v1/users/verify-email-change").permitAll() // Allow email change verification
