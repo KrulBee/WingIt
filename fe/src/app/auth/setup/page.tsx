@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthService from '@/services/AuthService';
 
@@ -11,7 +11,7 @@ interface SetupInfo {
   provider: string;
 }
 
-export default function SetupPage() {
+function SetupPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setupToken = searchParams.get('token');
@@ -254,5 +254,25 @@ export default function SetupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-md w-full">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-6"></div>
+            <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SetupPageContent />
+    </Suspense>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardBody, Button, Spinner } from "@nextui-org/react";
 import { CheckCircle, XCircle, Mail } from "react-feather";
 import { UserService } from "@/services";
 
-export default function VerifyEmailChangePage() {
+function VerifyEmailChangePageContent() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -118,5 +118,23 @@ export default function VerifyEmailChangePage() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyEmailChangePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-md w-full">
+          <div className="animate-pulse">
+            <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <VerifyEmailChangePageContent />
+    </Suspense>
   );
 }
