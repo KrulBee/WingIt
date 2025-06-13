@@ -12,6 +12,9 @@ from flask_cors import CORS
 import logging
 import time
 import threading
+import os
+import requests
+from urllib.parse import urlparse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +31,8 @@ class Config:
     CONFIDENCE_THRESHOLD = 0.7
     MODEL_PATH = "best_phobert_model.pth"
     DROPOUT_RATE = 0.3
+    # Hugging Face model URL
+    HUGGINGFACE_MODEL_URL = "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth"
 
 class PhoBERTForTokenClassification(nn.Module):
     """Your trained PhoBERT model architecture"""
@@ -86,34 +91,74 @@ class ProfanityDetector:
         self.load_model_thread = threading.Thread(target=self._load_model_async)
         self.load_model_thread.start()
     
+    def _download_model_from_huggingface(self):
+        """Download model from Hugging Face if not exists locally"""
+        if os.path.exists(self.config.MODEL_PATH):
+            logger.info(f"Model file already exists: {self.config.MODEL_PATH}")
+            return True
+
+        try:
+            logger.info(f"Downloading model from Hugging Face...")
+            logger.info(f"URL: {self.config.HUGGINGFACE_MODEL_URL}")
+
+            response = requests.get(self.config.HUGGINGFACE_MODEL_URL, stream=True)
+            response.raise_for_status()
+
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded_size = 0
+
+            with open(self.config.MODEL_PATH, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded_size += len(chunk)
+
+                        # Log progress every 100MB
+                        if downloaded_size % (100 * 1024 * 1024) == 0:
+                            progress = (downloaded_size / total_size * 100) if total_size > 0 else 0
+                            logger.info(f"Download progress: {progress:.1f}% ({downloaded_size // (1024*1024)}MB)")
+
+            logger.info(f"✅ Model downloaded successfully: {self.config.MODEL_PATH}")
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ Failed to download model: {e}")
+            return False
+
     def _load_model_async(self):
         """Load your trained model asynchronously"""
         try:
+            # Download model from Hugging Face if needed
+            if not self._download_model_from_huggingface():
+                logger.error("Failed to download model from Hugging Face")
+                self.model_loaded = False
+                return
+
             logger.info("Loading PhoBERT tokenizer...")
             self.tokenizer = AutoTokenizer.from_pretrained(self.config.MODEL_NAME)
-            
+
             logger.info("Loading your trained PhoBERT model...")
-            
+
             # Initialize model with same architecture as training
             self.model = PhoBERTForTokenClassification(
                 model_name=self.config.MODEL_NAME,
                 num_labels=self.config.NUM_LABELS,
                 dropout_rate=self.config.DROPOUT_RATE
             )
-            
+
             # Load your trained weights
             checkpoint = torch.load(self.config.MODEL_PATH, map_location=self.device, weights_only=False)
             self.model.load_state_dict(checkpoint['model_state_dict'])
-            
+
             self.model.to(self.device)
             self.model.eval()
-            
+
             logger.info(f"✅ Model loaded successfully!")
             logger.info(f"   Epoch: {checkpoint.get('epoch', 'Unknown')}")
             logger.info(f"   Best F1: {checkpoint.get('best_f1', 'Unknown')}")
-            
+
             self.model_loaded = True
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to load model: {e}")
             self.model_loaded = False
