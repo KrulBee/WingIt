@@ -38,7 +38,7 @@ export default function ProfanityWarningModal({
   const highlightToxicContent = (text: string, spans: number[][]) => {
     if (spans.length === 0) return text;
     
-    let result = [];
+    const result = [];
     let lastIndex = 0;
     
     spans.forEach(([start, end], index) => {
