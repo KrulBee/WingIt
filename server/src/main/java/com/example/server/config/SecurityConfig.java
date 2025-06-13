@@ -54,8 +54,11 @@ public class SecurityConfig {    @Autowired
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowCredentials(true);
-                config.addAllowedOrigin("http://localhost:3000");
+                config.setAllowCredentials(false); // Changed to false for JWT auth
+                // Allow multiple origins for different deployment environments
+                config.addAllowedOrigin("http://localhost:3000"); // Local development
+                config.addAllowedOriginPattern("https://*.onrender.com"); // Render deployment
+                config.addAllowedOriginPattern("https://*.railway.app"); // Railway deployment (backup)
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");
                 return config;

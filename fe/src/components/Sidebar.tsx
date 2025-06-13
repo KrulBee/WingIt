@@ -25,20 +25,30 @@ interface UserData {
 }
 
 const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
-  return (    <Link href={href}>
+  return (
+    <Link href={href} className="block">
       <div
-        className={`flex items-center space-x-3 p-3 rounded-lg transition-all hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer ${
-          active ? "bg-blue-100 dark:bg-gray-800" : ""
+        className={`wingit-nav-item group ${
+          active ? "wingit-nav-item-active" : ""
         }`}
       >
-        <div className="text-gray-700 dark:text-gray-300">{icon}</div>
+        <div className={`transition-all duration-200 ${
+          active ? "text-white" : "text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"
+        }`}>
+          {icon}
+        </div>
         <div
-          className={`text-sm font-medium ${
-            active ? "text-black dark:text-white" : "text-gray-700 dark:text-gray-300"
+          className={`text-sm font-medium transition-all duration-200 ${
+            active
+              ? "text-white"
+              : "text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"
           }`}
         >
           {label}
         </div>
+        {active && (
+          <div className="ml-auto w-1 h-4 bg-white rounded-full opacity-80"></div>
+        )}
       </div>
     </Link>
   );
@@ -156,48 +166,73 @@ export default function Sidebar() {  const pathname = usePathname();
   const menuItems = isAdmin ? [...sidebarItems, adminItem] : sidebarItems;
 
   return (
-    <div className="w-64 h-screen fixed left-0 top-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 flex flex-col">      <div className="py-4 px-3">        <Link href="/home">
-          <h1 className="text-xl font-bold text-primary">WingIt</h1>
+    <div className="w-64 h-screen fixed left-0 top-0 wingit-sidebar p-4 flex flex-col z-40">
+      {/* Brand Header */}
+      <div className="py-4 px-3 mb-2">
+        <Link href="/home" className="group">
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold wingit-gradient-text group-hover:scale-105 transition-transform duration-200">
+              WingIt
+            </h1>
+          </div>
         </Link>
       </div>
       
-      <div className="flex-1 overflow-y-auto py-4">        <nav className="space-y-2">
-          {menuItems.map((item) => (
-            <SidebarItem
+      {/* Navigation Menu */}
+      <div className="flex-1 overflow-y-auto py-4">
+        <nav className="space-y-1">
+          {menuItems.map((item, index) => (
+            <div
               key={item.href}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={pathname === item.href}
-            />
+              className="animate-slide-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <SidebarItem
+                icon={item.icon}
+                label={item.label}
+                href={item.href}
+                active={pathname === item.href}
+              />
+            </div>
           ))}
         </nav>
       </div>
-        <div className="pt-4 pb-2 border-t border-gray-200 dark:border-gray-700">
+      {/* User Profile Section */}
+      <div className="pt-4 pb-2 border-t border-gray-200 dark:border-gray-600">
         <div className="flex items-center justify-between px-3 mb-4">
-          <div className="flex items-center">
+          <div className="flex items-center min-w-0 flex-1">
             <Avatar
               src={userData?.profilePicture || avatarBase64}
               alt={userData?.displayName || userData?.username || "User"}
-              className="w-8 h-8"
+              className="w-10 h-10 wingit-avatar"
               isBordered
             />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {loading ? "Đang tải..." : (userData?.displayName || userData?.username || "Người dùng")}
+            <div className="ml-3 min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                {loading ? (
+                  <span className="shimmer bg-gray-200 dark:bg-dark-700 rounded h-4 w-20 block"></span>
+                ) : (
+                  userData?.displayName || userData?.username || "Người dùng"
+                )}
               </p>
+              {!loading && isAdmin && (
+                <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
+                  Quản trị viên
+                </span>
+              )}
             </div>
           </div>
           <ThemeToggle />
         </div>
-        
-        <button 
+
+        <button
           onClick={handleLogout}
-          className="flex items-center space-x-3 p-3 rounded-lg transition-all hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer w-full"
+          className="wingit-nav-item w-full text-left hover:bg-danger-50 dark:hover:bg-danger-900/20 hover:text-danger-600 dark:hover:text-danger-400 group"
         >
-          <div className="text-gray-700 dark:text-gray-300">
+          <div className="text-gray-600 dark:text-gray-400 group-hover:text-danger-600 dark:group-hover:text-danger-400 transition-colors duration-200">
             <LogOut size={20} />
-          </div>          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          </div>
+          <div className="text-sm font-medium">
             Đăng Xuất
           </div>
         </button>

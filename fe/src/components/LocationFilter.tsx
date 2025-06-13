@@ -52,9 +52,14 @@ export default function LocationFilter({
       placeholder="Chọn địa điểm..."
       selectedKeys={getSelectedKeys()}
       onSelectionChange={handleSelectionChange}
-      className={`w-full max-w-xs ${className}`}
+      className={`w-full ${className}`}
       isLoading={loading}
       size="sm"
+      classNames={{
+        trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500",
+        label: "text-gray-700 dark:text-gray-300",
+        value: "text-gray-900 dark:text-gray-100"
+      }}
       items={[
         { key: "all", label: "Tất cả địa điểm" },
         ...locations.map(location => ({

@@ -129,7 +129,30 @@ export default function Auth() {
         stack: error.stack,
         response: error.response
       });
-      setErrorMessage(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập và thử lại.');
+
+      // Handle specific error cases with user-friendly messages
+      let userMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập và thử lại.';
+
+      if (error.message) {
+        const errorMsg = error.message.toLowerCase();
+
+        if (errorMsg.includes('unauthorized') || errorMsg.includes('authentication required')) {
+          userMessage = 'Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          userMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.';
+        } else if (errorMsg.includes('timeout')) {
+          userMessage = 'Kết nối quá chậm. Vui lòng thử lại sau.';
+        } else if (errorMsg.includes('user not found') || errorMsg.includes('invalid credentials')) {
+          userMessage = 'Tài khoản không tồn tại hoặc thông tin đăng nhập không chính xác.';
+        } else if (errorMsg.includes('account locked') || errorMsg.includes('blocked')) {
+          userMessage = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.';
+        } else {
+          // For other errors, show a generic message but log the specific error
+          userMessage = 'Đăng nhập thất bại. Vui lòng thử lại sau.';
+        }
+      }
+
+      setErrorMessage(userMessage);
     } finally {
       setLoading(false);
       console.log('🔄 Login process completed');
@@ -191,11 +214,29 @@ export default function Auth() {
         stack: error.stack,
         response: error.response
       });
-      if (error.message.includes('User already exists')) {
-        setErrorMessage('Tên đăng nhập đã tồn tại. Vui lòng chọn tên đăng nhập khác.');
-      } else {
-        setErrorMessage(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+
+      // Handle specific error cases with user-friendly messages
+      let userMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+
+      if (error.message) {
+        const errorMsg = error.message.toLowerCase();
+
+        if (errorMsg.includes('user already exists') || errorMsg.includes('username already taken')) {
+          userMessage = 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên đăng nhập khác.';
+        } else if (errorMsg.includes('invalid username') || errorMsg.includes('username')) {
+          userMessage = 'Tên đăng nhập không hợp lệ. Vui lòng chọn tên khác.';
+        } else if (errorMsg.includes('password') && errorMsg.includes('weak')) {
+          userMessage = 'Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn.';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          userMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.';
+        } else if (errorMsg.includes('timeout')) {
+          userMessage = 'Kết nối quá chậm. Vui lòng thử lại sau.';
+        } else if (errorMsg.includes('server error') || errorMsg.includes('internal error')) {
+          userMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+        }
       }
+
+      setErrorMessage(userMessage);
     } finally {
       setLoading(false);
       console.log('🔄 Registration process completed');
@@ -210,31 +251,84 @@ export default function Auth() {
     );
   }  return (
     <ClientOnly fallback={
-      <div style={{
-        height: "100vh",
-        width: "100vw",
-        alignItems: "center",
-        display: "flex",
-        justifyContent: "center",
-        background: "linear-gradient(to right, #7700ff, #0088ff)"
-      }}>
-        <div style={{
-          backgroundColor: '#fff',
-          borderRadius: '10px',
-          padding: '40px',
-          textAlign: 'center',
-          color: '#333'
-        }}>
-          <h2>Đang tải...</h2>
+      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-secondary-600 to-accent-600">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center shadow-large">
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-lg font-semibold text-gray-800">Đang tải...</h2>
         </div>
       </div>
     }>
-      <div style={{height: '100vh', width: '100vw', alignItems:'center', display: 'flex',justifyContent: 'center', backgroundColor: '#ffffff'}} suppressHydrationWarning>
+      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-dark-900 dark:via-dark-800 dark:to-slate-900 p-4 relative" suppressHydrationWarning>
+
+        {/* Top notification for errors/success */}
+        {(errorMessage || successMessage || loading) && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            maxWidth: '400px',
+            width: '90%'
+          }}>
+            {errorMessage && (
+              <div style={{
+                color: '#ef4444',
+                backgroundColor: 'rgba(254, 242, 242, 0.95)',
+                border: '1px solid #fecaca',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                textAlign: 'center',
+                animation: 'slideDown 0.3s ease-out',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+              }}>
+                {errorMessage}
+              </div>
+            )}
+            {successMessage && (
+              <div style={{
+                color: '#22c55e',
+                backgroundColor: 'rgba(240, 253, 244, 0.95)',
+                border: '1px solid #bbf7d0',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                animation: 'slideDown 0.3s ease-out',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+              }}>
+                {successMessage}
+              </div>
+            )}
+            {loading && (
+              <div style={{
+                color: '#3b82f6',
+                backgroundColor: 'rgba(239, 246, 255, 0.95)',
+                border: '1px solid #dbeafe',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+              }}>
+                <div style={{ width: '16px', height: '16px', border: '2px solid #3b82f6', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                {signIn ? 'Đang đăng nhập...' : 'Đang đăng ký...'}
+              </div>
+            )}
+          </div>
+        )}
         <Components.Container suppressHydrationWarning>        <Components.SignUpContainer $signIn={signIn} suppressHydrationWarning>
           <Components.Form onSubmit={handleSignUp} suppressHydrationWarning>
-            <Components.Title style={{color: '#0088ff', fontSize: '40px'}}>Đăng Ký</Components.Title>
-            {errorMessage && <p style={{ color: 'red', margin: '10px 0' }}>{errorMessage}</p>}
-            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}            {loading && <p style={{ color: '#0088ff', margin: '10px 0' }}>🔄 Đang đăng ký...</p>}
+            <Components.Title style={{color: '#60a5fa', fontSize: '32px', marginBottom: '24px'}}>Đăng Ký</Components.Title>
             <Components.Input 
               type='text' 
               placeholder='Tên đăng nhập' 
@@ -280,9 +374,7 @@ export default function Auth() {
           </Components.Form>
         </Components.SignUpContainer>        <Components.SignInContainer $signIn={signIn} suppressHydrationWarning>
           <Components.Form onSubmit={handleSignIn} suppressHydrationWarning>
-            <Components.Title style={{color: '#7700ff', fontSize: '40px'}}>Đăng Nhập</Components.Title>
-            {errorMessage && <p style={{ color: 'red', margin: '10px 0' }}>{errorMessage}</p>}
-            {successMessage && <p style={{ color: 'green', margin: '10px 0', fontWeight: 'bold' }}>{successMessage}</p>}            {loading && <p style={{ color: '#7700ff', margin: '10px 0' }}>🔄 {signIn ? 'Đang đăng nhập...' : 'Đang đăng ký...'}</p>}
+            <Components.Title style={{color: '#a78bfa', fontSize: '32px', marginBottom: '24px'}}>Đăng Nhập</Components.Title>
             <Components.Input 
               type='text' 
               placeholder='Tên đăng nhập' 
@@ -300,9 +392,9 @@ export default function Auth() {
               style={{color: '#000000'}}
               disabled={loading}
               suppressHydrationWarning
-            />            <Components.Button style={{background:'#7700ff'}} disabled={loading} suppressHydrationWarning>
+            />            <Components.PurpleButton disabled={loading} suppressHydrationWarning>
               {loading ? '🔄 Đang đăng nhập...' : 'Đăng Nhập'}
-            </Components.Button>
+            </Components.PurpleButton>
             
             <div style={{ marginTop: '10px' }}>
               <button
@@ -311,7 +403,7 @@ export default function Auth() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#7700ff',
+                  color: '#a78bfa',
                   cursor: 'pointer',
                   fontSize: '14px',
                   textDecoration: 'underline',

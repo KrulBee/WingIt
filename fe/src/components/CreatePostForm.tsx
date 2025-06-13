@@ -166,7 +166,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   };
 
   return (
-    <Card className="mb-4 border border-gray-200 dark:border-gray-700">
+    <Card className="mb-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg">
       <CardBody>        <form onSubmit={handleSubmit}>
           <div className="flex gap-3">
             <Avatar 
@@ -183,7 +183,10 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               variant="bordered"
               classNames={{
                 input: "text-sm",
-              }}            /></div>
+                inputWrapper: "bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 focus-within:border-primary-500 dark:focus-within:border-primary-400",
+                label: "text-gray-700 dark:text-gray-300"
+              }}
+            /></div>
 
           {showMediaUpload && (
             <div className="mt-4">
@@ -198,7 +201,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
-              label="Chọn địa điểm *"
+              label="Chọn địa điểm"
               placeholder="Bài viết này về địa điểm nào?"
               selectedKeys={selectedLocationId ? [selectedLocationId.toString()] : []}
               onSelectionChange={(keys) => {
@@ -208,6 +211,11 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               className="w-full"
               size="sm"
               isRequired
+              classNames={{
+                trigger: "bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 focus:border-primary-500 dark:focus:border-primary-400",
+                label: "text-gray-700 dark:text-gray-300",
+                value: "text-gray-900 dark:text-gray-100"
+              }}
               items={locations.map(location => ({
                 key: location.id.toString(),
                 label: location.location
@@ -217,7 +225,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
             </Select>
 
             <Select
-              label="Loại bài viết *"
+              label="Loại bài viết"
               placeholder="Chọn loại bài viết"
               selectedKeys={selectedPostTypeId ? [selectedPostTypeId.toString()] : []}
               onSelectionChange={(keys) => {
@@ -227,9 +235,14 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
               className="w-full"
               size="sm"
               isRequired
+              classNames={{
+                trigger: "bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 focus:border-primary-500 dark:focus:border-primary-400",
+                label: "text-gray-700 dark:text-gray-300",
+                value: "text-gray-900 dark:text-gray-100"
+              }}
               items={postTypes.map(postType => ({
                 key: postType.id.toString(),
-                label: postType.typeName === 'info' ? 'Thông tin' : 
+                label: postType.typeName === 'info' ? 'Thông tin' :
                        postType.typeName === 'scenic' ? 'Cảnh đẹp' :
                        postType.typeName === 'discussion' ? 'Thảo luận' : postType.typeName
               }))}

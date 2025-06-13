@@ -24,10 +24,19 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={handleToggleChange}
-      className="p-2 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+      className="relative p-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-700 dark:to-dark-600 text-gray-700 dark:text-gray-300 hover:from-primary-100 hover:to-primary-200 dark:hover:from-primary-900 dark:hover:to-primary-800 hover:text-primary-700 dark:hover:text-primary-300 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md group"
       aria-label={darkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
     >
-      {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+      <div className="relative">
+        {darkMode ? (
+          <Sun size={18} className="transition-transform duration-300 group-hover:rotate-12" />
+        ) : (
+          <Moon size={18} className="transition-transform duration-300 group-hover:-rotate-12" />
+        )}
+
+        {/* Subtle glow effect */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-400/20 to-secondary-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+      </div>
     </button>
   );
 }

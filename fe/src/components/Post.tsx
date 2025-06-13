@@ -52,6 +52,16 @@ export default function Post({
   highlighted = false,
   viewSource = 'feed'
 }: PostProps) {
+  // Debug logging to check if data is being passed correctly
+  console.log(`🔍 Post ${id} data:`, {
+    likes,
+    dislikes,
+    comments,
+    image,
+    images,
+    hasImages: images && images.length > 0,
+    mediaCount: images ? images.length : (image ? 1 : 0)
+  });
   const [isLiked, setIsLiked] = useState(liked);
   const [isDisliked, setIsDisliked] = useState(disliked);
   const [likeCount, setLikeCount] = useState(likes);
@@ -124,6 +134,17 @@ export default function Post({
   // Function to handle opening modal with view tracking
   const handleOpenModal = () => {
     console.log(`🔍 DEBUG: Modal opened for post ${id}, tracking view with source: ${viewSource}`);
+    console.log(`🔍 DEBUG: Post data for modal:`, {
+      id,
+      authorName,
+      content: content.substring(0, 50) + '...',
+      likes: likeCount,
+      dislikes: dislikeCount,
+      comments: commentCount,
+      hasImage: !!image,
+      hasImages: !!(images && images.length > 0),
+      imageCount: images ? images.length : (image ? 1 : 0)
+    });
     setShowDetailModal(true);
     // Track view when modal is opened (from clicking on post content)
     viewService.trackView(id, viewSource);
@@ -334,24 +355,31 @@ export default function Post({
 
 
   return (
-    <div className="mb-4">
-      <Card className={`border border-gray-200 dark:border-gray-700 transition-all duration-300 ${
-        highlighted 
-          ? 'ring-2 ring-blue-500 ring-opacity-75 shadow-lg bg-blue-50 dark:bg-blue-900/10' 
+    <article className="mb-6 animate-fade-in">
+      <Card className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-xl transition-all duration-300 ${
+        highlighted
+          ? 'ring-2 ring-primary-500 ring-opacity-75 shadow-colored bg-primary-50/50 dark:bg-primary-900/20'
           : ''
       }`}>
-        <CardHeader className="justify-between">
-          <div className="flex gap-3">
+        <CardHeader className="justify-between pb-3">
+          <div className="flex gap-3 min-w-0 flex-1">
             <Avatar
               radius="full"
               size="md"
               src={getAvatarSrc()}
-              className="cursor-pointer hover:scale-105 transition-transform"
+              className="wingit-avatar cursor-pointer hover:scale-110 transition-all duration-200 ring-2 ring-white dark:ring-dark-800 shadow-sm"
               onClick={handleAvatarClick}
             />
-            <div className="flex flex-col items-start justify-center">
-              <h4 className="text-sm font-semibold leading-none text-default-600">{authorName}</h4>
-              <p className="text-xs text-default-400">@{authorUsername}</p>
+            <div className="flex flex-col items-start justify-center min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="text-sm font-semibold leading-none text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 cursor-pointer truncate">
+                  {authorName}
+                </h4>
+                {/* Verification badge would go here if user is verified */}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200">
+                @{authorUsername}
+              </p>
             </div>
           </div>          <Dropdown>
             <DropdownTrigger>
@@ -360,8 +388,9 @@ export default function Post({
                 variant="light"
                 size="sm"
                 onClick={(e) => e.stopPropagation()}
+                className="hover:bg-gray-100 dark:hover:bg-dark-700 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200"
               >
-                <MoreHorizontal size={20} />
+                <MoreHorizontal size={18} />
               </Button>
             </DropdownTrigger>
 
@@ -593,54 +622,66 @@ export default function Post({
           })()}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
             <span>{formatDistanceToNow(createdAt, { addSuffix: true, locale: vi })}</span>
           </div>
-        </CardBody>        <CardFooter className="gap-3" onClick={(e) => e.stopPropagation()}>
+        </CardBody>        <CardFooter className="gap-3 pt-3" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between w-full">
             {/* Like/Dislike Section */}
-            <div className="flex items-center gap-4">              <div className="flex items-center gap-1">
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-                onClick={handleLike}
-                disabled={loading}
-                className={`transition-colors ${isLiked
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'text-default-400 hover:bg-green-50 dark:hover:bg-green-900/20'
-                  }`}
-              >
-                <UpvoteArrow size={18} filled={isLiked} className={isLiked ? 'text-white' : ''} />
-              </Button>
-              <span className="text-sm text-default-600 min-w-[20px]">{likeCount}</span>
-            </div>
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 group">
                 <Button
                   isIconOnly
                   variant="light"
                   size="sm"
-                  onClick={handleDislike}
+                  onPress={handleLike}
                   disabled={loading}
-                  className={`transition-colors ${isDisliked
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'text-default-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                  className={`transition-all duration-200 hover:scale-110 ${isLiked
+                      ? 'bg-gradient-to-r from-success-500 to-success-600 text-white shadow-sm hover:shadow-md'
+                      : 'text-gray-500 hover:bg-success-50 dark:hover:bg-success-900/20 hover:text-success-600'
+                    }`}
+                >
+                  <UpvoteArrow size={18} filled={isLiked} className={isLiked ? 'text-white' : ''} />
+                </Button>
+                <span className={`text-sm font-medium min-w-[20px] transition-colors duration-200 ${
+                  isLiked ? 'text-success-600 dark:text-success-400' : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {likeCount}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 group">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={handleDislike}
+                  disabled={loading}
+                  className={`transition-all duration-200 hover:scale-110 ${isDisliked
+                      ? 'bg-gradient-to-r from-danger-500 to-danger-600 text-white shadow-sm hover:shadow-md'
+                      : 'text-gray-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 hover:text-danger-600'
                     }`}
                 >
                   <DownvoteArrow size={18} filled={isDisliked} className={isDisliked ? 'text-white' : ''} />
                 </Button>
-                <span className="text-sm text-default-600 min-w-[20px]">{dislikeCount}</span>
+                <span className={`text-sm font-medium min-w-[20px] transition-colors duration-200 ${
+                  isDisliked ? 'text-danger-600 dark:text-danger-400' : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {dislikeCount}
+                </span>
               </div>
             </div>            {/* Comment Section */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 group">
                 <Button
                   isIconOnly
                   variant="light"
                   size="sm"
-                  onClick={handleToggleComments}
-                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 text-default-400 hover:text-blue-600"
+                  onPress={handleToggleComments}
+                  className="transition-all duration-200 hover:scale-110 text-gray-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600"
                 >
                   <MessageCircle size={18} />
                 </Button>
-                <span className="text-sm text-default-600">{commentCount}</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+                  {commentCount}
+                </span>
               </div>
             </div>
           </div>
@@ -703,6 +744,6 @@ export default function Post({
         itemType="post"
         isLoading={loading}
       />
-    </div>
+    </article>
   );
 }

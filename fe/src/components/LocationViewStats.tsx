@@ -98,7 +98,7 @@ export default function LocationViewStats({ className = '', limit = 5, onLocatio
 
   if (loading) {
     return (
-      <Card className={`w-full ${className}`}>
+      <Card className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg ${className}`}>
         <CardHeader className="flex gap-3">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
@@ -127,7 +127,7 @@ export default function LocationViewStats({ className = '', limit = 5, onLocatio
 
   if (error) {
     return (
-      <Card className={`w-full ${className}`}>
+      <Card className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg ${className}`}>
         <CardHeader className="flex gap-3">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
@@ -145,7 +145,7 @@ export default function LocationViewStats({ className = '', limit = 5, onLocatio
   }
 
   return (
-    <Card className={`w-full ${className}`}>
+    <Card className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg ${className}`}>
       <CardHeader className="flex gap-3">
         <div className="flex items-center gap-2">
           <MapPin className="w-5 h-5 text-primary" />
@@ -165,38 +165,42 @@ export default function LocationViewStats({ className = '', limit = 5, onLocatio
             {topLocations.map((location, index) => {
               const isClickable = !!(setSelectedLocationId || onLocationClick);
               return (
-                <div 
-                  key={location.locationId} 
+                <div
+                  key={location.locationId}
                   className={`flex items-center justify-between rounded-lg p-2 -m-2 transition-colors ${
                     isClickable ? 'cursor-pointer hover:bg-default-100' : ''
                   }`}
                   onClick={isClickable ? () => handleLocationClick(location.locationId, location.locationName) : undefined}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Chip
                       size="sm"
                       color={getLocationColor(index) as any}
                       variant="flat"
-                      className="w-6 h-6 min-w-6 p-0 text-xs font-bold"
+                      className="w-6 h-6 min-w-6 p-0 text-xs font-bold flex-shrink-0"
+                      classNames={{
+                        base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                        content: "text-gray-900 dark:text-gray-100 font-bold"
+                      }}
                     >
                       {index + 1}
                     </Chip>
-                    <div className="flex flex-col">
-                      <p className={`text-sm font-medium text-foreground transition-colors ${
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <p className={`text-sm font-medium text-foreground transition-colors truncate ${
                         isClickable ? 'hover:text-primary' : ''
                       }`}>
                         {location.locationName}
                       </p>
                       {location.uniqueViewers > 0 && (
-                        <p className="text-xs text-default-500">
+                        <p className="text-xs text-default-500 truncate">
                           {formatNumber(location.uniqueViewers)} người xem
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                     <Eye className="w-3 h-3 text-default-500" />
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium min-w-[2rem] text-right">
                       {formatNumber(location.viewCount)}
                     </span>
                   </div>

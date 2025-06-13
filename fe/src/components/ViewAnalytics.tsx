@@ -79,7 +79,7 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
     if (!postStats) return null;
 
     return (
-      <Card className={`${className}`}>
+      <Card className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg ${className}`}>
         <CardHeader className="flex gap-3">
           <Eye className="w-5 h-5" />
           <div className="flex flex-col">
@@ -91,18 +91,43 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
         <CardBody className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm">Tổng lượt xem:</span>
-            <Chip color="primary" variant="flat">{postStats.totalViews}</Chip>
+            <Chip
+              color="primary"
+              variant="flat"
+              classNames={{
+                base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                content: "text-gray-900 dark:text-gray-100"
+              }}
+            >
+              {postStats.totalViews}
+            </Chip>
           </div>
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm">Người xem duy nhất:</span>
-            <Chip color="secondary" variant="flat">{postStats.uniqueViews}</Chip>
+            <Chip
+              color="secondary"
+              variant="flat"
+              classNames={{
+                base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                content: "text-gray-900 dark:text-gray-100"
+              }}
+            >
+              {postStats.uniqueViews}
+            </Chip>
           </div>
 
           {postStats.averageDuration > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-sm">Thời gian xem TB:</span>
-              <Chip color="success" variant="flat">
+              <Chip
+                color="success"
+                variant="flat"
+                classNames={{
+                  base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                  content: "text-gray-900 dark:text-gray-100"
+                }}
+              >
                 {formatDuration(postStats.averageDuration)}
               </Chip>
             </div>
@@ -113,11 +138,16 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
                 {Object.entries(postStats.viewsBySource).map(([source, count]) => {
                   const sourceInfo = formatSource(source);
                   return (
-                    <Chip 
+                    <Chip
                       key={source}
                       color={sourceInfo.color as any}
-                      size="sm" 
+                      size="sm"
                       variant="flat"
+                      className="h-6"
+                      classNames={{
+                        base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                        content: "text-gray-900 dark:text-gray-100"
+                      }}
                     >
                       {sourceInfo.label}: {String(count)}
                     </Chip>
@@ -136,7 +166,7 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
 
   return (
     <>
-      <Card className={`${className}`}>
+      <Card className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm dark:shadow-lg ${className}`}>
         <CardHeader className="flex gap-3">
           <TrendingUp className="w-5 h-5" />
           <div className="flex flex-col">
@@ -146,29 +176,54 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
         </CardHeader>
         <Divider/>
         <CardBody className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{analytics.totalPosts}</p>
-              <p className="text-sm text-default-500">Bài đã xem</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-primary-50 dark:bg-gray-700 border border-primary-200 dark:border-gray-600 rounded-lg">
+              <p className="text-2xl font-bold text-primary dark:text-primary-400">{analytics.totalPosts}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Bài đã xem</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-secondary">{analytics.totalViews}</p>
-              <p className="text-sm text-default-500">Tổng lượt xem</p>
+            <div className="text-center p-3 bg-secondary-50 dark:bg-gray-700 border border-secondary-200 dark:border-gray-600 rounded-lg">
+              <p className="text-2xl font-bold text-secondary dark:text-secondary-400">{analytics.totalViews}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Tổng lượt xem</p>
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm">Hôm nay:</span>
-              <Chip color="success" size="sm">{analytics.viewsToday}</Chip>
+              <Chip
+                color="success"
+                size="sm"
+                classNames={{
+                  base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                  content: "text-gray-900 dark:text-gray-100"
+                }}
+              >
+                {analytics.viewsToday}
+              </Chip>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Tuần này:</span>
-              <Chip color="warning" size="sm">{analytics.viewsThisWeek}</Chip>
+              <Chip
+                color="warning"
+                size="sm"
+                classNames={{
+                  base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                  content: "text-gray-900 dark:text-gray-100"
+                }}
+              >
+                {analytics.viewsThisWeek}
+              </Chip>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">TB/bài:</span>
-              <Chip color="default" size="sm">
+              <Chip
+                color="default"
+                size="sm"
+                classNames={{
+                  base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                  content: "text-gray-900 dark:text-gray-100"
+                }}
+              >
                 {analytics.averageViewsPerPost.toFixed(1)}
               </Chip>
             </div>
@@ -183,21 +238,26 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
                   const percentage = (sourceData.count / analytics.totalViews) * 100;
                   
                   return (
-                    <div key={sourceData.source} className="flex items-center gap-2">
-                      <Chip 
+                    <div key={sourceData.source} className="flex items-center gap-3">
+                      <Chip
                         color={sourceInfo.color as any}
-                        size="sm" 
+                        size="sm"
                         variant="dot"
+                        className="min-w-[5rem] flex-shrink-0 h-6"
+                        classNames={{
+                          base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                          content: "text-gray-900 dark:text-gray-100"
+                        }}
                       >
                         {sourceInfo.label}
                       </Chip>
-                      <Progress 
-                        size="sm" 
-                        value={percentage} 
+                      <Progress
+                        size="sm"
+                        value={percentage}
                         className="flex-1"
                         color={sourceInfo.color as any}
                       />
-                      <span className="text-xs text-default-500 min-w-12">
+                      <span className="text-xs text-default-500 min-w-[2.5rem] text-right flex-shrink-0">
                         {sourceData.count}
                       </span>
                     </div>
@@ -229,25 +289,25 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
             <div className="space-y-6">
               {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-4">
-                <Card>
+                <Card className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
                   <CardBody className="text-center">
-                    <Eye className="w-6 h-6 mx-auto mb-2 text-primary" />
-                    <p className="text-lg font-semibold">{analytics.totalViews}</p>
-                    <p className="text-sm text-default-500">Tổng lượt xem</p>
+                    <Eye className="w-6 h-6 mx-auto mb-2 text-primary dark:text-primary-400" />
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{analytics.totalViews}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Tổng lượt xem</p>
                   </CardBody>
                 </Card>
-                <Card>
+                <Card className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
                   <CardBody className="text-center">
-                    <Users className="w-6 h-6 mx-auto mb-2 text-secondary" />
-                    <p className="text-lg font-semibold">{analytics.totalPosts}</p>
-                    <p className="text-sm text-default-500">Bài đã xem</p>
+                    <Users className="w-6 h-6 mx-auto mb-2 text-secondary dark:text-secondary-400" />
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{analytics.totalPosts}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Bài đã xem</p>
                   </CardBody>
                 </Card>
-                <Card>
+                <Card className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
                   <CardBody className="text-center">
-                    <TrendingUp className="w-6 h-6 mx-auto mb-2 text-success" />
-                    <p className="text-lg font-semibold">{analytics.averageViewsPerPost.toFixed(1)}</p>
-                    <p className="text-sm text-default-500">Lượt xem TB</p>
+                    <TrendingUp className="w-6 h-6 mx-auto mb-2 text-success dark:text-success-400" />
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{analytics.averageViewsPerPost.toFixed(1)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Lượt xem TB</p>
                   </CardBody>
                 </Card>
               </div>
@@ -262,10 +322,15 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
                     
                     return (
                       <div key={sourceData.source} className="flex items-center gap-3">
-                        <Chip 
+                        <Chip
                           color={sourceInfo.color as any}
                           variant="flat"
-                          className="min-w-24"
+                          size="sm"
+                          className="min-w-[5rem] h-6"
+                          classNames={{
+                            base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                            content: "text-gray-900 dark:text-gray-100"
+                          }}
                         >
                           {sourceInfo.label}
                         </Chip>
@@ -296,7 +361,16 @@ export default function ViewAnalytics({ postId, className = '' }: ViewAnalyticsP
                         <div key={`${view.postId}-${index}`} className="flex items-center justify-between p-2 bg-default-50 rounded-lg">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">Post #{view.postId}</span>
-                            <Chip size="sm" color={sourceInfo.color as any} variant="flat">
+                            <Chip
+                              size="sm"
+                              color={sourceInfo.color as any}
+                              variant="flat"
+                              className="h-6"
+                              classNames={{
+                                base: "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-500",
+                                content: "text-gray-900 dark:text-gray-100"
+                              }}
+                            >
                               {sourceInfo.label}
                             </Chip>
                           </div>

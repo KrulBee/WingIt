@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Post from "./Post";
 import CreatePostForm from "./CreatePostForm";
 import LocationFilter from "./LocationFilter";
+import { PostSkeletonList } from "./ui/PostSkeleton";
+import LoadingSpinner from "./ui/LoadingSpinner";
 import { PostService } from "@/services";
 import { webSocketService } from "@/services/WebSocketService";
 import { viewService } from "@/services";
@@ -325,10 +327,12 @@ export default function Feed({ highlightPostId }: FeedProps) {
           image: mediaUrls[0], // Keep for backward compatibility
           images: mediaUrls.length > 0 ? mediaUrls : undefined, // Pass all media URLs
           likes: post.likesCount ?? post.reactionCount ?? 0,
+          dislikes: post.dislikesCount ?? 0,
           comments: post.commentsCount ?? post.commentCount ?? 0,
           viewCount: post.viewCount ?? 0,
           createdAt: new Date(post.createdDate),
-          liked: post.liked ?? false
+          liked: post.liked ?? false,
+          disliked: post.disliked ?? false
         };
       });
       
@@ -369,13 +373,15 @@ export default function Feed({ highlightPostId }: FeedProps) {
 
   const handlePostCreated = (newPost: any) => {
     // Add the new post to the beginning of the list
+    const mediaUrls = newPost.mediaUrls || [];
     const transformedPost: PostData = {
       id: newPost.id.toString(),
       authorName: newPost.user?.displayName || newPost.user?.username || 'You',
       authorUsername: newPost.user?.username || 'you',
       authorAvatar: newPost.user?.profilePicture,
       content: newPost.content,
-      image: newPost.mediaUrls?.[0],
+      image: mediaUrls[0], // Keep for backward compatibility
+      images: mediaUrls.length > 0 ? mediaUrls : undefined, // Pass all media URLs
       likes: 0,
       dislikes: 0,
       comments: 0,
@@ -384,7 +390,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       liked: false,
       disliked: false
     };
-    
+
     setPosts(prev => [transformedPost, ...prev]);
   };
 
@@ -419,76 +425,105 @@ export default function Feed({ highlightPostId }: FeedProps) {
       <CreatePostForm onPostCreated={handlePostCreated} />
       
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <LocationFilter 
-          selectedLocationId={selectedLocationId}
-          onLocationChange={handleLocationChange}
-          className="flex-1"
-        />
-        
-        {/* Sort Filter */}
-        <Select
-          label="Sắp xếp theo"
-          placeholder="Chọn cách sắp xếp..."
-          selectedKeys={new Set([sortBy])}
-          onSelectionChange={handleSortChange}
-          className="flex-1 max-w-xs"
-          size="sm"
-        >
-          <SelectItem key="latest">Mới nhất</SelectItem>
-          <SelectItem key="most_viewed">Xem nhiều nhất</SelectItem>
-          <SelectItem key="most_loved">Yêu thích nhất</SelectItem>
-          <SelectItem key="most_commented">Bình luận nhiều nhất</SelectItem>
-        </Select>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex-1">
+          <LocationFilter
+            selectedLocationId={selectedLocationId}
+            onLocationChange={handleLocationChange}
+            className="w-full"
+          />
+        </div>
+
+        <div className="flex-1">
+          {/* Sort Filter */}
+          <Select
+            label="Sắp xếp theo"
+            placeholder="Chọn cách sắp xếp..."
+            selectedKeys={new Set([sortBy])}
+            onSelectionChange={handleSortChange}
+            className="w-full"
+            size="sm"
+            classNames={{
+              trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500",
+              label: "text-gray-700 dark:text-gray-300",
+              value: "text-gray-900 dark:text-gray-100"
+            }}
+          >
+            <SelectItem key="latest">Mới nhất</SelectItem>
+            <SelectItem key="most_viewed">Xem nhiều nhất</SelectItem>
+            <SelectItem key="most_loved">Yêu thích nhất</SelectItem>
+            <SelectItem key="most_commented">Bình luận nhiều nhất</SelectItem>
+          </Select>
+        </div>
       </div>
 
       {/* Real-time status */}
-      <div className="flex justify-center items-center gap-4">
+      <div className="flex justify-center items-center gap-4 mb-4">
         {wsConnected && (
-          <div className="flex items-center gap-2 text-green-600 text-sm">
-            <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-            <span>Cập nhật trực tuyến</span>
+          <div className="flex items-center gap-2 text-success-700 dark:text-success-300 text-sm bg-success-50 dark:bg-success-900/30 px-3 py-1.5 rounded-full border border-success-200 dark:border-success-700">
+            <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
+            <span className="font-medium">Cập nhật trực tuyến</span>
           </div>
         )}
       </div>
 
-      {posts.length === 0 ? (
-        <div className="text-center text-gray-500 p-8">
-          <p>Chưa có bài đăng nào. Hãy là người đầu tiên chia sẻ điều gì đó!</p>
+      {/* Loading State */}
+      {loading && posts.length === 0 ? (
+        <PostSkeletonList count={5} />
+      ) : posts.length === 0 ? (
+        <div className="text-center text-gray-500 dark:text-gray-400 p-12">
+          <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-800/30 dark:to-secondary-800/30 rounded-full flex items-center justify-center">
+            <span className="text-3xl">📝</span>
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">Chưa có bài đăng nào</h3>
+          <p className="text-gray-500 dark:text-gray-300">Hãy là người đầu tiên chia sẻ điều gì đó thú vị!</p>
         </div>
       ) : (
         <>
-          {posts.map(post => (
-            <div 
+          {posts.map((post, index) => (
+            <div
               key={post.id}
               data-post-id={post.id}
               ref={el => { postRefs.current[post.id] = el; }}
+              className="animate-slide-up"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              <Post 
+              <Post
                 {...post}
                 highlighted={highlightedPostId === post.id}
               />
             </div>
           ))}
-          
+
           {/* Load More Button */}
           {hasMore && (
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-6">
               <Button
-                color="primary"
-                variant="ghost"
+                className="wingit-button-primary"
                 onPress={handleLoadMore}
                 isLoading={loadingMore}
                 isDisabled={loadingMore}
+                startContent={!loadingMore && <span>📚</span>}
               >
-                {loadingMore ? 'Đang tải thêm...' : 'Tải thêm bài viết'}
+                {loadingMore ? (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner size="sm" variant="white" />
+                    <span>Đang tải thêm...</span>
+                  </div>
+                ) : (
+                  'Tải thêm bài viết'
+                )}
               </Button>
             </div>
           )}
-          
+
           {!hasMore && posts.length > 0 && (
-            <div className="text-center text-gray-500 p-4">
-              <p>Bạn đã xem hết tất cả bài viết!</p>
+            <div className="text-center text-gray-500 dark:text-gray-300 p-8">
+              <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🎉</span>
+              </div>
+              <p className="font-medium text-gray-600 dark:text-gray-200">Bạn đã xem hết tất cả bài viết!</p>
+              <p className="text-sm mt-1 text-gray-500 dark:text-gray-300">Hãy quay lại sau để xem nội dung mới</p>
             </div>
           )}
         </>

@@ -6,14 +6,15 @@ interface StyledProps {
 }
 
 export const Container = styled.div`
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
   width: 768px;
-  max-width: 100%;
-  min-height: 480px;
+  max-width: 95vw;
+  min-height: 520px;
 `;
 
 export const SignUpContainer = styled.div<{ $signIn: boolean }>`
@@ -61,39 +62,111 @@ export const Title = styled.h1`
 `;
 
 export const Input = styled.input`
-  background-color: #eee;
-  border: none;
-  padding: 12px 15px;
-  margin: 8px 0;
+  background-color: rgba(248, 250, 252, 0.8);
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 6px 0;
   width: 100%;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export const Button = styled.button`
-  border-radius: 20px;
-  border: 1px solid #0088ff;
-  background-color: #0088ff;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
   color: #ffffff;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 12px 45px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: transform 80ms ease-in;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 32px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  transition: all 0.3s ease;
   cursor: pointer;
-  margin-top: 15px;
-  
-  &:active {
-    transform: scale(0.95);
+  margin-top: 16px;
+  box-shadow: 0 4px 15px rgba(147, 197, 253, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(147, 197, 253, 0.4);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   }
-  
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(147, 197, 253, 0.3);
+  }
+
   &:focus {
     outline: none;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+export const PurpleButton = styled(Button)`
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%);
+  box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(167, 139, 250, 0.4);
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
   }
 `;
 
 export const GhostButton = styled(Button)`
-  background-color: transparent;
-  border-color: #ffffff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+
+  &:hover {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: none;
+    transform: none;
+  }
+
+  &:active {
+    background: transparent;
+    transform: scale(0.98);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+  }
 `;
 
 export const Paragraph = styled.p`
@@ -125,7 +198,7 @@ export const OverlayContainer = styled.div<{ $signIn: boolean }>`
 `;
 
 export const Overlay = styled.div<{ $signIn: boolean }>`
-  background: linear-gradient(to right, #7700ff, #0088ff);
+  background: linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: 0 0;
@@ -169,37 +242,49 @@ export const GoogleButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
-  border: 1px solid #ddd;
-  background-color: #ffffff;
-  color: #333;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 12px 20px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: all 80ms ease-in;
+  border-radius: 12px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 20px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  transition: all 0.3s ease;
   cursor: pointer;
-  margin: 10px 0;
+  margin: 12px 0;
   width: 100%;
-  gap: 10px;
-  
+  gap: 12px;
+
   &:hover {
-    background-color: #f5f5f5;
-    border-color: #ccc;
+    background-color: rgba(249, 250, 251, 0.95);
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
+
   &:active {
-    transform: scale(0.95);
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
-  
+
   &:focus {
     outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
-  
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
   svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 `;
 
