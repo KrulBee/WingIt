@@ -125,7 +125,7 @@ const RequestCard = ({ request, onAccept, onReject, currentUser }: { request: Fr
         />
         <div>
           <h3 className="font-medium">{request.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends > 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends && request.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {request.mutualFriends} bạn chung
             </p>
@@ -176,7 +176,7 @@ const SuggestionCard = ({ suggestion, onAddFriend, currentUser }: { suggestion: 
         />
         <div>
           <h3 className="font-medium">{suggestion.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>{suggestion.mutualFriends > 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>{suggestion.mutualFriends && suggestion.mutualFriends > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {suggestion.mutualFriends} bạn chung
             </p>
