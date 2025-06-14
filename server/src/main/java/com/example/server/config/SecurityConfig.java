@@ -54,7 +54,7 @@ public class SecurityConfig {    @Autowired
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowCredentials(false); // Changed to false for JWT auth
+                config.setAllowCredentials(true); // Enable credentials for JWT auth
                 // Allow multiple origins for different deployment environments
                 config.addAllowedOrigin("http://localhost:3000"); // Local development
                 config.addAllowedOrigin("https://wingit-frontend.onrender.com"); // Production frontend
@@ -93,10 +93,7 @@ public class SecurityConfig {    @Autowired
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-                    response.setHeader("Access-Control-Allow-Credentials", "true");
-                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                    response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                    // Don't set CORS headers here - let the main CORS config handle it
                     response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication required\"}");
                     response.getWriter().flush();
                     System.out.println("=== END AUTHENTICATION FAILURE DEBUG ===");

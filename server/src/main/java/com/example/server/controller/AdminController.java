@@ -25,7 +25,7 @@ import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "https://wingit-frontend.onrender.com"}, allowCredentials = "true")
 @PreAuthorize("hasRole('admin')")
 public class AdminController {
 
