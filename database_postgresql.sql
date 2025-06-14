@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS friend_requests CASCADE;
 DROP TABLE IF EXISTS request_status CASCADE;
 DROP TABLE IF EXISTS user_settings CASCADE;
 DROP TABLE IF EXISTS user_data CASCADE;
-DROP TABLE IF EXISTS "user" CASCADE; -- "user" is a reserved word in PostgreSQL
+DROP TABLE IF EXISTS users CASCADE; -- Changed from "user" to "users"
 DROP TABLE IF EXISTS role CASCADE;
 
 -- Create lookup tables first
@@ -65,8 +65,8 @@ CREATE TABLE chat_room (
     created_date TIMESTAMP NOT NULL
 );
 
--- Create user table (quoted because "user" is reserved in PostgreSQL)
-CREATE TABLE "user" (
+-- Create users table (renamed from "user" to avoid PostgreSQL reserved keyword)
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255), -- Nullable for OAuth2 users
@@ -87,7 +87,7 @@ CREATE TABLE user_data (
     cover_photo VARCHAR(255),
     date_of_birth DATE,
     created_at DATE NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES "user"(id)
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Create user_settings table
@@ -98,7 +98,7 @@ CREATE TABLE user_settings (
     allow_search_engines BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT chk_privacy_level CHECK (privacy_level IN ('public', 'friends', 'private'))
 );
 
@@ -108,8 +108,8 @@ CREATE TABLE friends (
     user1_id INTEGER NOT NULL,
     user2_id INTEGER NOT NULL,
     friendship_date TIMESTAMP NOT NULL,
-    FOREIGN KEY (user1_id) REFERENCES "user"(id),
-    FOREIGN KEY (user2_id) REFERENCES "user"(id),
+    FOREIGN KEY (user1_id) REFERENCES users(id),
+    FOREIGN KEY (user2_id) REFERENCES users(id),
     CONSTRAINT unique_friendship UNIQUE (user1_id, user2_id),
     CONSTRAINT no_self_friendship CHECK (user1_id != user2_id)
 );
@@ -122,8 +122,8 @@ CREATE TABLE friend_requests (
     request_status BIGINT NOT NULL,
     request_date TIMESTAMP NOT NULL,
     response_date TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES "user"(id),
-    FOREIGN KEY (receiver_id) REFERENCES "user"(id),
+    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (receiver_id) REFERENCES users(id),
     FOREIGN KEY (request_status) REFERENCES request_status(id),
     CONSTRAINT unique_request UNIQUE (sender_id, receiver_id),
     CONSTRAINT no_self_request CHECK (sender_id != receiver_id)
@@ -135,8 +135,8 @@ CREATE TABLE follows (
     follower_id INTEGER NOT NULL,
     following_id INTEGER NOT NULL,
     timestamp TIMESTAMP NOT NULL,
-    FOREIGN KEY (follower_id) REFERENCES "user"(id),
-    FOREIGN KEY (following_id) REFERENCES "user"(id),
+    FOREIGN KEY (follower_id) REFERENCES users(id),
+    FOREIGN KEY (following_id) REFERENCES users(id),
     CONSTRAINT unique_follow UNIQUE (follower_id, following_id),
     CONSTRAINT no_self_follow CHECK (follower_id != following_id)
 );
@@ -147,8 +147,8 @@ CREATE TABLE block (
     user_id INTEGER NOT NULL,
     blocked_user_id INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
-    FOREIGN KEY (blocked_user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (blocked_user_id) REFERENCES users(id),
     CONSTRAINT unique_block UNIQUE (user_id, blocked_user_id),
     CONSTRAINT no_self_block CHECK (user_id != blocked_user_id)
 );
@@ -162,7 +162,7 @@ CREATE TABLE posts (
     updated_at TIMESTAMP NOT NULL,
     type BIGINT NOT NULL,
     location_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (type) REFERENCES post_type(id),
     FOREIGN KEY (location_id) REFERENCES location(id)
 );
@@ -175,7 +175,7 @@ CREATE TABLE post_reactions (
     react_type BIGINT NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(id),
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (react_type) REFERENCES reaction_type(id),
     CONSTRAINT unique_reaction UNIQUE (post_id, user_id)
 );
@@ -199,7 +199,7 @@ CREATE TABLE comments (
     updated_at TIMESTAMP NOT NULL,
     post_id BIGINT NOT NULL,
     is_reply BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (post_id) REFERENCES posts(id)
 );
 
@@ -222,7 +222,7 @@ CREATE TABLE comment_reactions (
     react_type BIGINT NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     FOREIGN KEY (comment_id) REFERENCES comments(id),
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (react_type) REFERENCES reaction_type(id),
     CONSTRAINT unique_comment_reaction UNIQUE (comment_id, user_id)
 );
@@ -233,7 +233,7 @@ CREATE TABLE room_user (
     user_id INTEGER NOT NULL,
     chat_room_id BIGINT NOT NULL,
     joined_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (chat_room_id) REFERENCES chat_room(id),
     CONSTRAINT unique_room_user UNIQUE (user_id, chat_room_id)
 );
@@ -245,7 +245,7 @@ CREATE TABLE messages (
     chat_room_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     timestamp TIMESTAMP NOT NULL,
-    FOREIGN KEY (sender_id) REFERENCES "user"(id),
+    FOREIGN KEY (sender_id) REFERENCES users(id),
     FOREIGN KEY (chat_room_id) REFERENCES chat_room(id)
 );
 
@@ -260,8 +260,8 @@ CREATE TABLE notifications (
     content TEXT NULL,
     read_status BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (recipient_user_id) REFERENCES "user"(id),
-    FOREIGN KEY (actor_user_id) REFERENCES "user"(id),
+    FOREIGN KEY (recipient_user_id) REFERENCES users(id),
+    FOREIGN KEY (actor_user_id) REFERENCES users(id),
     FOREIGN KEY (post_id) REFERENCES posts(id),
     FOREIGN KEY (comment_id) REFERENCES comments(id)
 );
@@ -272,7 +272,7 @@ CREATE TABLE bookmarks (
     user_id INTEGER NOT NULL,
     post_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES "user"(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (post_id) REFERENCES posts(id),
     CONSTRAINT unique_bookmark UNIQUE (user_id, post_id)
 );
@@ -289,7 +289,7 @@ CREATE TABLE post_views (
     ip_address VARCHAR(45) NULL,
     user_agent TEXT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Create reports table
@@ -304,8 +304,8 @@ CREATE TABLE reports (
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'REVIEWED', 'RESOLVED', 'DISMISSED')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL,
-    FOREIGN KEY (reporter_id) REFERENCES "user"(id) ON DELETE CASCADE,
-    FOREIGN KEY (reported_user_id) REFERENCES "user"(id) ON DELETE CASCADE,
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
     CONSTRAINT chk_report_target CHECK (
