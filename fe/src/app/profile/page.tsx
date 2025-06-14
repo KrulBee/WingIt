@@ -448,19 +448,30 @@ export default function ProfilePage() {
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {posts
                   .filter(post => post.image)
-                  .slice(0, 6)
                   .map(post => (
-                    <img
-                      key={post.id}
-                      src={post.image}
-                      alt="Post media"
-                      className="aspect-square object-cover rounded"
-                    />
+                    <div key={post.id} className="relative group cursor-pointer">
+                      <img
+                        src={post.image}
+                        alt="Post media"
+                        className="aspect-square object-cover rounded-lg hover:opacity-75 transition-opacity"
+                        onClick={() => {
+                          // Open image in modal or navigate to post
+                          window.open(post.image, '_blank');
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+                        <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
+                          <p className="text-xs">{post.likes} ❤️ {post.comments} 💬</p>
+                        </div>
+                      </div>
+                    </div>
                   ))
                 }
                 {posts.filter(post => post.image).length === 0 && (
                   <div className="col-span-3 text-center py-8">
+                    <Camera className="mx-auto mb-4 text-gray-400" size={48} />
                     <p className="text-gray-500 dark:text-gray-400">Chưa có ảnh nào</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Chia sẻ những khoảnh khắc đẹp của bạn!</p>
                   </div>
                 )}
               </div>
@@ -471,9 +482,12 @@ export default function ProfilePage() {
                   .map(post => (
                     <Post key={post.id} {...post} />
                   ))
-                }                {posts.filter(post => post.liked).length === 0 && (
+                }
+                {posts.filter(post => post.liked).length === 0 && (
                   <div className="text-center py-8">
+                    <div className="mb-4">❤️</div>
                     <p className="text-gray-500 dark:text-gray-400">Chưa có bài viết yêu thích nào</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Nhấn ❤️ để lưu những bài viết bạn thích!</p>
                   </div>
                 )}
               </div>
