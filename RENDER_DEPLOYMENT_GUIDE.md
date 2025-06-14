@@ -107,8 +107,8 @@ PORT=5000
 
 4. **Environment Variables**:
 ```
-NEXT_PUBLIC_API_URL=https://wingit-backend.onrender.com
-NEXT_PUBLIC_WEBSOCKET_URL=wss://wingit-backend.onrender.com/ws
+NEXT_PUBLIC_API_URL=https://wingit-backend-s1gb.onrender.com
+NEXT_PUBLIC_WEBSOCKET_URL=wss://wingit-backend-s1gb.onrender.com/ws
 NODE_ENV=production
 ```
 
@@ -127,7 +127,7 @@ NODE_ENV=production
 
 1. **Check all services are running**:
    - ✅ Frontend: `https://wingit-frontend.onrender.com`
-   - ✅ Backend: `https://wingit-backend.onrender.com/api/v1/health`
+   - ✅ Backend: `https://wingit-backend-s1gb.onrender.com/api/v1/health`
    - ✅ AI Server: `https://wingit-ai.onrender.com/health`
 
 2. **Test key features**:

@@ -103,7 +103,7 @@ export interface UpdateReportStatusRequest {
 }
 
 class AdminService {
-  private baseURL = 'http://localhost:8080/api/admin';
+  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin`;
 
   // Check admin access
   async checkAdminAccess(): Promise<AdminAccess> {

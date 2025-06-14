@@ -22,7 +22,7 @@ export enum RequestStatusType {
 }
 
 class RequestStatusService {
-  private baseURL = 'http://localhost:8080/api/request-statuses';
+  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/request-statuses`;
 
   // Get all request statuses
   async getAllRequestStatuses(): Promise<RequestStatus[]> {

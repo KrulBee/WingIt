@@ -15,7 +15,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private WebSocketHandler webSocketHandler;    @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketHandler, "/ws")
-                .setAllowedOrigins("http://localhost:3000"); // Allow frontend origin
+                .setAllowedOrigins(
+                    "http://localhost:3000",  // Local development
+                    "https://wingit-frontend.onrender.com",  // Production frontend
+                    "https://*.onrender.com"  // Any Render subdomain
+                );
         // Remove SockJS for now to use plain WebSocket
     }
 }

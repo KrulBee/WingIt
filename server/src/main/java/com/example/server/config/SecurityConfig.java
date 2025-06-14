@@ -57,10 +57,12 @@ public class SecurityConfig {    @Autowired
                 config.setAllowCredentials(false); // Changed to false for JWT auth
                 // Allow multiple origins for different deployment environments
                 config.addAllowedOrigin("http://localhost:3000"); // Local development
+                config.addAllowedOrigin("https://wingit-frontend.onrender.com"); // Production frontend
                 config.addAllowedOriginPattern("https://*.onrender.com"); // Render deployment
                 config.addAllowedOriginPattern("https://*.railway.app"); // Railway deployment (backup)
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");
+                config.addExposedHeader("Authorization"); // Expose auth header
                 return config;
             }))            .authorizeHttpRequests(auth -> auth
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()

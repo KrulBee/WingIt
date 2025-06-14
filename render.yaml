@@ -11,11 +11,11 @@ services:
     startCommand: npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://wingit-backend.onrender.com
+        value: https://wingit-backend-s1gb.onrender.com
       - key: NEXT_PUBLIC_BACKEND_URL
-        value: https://wingit-backend.onrender.com
+        value: https://wingit-backend-s1gb.onrender.com
       - key: NEXT_PUBLIC_WEBSOCKET_URL
-        value: wss://wingit-backend.onrender.com/ws
+        value: wss://wingit-backend-s1gb.onrender.com/ws
       - key: NODE_ENV
         value: production
     healthCheckPath: /

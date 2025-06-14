@@ -20,7 +20,7 @@ export enum RoleType {
 }
 
 class RoleService {
-  private baseURL = 'http://localhost:8080/api/roles';
+  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/roles`;
 
   // Get all roles
   async getAllRoles(): Promise<Role[]> {
