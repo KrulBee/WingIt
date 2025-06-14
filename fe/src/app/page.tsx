@@ -1,12 +1,10 @@
 'use client';
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
-import { MapPin, Users, MessageCircle, Heart, Camera, Globe } from "react-feather";
-import "./test.css";
+import { MapPin, Users, Camera, Globe } from "react-feather";
 
 export default function Home() {
   const router = useRouter();
@@ -27,7 +25,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
       {/* Header */}
       <header className="relative z-10 p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -52,6 +50,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Hero Section */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
@@ -71,12 +70,6 @@ export default function Home() {
               className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
             >
               Bắt đầu ngay
-            </Link>
-            <Link
-              href="/preview"
-              className="px-8 py-4 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 font-bold rounded-2xl hover:shadow-xl transition-all duration-300 border border-purple-200 dark:border-purple-700"
-            >
-              Xem trước
             </Link>
             <button
               onClick={() => {
@@ -161,6 +154,7 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="relative z-10 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -172,7 +166,7 @@ export default function Home() {
             </div>
 
             <div className="text-gray-600 dark:text-gray-400 text-center md:text-right">
-              <p>&copy; 2025 WingIt. Tất cả quyền được bảo lưu.</p>
+              <p>&copy; 2024 WingIt. Tất cả quyền được bảo lưu.</p>
             </div>
           </div>
         </div>
