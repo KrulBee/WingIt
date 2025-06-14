@@ -67,6 +67,6 @@ describe('ThemeToggle', () => {
     );
     
     // In dark mode, we show the Sun icon
-    expect(screen.getByLabelText('Switch to light mode')).toBeInTheDocument();
+    expect(screen.getByLabelText('Chuyển sang chế độ sáng')).toBeInTheDocument();
   });
 });

@@ -25,7 +25,7 @@ function AuthCallbackContent() {
       // Store the JWT token
       localStorage.setItem('auth-token', token);
       setStatus('success');
-      setMessage('Login successful! Redirecting...');
+      setMessage('Đăng nhập thành công! Đang chuyển hướng...');
       
       // Redirect to home page
       setTimeout(() => {
@@ -36,7 +36,7 @@ function AuthCallbackContent() {
 
     // If no token or error, redirect to auth page
     setStatus('error');
-    setMessage('Invalid authentication response');
+    setMessage('Phản hồi xác thực không hợp lệ');
     setTimeout(() => {
       router.push('/auth');
     }, 3000);

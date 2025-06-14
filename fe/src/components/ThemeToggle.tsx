@@ -26,6 +26,7 @@ export default function ThemeToggle() {
       onClick={handleToggleChange}
       className="relative p-2 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-dark-700 dark:to-dark-600 text-gray-700 dark:text-gray-300 hover:from-primary-100 hover:to-primary-200 dark:hover:from-primary-900 dark:hover:to-primary-800 hover:text-primary-700 dark:hover:text-primary-300 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md group"
       aria-label={darkMode ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+      title={darkMode ? "Chế độ sáng" : "Chế độ tối"}
     >
       <div className="relative">
         {darkMode ? (
