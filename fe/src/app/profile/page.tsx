@@ -472,24 +472,7 @@ export default function ProfilePage() {
                     <Camera className="mx-auto mb-4 text-gray-400" size={48} />
                     <p className="text-gray-500 dark:text-gray-400">Chưa có ảnh nào</p>
                     <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Chia sẻ những khoảnh khắc đẹp của bạn!</p>
-                  </div>
-                )}
-              </div>
-            </Tab>            <Tab key="likes" title="Yêu Thích">
-              <div className="space-y-4 mt-4">
-                {posts
-                  .filter(post => post.liked)
-                  .map(post => (
-                    <Post key={post.id} {...post} />
-                  ))
-                }
-                {posts.filter(post => post.liked).length === 0 && (
-                  <div className="text-center py-8">
-                    <div className="mb-4">❤️</div>
-                    <p className="text-gray-500 dark:text-gray-400">Chưa có bài viết yêu thích nào</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Nhấn ❤️ để lưu những bài viết bạn thích!</p>
-                  </div>
-                )}
+                  </div>                )}
               </div>
             </Tab>
           </Tabs>
