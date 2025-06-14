@@ -52,7 +52,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
@@ -162,7 +161,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="relative z-10 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -174,20 +172,11 @@ export default function Home() {
             </div>
 
             <div className="text-gray-600 dark:text-gray-400 text-center md:text-right">
-              <p>&copy; 2024 WingIt. Tất cả quyền được bảo lưu.</p>
-              <p className="text-sm mt-1">Được xây dựng với ❤️ tại Việt Nam</p>
+              <p>&copy; 2025 WingIt. Tất cả quyền được bảo lưu.</p>
             </div>
           </div>
         </div>
       </footer>
-    </div>
-        
-        <div className="mt-12">
-          <Link href="/home" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg">
-            Go to Home Feed
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
