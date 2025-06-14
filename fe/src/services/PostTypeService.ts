@@ -14,7 +14,7 @@ export interface PostTypeUpdateRequest {
 }
 
 class PostTypeService {
-  private baseURL = 'http://localhost:8080/api/post-types';
+  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post-types`;
 
   // Get all post types
   async getAllPostTypes(): Promise<PostType[]> {

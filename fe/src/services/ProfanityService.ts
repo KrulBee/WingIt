@@ -19,7 +19,8 @@ class ProfanityService {
    */
   async checkProfanity(text: string): Promise<ProfanityResult> {
     try {
-      const response = await fetch('http://localhost:5000/detect', {
+      const aiServerUrl = process.env.NEXT_PUBLIC_AI_URL || 'http://localhost:5000';
+      const response = await fetch(`${aiServerUrl}/detect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +53,8 @@ class ProfanityService {
    */
   async isServerHealthy(): Promise<boolean> {
     try {
-      const response = await fetch('http://localhost:5000/health');
+      const aiServerUrl = process.env.NEXT_PUBLIC_AI_URL || 'http://localhost:5000';
+      const response = await fetch(`${aiServerUrl}/health`);
       const result = await response.json();
       return result.status === 'healthy' && result.model_loaded;
     } catch {
@@ -66,7 +68,8 @@ class ProfanityService {
    */
   async getModelInfo(): Promise<any> {
     try {
-      const response = await fetch('http://localhost:5000/model_info');
+      const aiServerUrl = process.env.NEXT_PUBLIC_AI_URL || 'http://localhost:5000';
+      const response = await fetch(`${aiServerUrl}/model_info`);
       return await response.json();
     } catch (error) {
       console.error('Error getting model info:', error);

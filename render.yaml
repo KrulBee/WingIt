@@ -16,6 +16,8 @@ services:
         value: https://wingit-backend-s1gb.onrender.com
       - key: NEXT_PUBLIC_WEBSOCKET_URL
         value: wss://wingit-backend-s1gb.onrender.com/ws
+      - key: NEXT_PUBLIC_AI_URL
+        value: https://wingit-ai.onrender.com
       - key: NODE_ENV
         value: production
     healthCheckPath: /

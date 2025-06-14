@@ -42,21 +42,27 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   const [profanityResult, setProfanityResult] = useState<any>(null);const loadLocations = async () => {
     if (!locationsLoaded) {
       try {
+        console.log('Loading locations...');
         const locationData = await LocationService.getAllLocations();
+        console.log('Locations loaded:', locationData);
         setLocations(locationData);
         setLocationsLoaded(true);
       } catch (error) {
         console.error('Failed to load locations:', error);
+        console.error('Error details:', error);
       }
     }
   };  const loadPostTypes = async () => {
     if (!postTypesLoaded) {
       try {
+        console.log('Loading post types...');
         const postTypeData = await PostTypeService.getAllPostTypes();
+        console.log('Post types loaded:', postTypeData);
         setPostTypes(postTypeData);
         setPostTypesLoaded(true);
       } catch (error) {
         console.error('Failed to load post types:', error);
+        console.error('Error details:', error);
       }
     }
   };
