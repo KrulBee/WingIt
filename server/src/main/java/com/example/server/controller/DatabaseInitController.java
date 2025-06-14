@@ -31,16 +31,29 @@ public class DatabaseInitController {
     @PostMapping("/database")
     public ResponseEntity<?> initializeDatabase() {
         try {
+            // Initialize Roles FIRST (required for user registration)
+            if (roleRepository.count() == 0) {
+                Role userRole = new Role();
+                userRole.setId(1);
+                userRole.setRoleName("user");
+                roleRepository.save(userRole);
+
+                Role adminRole = new Role();
+                adminRole.setId(2);
+                adminRole.setRoleName("admin");
+                roleRepository.save(adminRole);
+            }
+
             // Initialize Post Types
             if (postTypeRepository.count() == 0) {
                 PostType info = new PostType();
                 info.setTypeName("info");
                 postTypeRepository.save(info);
-                
+
                 PostType scenic = new PostType();
                 scenic.setTypeName("scenic");
                 postTypeRepository.save(scenic);
-                
+
                 PostType discussion = new PostType();
                 discussion.setTypeName("discussion");
                 postTypeRepository.save(discussion);
@@ -81,6 +94,7 @@ public class DatabaseInitController {
             
             return ResponseEntity.ok(Map.of(
                 "message", "Database initialized successfully",
+                "roles", roleRepository.count(),
                 "postTypes", postTypeRepository.count(),
                 "reactionTypes", reactionTypeRepository.count(),
                 "requestStatuses", requestStatusRepository.count(),
