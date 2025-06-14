@@ -1,6 +1,9 @@
 -- PostgreSQL Database Schema for WingIt Social Media Platform
 -- Converted from MySQL for Render deployment
 
+-- Set client encoding to UTF8 to handle Vietnamese characters properly
+SET client_encoding = 'UTF8';
+
 -- Create the database (usually done automatically by Render)
 -- CREATE DATABASE wingit;
 
@@ -348,37 +351,5 @@ CREATE INDEX idx_reports_comment ON reports(comment_id);
 CREATE INDEX idx_reports_status ON reports(status);
 CREATE INDEX idx_reports_created_at ON reports(created_at);
 
--- Insert initial data
-INSERT INTO role (id, role) VALUES
-(1, 'user'),
-(2, 'admin');
-
-INSERT INTO reaction_type (name, description) VALUES
-('like', 'Like reaction'),
-('dislike', 'Dislike reaction');
-
-INSERT INTO request_status (status_name) VALUES
-('PENDING'),
-('ACCEPTED'),
-('REJECTED');
-
-INSERT INTO post_type (type_name) VALUES
-('info'),
-('scenic'),
-('discussion');
-
--- Insert Vietnamese locations
-INSERT INTO location (id, location) VALUES
-(1, 'Hà Nội'), (2, 'Hồ Chí Minh'), (3, 'Hải Phòng'), (4, 'Đà Nẵng'), (5, 'Cần Thơ'),
-(6, 'An Giang'), (7, 'Bà Rịa - Vũng Tàu'), (8, 'Bắc Giang'), (9, 'Bắc Kạn'), (10, 'Bạc Liêu'),
-(11, 'Bắc Ninh'), (12, 'Bến Tre'), (13, 'Bình Định'), (14, 'Bình Dương'), (15, 'Bình Phước'),
-(16, 'Bình Thuận'), (17, 'Cà Mau'), (18, 'Cao Bằng'), (19, 'Đắk Lắk'), (20, 'Đắk Nông'),
-(21, 'Điện Biên'), (22, 'Đồng Nai'), (23, 'Đồng Tháp'), (24, 'Gia Lai'), (25, 'Hà Giang'),
-(26, 'Hà Nam'), (27, 'Hà Tĩnh'), (28, 'Hải Dương'), (29, 'Hậu Giang'), (30, 'Hòa Bình'),
-(31, 'Hưng Yên'), (32, 'Khánh Hòa'), (33, 'Kiên Giang'), (34, 'Kon Tum'), (35, 'Lai Châu'),
-(36, 'Lâm Đồng'), (37, 'Lạng Sơn'), (38, 'Lào Cai'), (39, 'Long An'), (40, 'Nam Định'),
-(41, 'Nghệ An'), (42, 'Ninh Bình'), (43, 'Ninh Thuận'), (44, 'Phú Thọ'), (45, 'Phú Yên'),
-(46, 'Quảng Bình'), (47, 'Quảng Nam'), (48, 'Quảng Ngãi'), (49, 'Quảng Ninh'), (50, 'Quảng Trị'),
-(51, 'Sóc Trăng'), (52, 'Sơn La'), (53, 'Tây Ninh'), (54, 'Thái Bình'), (55, 'Thái Nguyên'),
-(56, 'Thanh Hóa'), (57, 'Thừa Thiên Huế'), (58, 'Tiền Giang'), (59, 'Trà Vinh'), (60, 'Tuyên Quang'),
-(61, 'Vĩnh Long'), (62, 'Vĩnh Phúc'), (63, 'Yên Bái');
+-- Data initialization will be handled by the backend API
+-- Run POST /api/v1/init/database after deploying the backend
