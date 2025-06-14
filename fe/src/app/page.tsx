@@ -33,9 +33,7 @@ export default function Home() {
             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-xl">W</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              WingIt
-            </span>
+            <span className="text-2xl font-bold text-gray-800 dark:text-gray-200">WingIt</span>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -53,10 +51,10 @@ export default function Home() {
       {/* Hero Section */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
             Chào mừng đến với
             <br />
-            <span className="text-6xl md:text-8xl">WingIt</span>
+            <span className="text-6xl md:text-8xl font-black">WingIt</span>
           </h1>
 
           <p className="text-xl md:text-2xl mb-12 text-gray-800 dark:text-gray-200 max-w-3xl mx-auto leading-relaxed font-medium">
@@ -75,7 +73,7 @@ export default function Home() {
               onClick={() => {
                 document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-6 py-3 text-purple-600 dark:text-purple-400 font-medium rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300"
+              className="px-6 py-3 text-purple-600 dark:text-purple-300 font-semibold rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300"
             >
               Tìm hiểu thêm
             </button>
@@ -167,7 +165,6 @@ export default function Home() {
 
             <div className="text-gray-700 dark:text-gray-300 text-center md:text-right">
               <p className="font-medium">&copy; 2024 WingIt. Tất cả quyền được bảo lưu.</p>
-              <p className="text-sm mt-1 font-medium">Được xây dựng với ❤️ tại Việt Nam</p>
             </div>
           </div>
         </div>
