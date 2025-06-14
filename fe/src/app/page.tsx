@@ -25,7 +25,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-dark-900 dark:via-dark-800 dark:to-slate-900">
       {/* Header */}
       <header className="relative z-10 p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -59,7 +59,7 @@ export default function Home() {
             <span className="text-6xl md:text-8xl">WingIt</span>
           </h1>
 
-          <p className="text-xl md:text-2xl mb-12 text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl mb-12 text-gray-800 dark:text-gray-200 max-w-3xl mx-auto leading-relaxed font-medium">
             Kết nối và chia sẻ những khoảnh khắc đẹp nhất của bạn với cộng đồng Việt Nam.
             Khám phá những địa điểm tuyệt vời và tạo nên những kỷ niệm đáng nhớ.
           </p>
@@ -89,7 +89,7 @@ export default function Home() {
               <MapPin className="text-white" size={32} />
             </div>
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Khám phá Việt Nam</h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
               Chia sẻ và khám phá những địa điểm tuyệt vời khắp 63 tỉnh thành Việt Nam.
               Từ những cảnh đẹp thiên nhiên đến những món ăn đặc sản địa phương.
             </p>
@@ -100,7 +100,7 @@ export default function Home() {
               <Users className="text-white" size={32} />
             </div>
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Kết nối bạn bè</h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
               Tìm kiếm và kết nối với những người bạn mới có cùng sở thích.
               Tạo nên những mối quan hệ bền vững và ý nghĩa.
             </p>
@@ -111,7 +111,7 @@ export default function Home() {
               <Camera className="text-white" size={32} />
             </div>
             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Chia sẻ khoảnh khắc</h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
               Lưu giữ và chia sẻ những khoảnh khắc đẹp nhất của cuộc sống.
               Hỗ trợ hình ảnh, video và nhiều định dạng khác.
             </p>
@@ -123,15 +123,15 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-purple-600 mb-2">63</div>
-              <div className="text-gray-600 dark:text-gray-400">Tỉnh thành Việt Nam</div>
+              <div className="text-gray-700 dark:text-gray-300 font-medium">Tỉnh thành Việt Nam</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-blue-600 mb-2">∞</div>
-              <div className="text-gray-600 dark:text-gray-400">Khoảnh khắc đáng nhớ</div>
+              <div className="text-gray-700 dark:text-gray-300 font-medium">Khoảnh khắc đáng nhớ</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-green-600 mb-2">100%</div>
-              <div className="text-gray-600 dark:text-gray-400">Miễn phí sử dụng</div>
+              <div className="text-gray-700 dark:text-gray-300 font-medium">Miễn phí sử dụng</div>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function Home() {
           <h2 className="text-4xl font-bold mb-6 text-gray-800 dark:text-gray-200">
             Sẵn sàng bắt đầu hành trình?
           </h2>
-          <p className="text-xl mb-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 text-gray-700 dark:text-gray-300 max-w-2xl mx-auto font-medium">
             Tham gia cộng đồng WingIt ngay hôm nay và khám phá những điều tuyệt vời đang chờ đợi bạn.
           </p>
           <Link
@@ -165,8 +165,9 @@ export default function Home() {
               <span className="text-xl font-bold text-gray-800 dark:text-gray-200">WingIt</span>
             </div>
 
-            <div className="text-gray-600 dark:text-gray-400 text-center md:text-right">
-              <p>&copy; 2024 WingIt. Tất cả quyền được bảo lưu.</p>
+            <div className="text-gray-700 dark:text-gray-300 text-center md:text-right">
+              <p className="font-medium">&copy; 2024 WingIt. Tất cả quyền được bảo lưu.</p>
+              <p className="text-sm mt-1 font-medium">Được xây dựng với ❤️ tại Việt Nam</p>
             </div>
           </div>
         </div>
