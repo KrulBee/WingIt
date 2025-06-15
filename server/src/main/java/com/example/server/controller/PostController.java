@@ -13,27 +13,22 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/posts")
 @CrossOrigin(origins = {"http://localhost:3000", "https://wingit-frontend.onrender.com"}, allowCredentials = "true")
-public class PostController {
-
-    private final PostService postService;
+public class PostController {    private final PostService postService;
     private final CloudinaryService cloudinaryService;
     
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     public PostController(PostService postService, CloudinaryService cloudinaryService) {
         this.postService = postService;
         this.cloudinaryService = cloudinaryService;
@@ -53,10 +48,8 @@ public class PostController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody CreatePostRequest request) {
+    }    @PostMapping
+    public ResponseEntity<?> createPost(@RequestBody CreatePostRequest request) {
         try {
             // Get current user ID from authentication
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -65,7 +58,24 @@ public class PostController {
             PostDTO createdPost = postService.createPost(request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            String errorMessage = e.getMessage();
+            
+            // Check if it's a profanity error
+            if (errorMessage.contains("từ ngữ không phù hợp") || 
+                errorMessage.contains("chứa từ ngữ không phù hợp")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "PROFANITY_DETECTED",
+                    "message", errorMessage,
+                    "isProfanityError", true
+                ));
+            }
+            
+            // Other errors (AI loading, etc.)
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", errorMessage,
+                "message", "Không thể tạo bài viết: " + errorMessage,
+                "isProfanityError", false
+            ));
         }
     }
 

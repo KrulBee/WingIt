@@ -29,9 +29,15 @@ class Config:
     ID2LABEL = {i: label for i, label in enumerate(LABELS)}
     NUM_LABELS = len(LABELS)
     CONFIDENCE_THRESHOLD = 0.7
-    MODEL_PATH = os.getenv("MODEL_PATH", "/tmp/best_phobert_model.pth")  # Allow override via env var
+    
+    # Model path priority for Render deployment:
+    # 1. Environment variable (set in Dockerfile)
+    # 2. Pre-baked model path (Docker build time)
+    # 3. Local fallback for development
+    MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/best_phobert_model.pth")
+    
     DROPOUT_RATE = 0.3
-    # Hugging Face model URL
+    # Hugging Face model URL (only for local development)
     HUGGINGFACE_MODEL_URL = "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth"
 
 class PhoBERTForTokenClassification(nn.Module):
@@ -84,47 +90,85 @@ class ProfanityDetector:
         self.tokenizer = None
         self.model = None
         self.model_loaded = False
+        self.loading_error = None
+        self.loading_in_progress = False
         
         logger.info(f"Using device: {self.device}")
         
-        # Load model in background
-        self.load_model_thread = threading.Thread(target=self._load_model_async)
-        self.load_model_thread.start()
+        # Load model in background - but only once
+        if not self.loading_in_progress:
+            self.loading_in_progress = True
+            self.load_model_thread = threading.Thread(target=self._load_model_async)
+            self.load_model_thread.start()
     
-    def _download_model_from_huggingface(self):
-        """Download model from Hugging Face if not exists locally"""
+    def _find_model_file(self):
+        """Find the model file in order of preference for Render deployment"""
+        
+        # 1. Check the pre-built model path (Docker build time download)
         if os.path.exists(self.config.MODEL_PATH):
-            # Check if file is complete (not corrupted)
-            try:
-                file_size = os.path.getsize(self.config.MODEL_PATH)
-                if file_size > 100 * 1024 * 1024:  # At least 100MB
-                    logger.info(f"Model file already exists and appears complete: {self.config.MODEL_PATH} ({file_size} bytes)")
-                    return True
-                else:
-                    logger.warning(f"Model file exists but seems incomplete ({file_size} bytes), re-downloading...")
-                    os.remove(self.config.MODEL_PATH)
-            except Exception as e:
-                logger.warning(f"Error checking existing model file: {e}")
-                try:
-                    os.remove(self.config.MODEL_PATH)
-                except:
-                    pass
+            file_size = os.path.getsize(self.config.MODEL_PATH)
+            if file_size > 100 * 1024 * 1024:  # At least 100MB
+                logger.info(f"✅ Found pre-built model: {self.config.MODEL_PATH} ({file_size} bytes)")
+                return self.config.MODEL_PATH
+            else:
+                logger.warning(f"Pre-built model file seems incomplete ({file_size} bytes)")
+        else:
+            logger.warning(f"Pre-built model not found at: {self.config.MODEL_PATH}")
+        
+        # 2. For local development, check current directory
+        local_path = "./best_phobert_model.pth"
+        if os.path.exists(local_path):
+            file_size = os.path.getsize(local_path)
+            if file_size > 100 * 1024 * 1024:  # At least 100MB
+                logger.info(f"✅ Found local model: {local_path} ({file_size} bytes)")
+                return local_path
+            else:
+                logger.warning(f"Local model file seems incomplete ({file_size} bytes)")
+        
+        logger.error("❌ No valid model file found! Check Docker build logs.")
+        return None
+    
+    def _download_model_from_huggingface(self, target_path):
+        """Download model from Hugging Face if not exists locally"""
+        # Check if file already exists and is valid
+        if os.path.exists(target_path):
+            file_size = os.path.getsize(target_path)
+            if file_size > 100 * 1024 * 1024:  # At least 100MB
+                logger.info(f"Model file already exists: {target_path} ({file_size} bytes)")
+                return True
 
+        # Create a lock file to prevent multiple downloads
+        lock_file = target_path + ".downloading"
+        if os.path.exists(lock_file):
+            logger.info("Another download process is in progress, waiting...")
+            # Wait for up to 10 minutes for download to complete
+            for _ in range(600):  # 600 seconds = 10 minutes
+                time.sleep(1)
+                if os.path.exists(target_path) and os.path.getsize(target_path) > 100 * 1024 * 1024:
+                    logger.info("Download completed by another process")
+                    return True
+                if not os.path.exists(lock_file):
+                    break
+            
         # Ensure directory exists
-        os.makedirs(os.path.dirname(self.config.MODEL_PATH), exist_ok=True)
+        os.makedirs(os.path.dirname(target_path) if os.path.dirname(target_path) else ".", exist_ok=True)
 
         try:
+            # Create lock file
+            with open(lock_file, 'w') as f:
+                f.write("downloading")
+            
             logger.info(f"Downloading model from Hugging Face...")
             logger.info(f"URL: {self.config.HUGGINGFACE_MODEL_URL}")
-            logger.info(f"Saving to: {self.config.MODEL_PATH}")
+            logger.info(f"Saving to: {target_path}")
 
-            response = requests.get(self.config.HUGGINGFACE_MODEL_URL, stream=True)
+            response = requests.get(self.config.HUGGINGFACE_MODEL_URL, stream=True, timeout=300)
             response.raise_for_status()
 
             total_size = int(response.headers.get('content-length', 0))
             downloaded_size = 0
 
-            with open(self.config.MODEL_PATH, 'wb') as f:
+            with open(target_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -135,16 +179,30 @@ class ProfanityDetector:
                             progress = (downloaded_size / total_size * 100)
                             logger.info(f"Download progress: {progress:.1f}% ({downloaded_size // (1024*1024)}MB/{total_size // (1024*1024)}MB)")
 
-            logger.info(f"✅ Model downloaded successfully: {self.config.MODEL_PATH}")
-            logger.info(f"   Final size: {os.path.getsize(self.config.MODEL_PATH)} bytes")
+            final_size = os.path.getsize(target_path)
+            logger.info(f"✅ Model downloaded successfully: {target_path}")
+            logger.info(f"  Final size: {final_size} bytes")
+            
+            # Remove lock file
+            try:
+                os.remove(lock_file)
+            except:
+                pass
+            
+            if final_size < 100 * 1024 * 1024:
+                logger.error(f"❌ Downloaded file seems too small ({final_size} bytes)")
+                return False
+                
             return True
 
         except Exception as e:
             logger.error(f"❌ Failed to download model: {e}")
-            # Clean up partial download
+            # Clean up partial download and lock file
             try:
-                if os.path.exists(self.config.MODEL_PATH):
-                    os.remove(self.config.MODEL_PATH)
+                if os.path.exists(target_path):
+                    os.remove(target_path)
+                if os.path.exists(lock_file):
+                    os.remove(lock_file)
             except:
                 pass
             return False
@@ -152,20 +210,40 @@ class ProfanityDetector:
     def _load_model_async(self):
         """Load your trained model asynchronously"""
         try:
-            # Check if model exists locally first
-            if not os.path.exists(self.config.MODEL_PATH):
-                logger.info(f"Local model not found at {self.config.MODEL_PATH}")
-                # Download model from Hugging Face if needed
-                if not self._download_model_from_huggingface():
-                    logger.error("Failed to download model from Hugging Face")
+            # Step 1: Find the model file
+            model_path = self._find_model_file()
+            
+            if not model_path:
+                # In production (Render), the model should be pre-built in Docker
+                # If it's not found, this is a serious deployment issue
+                if os.getenv("MODEL_PATH"):
+                    error_msg = "Pre-built model not found! Check Docker build process."
+                    logger.error(f"❌ {error_msg}")
+                    logger.error("This suggests the model download failed during Docker build.")
+                    self.loading_error = error_msg
                     self.model_loaded = False
+                    self.loading_in_progress = False
                     return
-            else:
-                logger.info(f"✅ Using local model file: {self.config.MODEL_PATH}")
+                else:
+                    # Local development - try to download
+                    logger.info("Local development: downloading model...")
+                    if self._download_model_from_huggingface("./best_phobert_model.pth"):
+                        model_path = "./best_phobert_model.pth"
+                    else:
+                        error_msg = "Failed to download model for local development"
+                        logger.error(f"❌ {error_msg}")
+                        self.loading_error = error_msg
+                        self.model_loaded = False
+                        self.loading_in_progress = False
+                        return
 
+            logger.info(f"📂 Using model file: {model_path}")
+
+            # Step 2: Load tokenizer
             logger.info("Loading PhoBERT tokenizer...")
             self.tokenizer = AutoTokenizer.from_pretrained(self.config.MODEL_NAME)
 
+            # Step 3: Load model
             logger.info("Loading your trained PhoBERT model...")
 
             # Initialize model with same architecture as training
@@ -176,21 +254,30 @@ class ProfanityDetector:
             )
 
             # Load your trained weights
-            checkpoint = torch.load(self.config.MODEL_PATH, map_location=self.device, weights_only=False)
+            logger.info("⚖️ Loading trained weights...")
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
             self.model.load_state_dict(checkpoint['model_state_dict'])
 
             self.model.to(self.device)
             self.model.eval()
 
+            # Success!
             logger.info(f"✅ Model loaded successfully!")
-            logger.info(f"   Epoch: {checkpoint.get('epoch', 'Unknown')}")
-            logger.info(f"   Best F1: {checkpoint.get('best_f1', 'Unknown')}")
+            logger.info(f"   📊 Epoch: {checkpoint.get('epoch', 'Unknown')}")
+            logger.info(f"   🎯 Best F1: {checkpoint.get('best_f1', 'Unknown')}")
+            logger.info(f"   💾 Model path: {model_path}")
+            logger.info(f"   🖥️ Device: {self.device}")
 
             self.model_loaded = True
+            self.loading_error = None
+            self.loading_in_progress = False
 
         except Exception as e:
-            logger.error(f"❌ Failed to load model: {e}")
+            error_msg = f"Failed to load model: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            self.loading_error = error_msg
             self.model_loaded = False
+            self.loading_in_progress = False
     
     def is_ready(self):
         return self.model_loaded
@@ -198,13 +285,22 @@ class ProfanityDetector:
     def detect_profanity(self, text):
         """Detect profanity using your trained PhoBERT model"""
         if not self.is_ready():
-            return {
-                'error': 'Model is still loading. Please try again in a moment.',
-                'is_profane': False,
-                'confidence': 0.0,
-                'toxic_spans': [],
-                'processed_text': text
-            }
+            if self.loading_error:
+                return {
+                    'error': f'AI Model failed to load: {self.loading_error}',
+                    'is_profane': False,
+                    'confidence': 0.0,
+                    'toxic_spans': [],
+                    'processed_text': text
+                }
+            else:
+                return {
+                    'error': 'AI Model is still loading. Please try again in a moment.',
+                    'is_profane': False,
+                    'confidence': 0.0,
+                    'toxic_spans': [],
+                    'processed_text': text
+                }
         
         try:
             # Preprocess text
@@ -281,25 +377,55 @@ class ProfanityDetector:
 
 # Initialize Flask app and detector
 app = Flask(__name__)
-CORS(app)
 
-detector = ProfanityDetector()
+# Configure CORS to allow frontend access
+CORS(app, 
+     origins=["https://wingit-frontend.onrender.com", "http://localhost:3000", "https://wingit-backend-s1gb.onrender.com"],
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
+     supports_credentials=True)
+
+# Initialize detector ONLY ONCE - this is critical!
+detector = None
+
+def get_detector():
+    """Singleton pattern to ensure detector is initialized only once"""
+    global detector
+    if detector is None:
+        detector = ProfanityDetector()
+    return detector
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
+    """Enhanced health check endpoint"""
+    detector = get_detector()
+    model_status = 'ready' if detector.is_ready() else 'loading'
+    
+    if detector.loading_error:
+        model_status = 'error'
+    
+    response = {
+        'status': 'healthy' if detector.is_ready() else 'initializing',
         'model_loaded': detector.is_ready(),
+        'model_status': model_status,
         'model_type': 'phobert_trained',
         'device': str(detector.device),
         'timestamp': time.time()
-    })
+    }
+    
+    if detector.loading_error:
+        response['error'] = detector.loading_error
+    
+    # Return 503 if model is not ready (helps with load balancers)
+    status_code = 200 if detector.is_ready() else 503
+    
+    return jsonify(response), status_code
 
 @app.route('/detect', methods=['POST'])
 def detect_profanity():
     """Main profanity detection endpoint"""
     try:
+        detector = get_detector()
         data = request.get_json()
         
         if not data or 'text' not in data:
@@ -332,6 +458,7 @@ def detect_profanity():
 @app.route('/model_info', methods=['GET'])
 def model_info():
     """Get model information"""
+    detector = get_detector()
     return jsonify({
         'model_name': 'PhoBERT Vietnamese Profanity Detection',
         'model_type': 'phobert_trained',

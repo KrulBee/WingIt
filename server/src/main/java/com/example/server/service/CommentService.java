@@ -3,7 +3,6 @@ package com.example.server.service;
 import com.example.server.dto.*;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,6 @@ public class CommentService {    private final CommentRepository commentReposito
     private final NotificationService notificationService;
     private final ProfanityDetectionService profanityDetectionService;
 
-    @Autowired
     public CommentService(CommentRepository commentRepository, CommentReplyRepository commentReplyRepository, 
                          PostRepository postRepository, UserRepository userRepository,
                          NotificationService notificationService, ProfanityDetectionService profanityDetectionService) {
@@ -41,15 +39,31 @@ public class CommentService {    private final CommentRepository commentReposito
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
           User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Check for profanity in comment content
+                .orElseThrow(() -> new RuntimeException("User not found"));        // Check for profanity in comment content
         String commentText = request.getActualText();
-        ProfanityDetectionService.ProfanityResult profanityResult = 
-            profanityDetectionService.checkProfanity(commentText);
-        
-        if (profanityResult.isProfane()) {
-            throw new RuntimeException("Bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+        try {
+            ProfanityDetectionService.ProfanityResult profanityResult = 
+                profanityDetectionService.checkProfanity(commentText);
+            
+            if (profanityResult.isProfane()) {
+                throw new RuntimeException("Bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+            }        } catch (RuntimeException e) {
+            // If AI server is loading or unavailable, check if error message indicates loading
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && (
+                errorMsg.contains("đang khởi động") || 
+                errorMsg.contains("Model is still loading") || 
+                errorMsg.contains("AI server is not available") ||
+                errorMsg.contains("tạm thời không khả dụng"))) {
+                // Re-throw the user-friendly message from ProfanityDetectionService
+                throw e;
+            }
+            // For profanity detection errors, re-throw as-is
+            if (errorMsg != null && errorMsg.contains("từ ngữ không phù hợp")) {
+                throw e;
+            }
+            // For other AI errors, provide a generic message
+            throw new RuntimeException("Hệ thống kiểm tra nội dung tạm thời không khả dụng. Vui lòng thử lại sau.");
         }
 
         Comment comment = new Comment();

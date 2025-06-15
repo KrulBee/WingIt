@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/comments")
@@ -30,11 +31,9 @@ public class CommentController {
     public ResponseEntity<List<CommentDTO>> getCommentsByPostId(@PathVariable Long postId) {
         List<CommentDTO> comments = commentService.getCommentsByPostId(postId);
         return ResponseEntity.ok(comments);
-    }
-
-    // New endpoint to match frontend API call: POST /api/v1/comments
+    }    // New endpoint to match frontend API call: POST /api/v1/comments
     @PostMapping
-    public ResponseEntity<CommentDTO> createCommentFromBody(@RequestBody CreateCommentRequest request) {
+    public ResponseEntity<?> createCommentFromBody(@RequestBody CreateCommentRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Integer userId = getUserIdFromAuth(auth);
@@ -42,18 +41,36 @@ public class CommentController {
             // Extract postId from request body
             Long postId = request.getPostId();
             if (postId == null) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Post ID is required",
+                    "message", "Post ID is required"
+                ));
             }
             
             CommentDTO createdComment = commentService.createComment(postId, request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            String errorMessage = e.getMessage();
+            
+            // Check if it's a profanity error
+            if (errorMessage.contains("từ ngữ không phù hợp") || 
+                errorMessage.contains("chứa từ ngữ không phù hợp")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "PROFANITY_DETECTED",
+                    "message", errorMessage,
+                    "isProfanityError", true
+                ));
+            }
+            
+            // Other errors (AI loading, etc.)
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", errorMessage,
+                "message", "Không thể tạo bình luận: " + errorMessage,
+                "isProfanityError", false
+            ));
         }
-    }
-
-    @PostMapping("/post/{postId}")
-    public ResponseEntity<CommentDTO> createComment(@PathVariable Long postId, @RequestBody CreateCommentRequest request) {
+    }    @PostMapping("/post/{postId}")
+    public ResponseEntity<?> createComment(@PathVariable Long postId, @RequestBody CreateCommentRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Integer userId = getUserIdFromAuth(auth);
@@ -61,7 +78,24 @@ public class CommentController {
             CommentDTO createdComment = commentService.createComment(postId, request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            String errorMessage = e.getMessage();
+            
+            // Check if it's a profanity error
+            if (errorMessage.contains("từ ngữ không phù hợp") || 
+                errorMessage.contains("chứa từ ngữ không phù hợp")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "PROFANITY_DETECTED",
+                    "message", errorMessage,
+                    "isProfanityError", true
+                ));
+            }
+            
+            // Other errors (AI loading, etc.)
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", errorMessage,
+                "message", "Không thể tạo bình luận: " + errorMessage,
+                "isProfanityError", false
+            ));
         }
     }
 

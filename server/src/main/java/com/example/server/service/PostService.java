@@ -3,7 +3,6 @@ package com.example.server.service;
 import com.example.server.dto.*;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,14 +54,30 @@ public class PostService {
             throw new RuntimeException("Location is required for posts");
         }
           Location location = locationRepository.findById(request.getLocationId())
-                .orElseThrow(() -> new RuntimeException("Location not found"));
-
-        // Check for profanity in post content
-        ProfanityDetectionService.ProfanityResult profanityResult = 
-            profanityDetectionService.checkProfanity(request.getContent());
-        
-        if (profanityResult.isProfane()) {
-            throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+                .orElseThrow(() -> new RuntimeException("Location not found"));        // Check for profanity in post content
+        try {
+            ProfanityDetectionService.ProfanityResult profanityResult = 
+                profanityDetectionService.checkProfanity(request.getContent());
+            
+            if (profanityResult.isProfane()) {
+                throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
+            }        } catch (RuntimeException e) {
+            // If AI server is loading or unavailable, check if error message indicates loading
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && (
+                errorMsg.contains("đang khởi động") || 
+                errorMsg.contains("Model is still loading") || 
+                errorMsg.contains("AI server is not available") ||
+                errorMsg.contains("tạm thời không khả dụng"))) {
+                // Re-throw the user-friendly message from ProfanityDetectionService
+                throw e;
+            }
+            // For profanity detection errors, re-throw as-is
+            if (errorMsg != null && errorMsg.contains("từ ngữ không phù hợp")) {
+                throw e;
+            }
+            // For other AI errors, provide a generic message
+            throw new RuntimeException("Hệ thống kiểm tra nội dung tạm thời không khả dụng. Vui lòng thử lại sau.");
         }
 
         Post post = new Post();

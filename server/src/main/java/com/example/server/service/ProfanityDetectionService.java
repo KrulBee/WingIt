@@ -46,11 +46,10 @@ public class ProfanityDetectionService {
         if (text == null || text.trim().isEmpty()) {
             return createCleanResult(text);
         }
-        
-        try {
+          try {
             // Check if AI server is available first - REQUIRED
             if (!isServerHealthy()) {
-                throw new RuntimeException("AI server is not available - content moderation required");
+                throw new RuntimeException("Hệ thống kiểm tra nội dung đang khởi động. Vui lòng thử lại sau 2-3 phút.");
             }
             
             // Prepare request
@@ -67,16 +66,20 @@ public class ProfanityDetectionService {
                 profanityServerUrl + "/detect",
                 request,
                 ProfanityApiResponse.class
-            );
-            
+            );            
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 ProfanityApiResponse apiResponse = response.getBody();
+                
+                // Handle potential null API response
+                if (apiResponse == null) {
+                    throw new RuntimeException("Received null response from AI server");
+                }
                 
                 return ProfanityResult.builder()
                     .profane(apiResponse.isProfane)
                     .confidence(apiResponse.confidence)
                     .originalText(text)
-                    .processedText(apiResponse.processedText)
+                    .processedText(apiResponse.processedText != null ? apiResponse.processedText : text)
                     .toxicSpans(apiResponse.toxicSpans)
                     .timestamp(LocalDateTime.now())
                     .error(apiResponse.error)
@@ -84,11 +87,10 @@ public class ProfanityDetectionService {
             } else {
                 throw new RuntimeException("Invalid response from AI server: " + response.getStatusCode());
             }
-            
-        } catch (ResourceAccessException e) {
-            throw new RuntimeException("Failed to connect to AI profanity detection service: " + e.getMessage());
+              } catch (ResourceAccessException e) {
+            throw new RuntimeException("Hệ thống kiểm tra nội dung đang khởi động. Vui lòng thử lại sau 2-3 phút.");
         } catch (Exception e) {
-            throw new RuntimeException("Error during profanity detection: " + e.getMessage());
+            throw new RuntimeException("Hệ thống kiểm tra nội dung tạm thời không khả dụng. Vui lòng thử lại sau.");
         }
     }
       /**
@@ -123,16 +125,20 @@ public class ProfanityDetectionService {
                 request,
                 BatchProfanityApiResponse.class
             );
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+              if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 BatchProfanityApiResponse apiResponse = response.getBody();
+                
+                // Handle potential null API response
+                if (apiResponse == null || apiResponse.results == null) {
+                    throw new RuntimeException("Received null or incomplete response from AI server");
+                }
                 
                 return apiResponse.results.stream()
                     .map(result -> ProfanityResult.builder()
                         .profane(result.isProfane)
                         .confidence(result.confidence)
                         .originalText(texts.get(result.index))
-                        .processedText(result.processedText)
+                        .processedText(result.processedText != null ? result.processedText : texts.get(result.index))
                         .toxicSpans(result.toxicSpans)
                         .timestamp(LocalDateTime.now())
                         .error(result.error)
@@ -145,29 +151,45 @@ public class ProfanityDetectionService {
         } catch (Exception e) {
             throw new RuntimeException("Error during batch profanity detection: " + e.getMessage());
         }
-    }
-    
-    /**
-     * Check if the AI server is healthy
+    }    /**
+     * Check if the AI server is healthy and ready to process requests
      * @return true if server is healthy, false otherwise
-     */
+     */    @SuppressWarnings("unchecked")
     public boolean isServerHealthy() {
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(
+            ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(
                 profanityServerUrl + "/health",
-                Map.class
+                (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> health = response.getBody();
-                return "healthy".equals(health.get("status")) && 
-                       Boolean.TRUE.equals(health.get("model_loaded"));
+                
+                // Handle potential null health response
+                if (health == null) {
+                    logger.warn("AI Server returned null health data");
+                    return false;
+                }
+                
+                boolean isHealthy = "healthy".equals(health.get("status"));
+                boolean modelLoaded = Boolean.TRUE.equals(health.get("model_loaded"));
+                
+                logger.debug("AI Server Health - Status: {}, Model Loaded: {}", 
+                    health.get("status"), modelLoaded);
+                
+                return isHealthy && modelLoaded;
             }
+            
+            logger.warn("AI Server health check returned non-200 status: {}", response.getStatusCode());
+            return false;
+            
+        } catch (ResourceAccessException e) {
+            logger.warn("AI Server is not reachable (likely starting up): {}", e.getMessage());
+            return false;
         } catch (Exception e) {
-            logger.debug("Health check failed: {}", e.getMessage());
+            logger.error("AI Server health check failed: {}", e.getMessage());
+            return false;
         }
-        
-        return false;
     }
     
     /**
@@ -319,13 +341,54 @@ public class ProfanityDetectionService {
         
         // Getters
         public boolean isProfane() { return profane; }
-        public double getConfidence() { return confidence; }
-        public String getOriginalText() { return originalText; }
+        public double getConfidence() { return confidence; }        public String getOriginalText() { return originalText; }
         public String getProcessedText() { return processedText; }
         public List<List<Integer>> getToxicSpans() { return toxicSpans; }
         public LocalDateTime getTimestamp() { return timestamp; }
         public String getError() { return error; }
         
         public boolean hasError() { return error != null && !error.isEmpty(); }
+    }
+    
+    /**
+     * Server status class for detailed AI server monitoring
+     */
+    public static class ServerStatus {
+        private final boolean reachable;
+        private final boolean modelLoaded;
+        private final String status;
+        private final String modelStatus;
+        private final String error;
+        
+        public ServerStatus(boolean reachable, boolean modelLoaded, String status, String modelStatus, String error) {
+            this.reachable = reachable;
+            this.modelLoaded = modelLoaded;
+            this.status = status;
+            this.modelStatus = modelStatus;
+            this.error = error;
+        }
+        
+        // Getters
+        public boolean isReachable() { return reachable; }
+        public boolean isModelLoaded() { return modelLoaded; }
+        public String getStatus() { return status; }
+        public String getModelStatus() { return modelStatus; }
+        public String getError() { return error; }
+        
+        public boolean isReady() { return reachable && modelLoaded && "healthy".equals(status); }
+        public boolean isLoading() { return reachable && !modelLoaded && ("initializing".equals(status) || "loading".equals(modelStatus)); }
+        public boolean hasError() { return error != null && !error.isEmpty(); }
+        
+        public String getUserFriendlyMessage() {
+            if (isReady()) {
+                return "Hệ thống kiểm tra nội dung đang hoạt động bình thường.";
+            } else if (isLoading()) {
+                return "Hệ thống kiểm tra nội dung đang khởi động. Vui lòng thử lại sau 2-3 phút.";
+            } else if (!reachable) {
+                return "Hệ thống kiểm tra nội dung đang khởi động. Vui lòng thử lại sau 2-3 phút.";
+            } else {
+                return "Hệ thống kiểm tra nội dung tạm thời không khả dụng. Vui lòng thử lại sau.";
+            }
+        }
     }
 }
