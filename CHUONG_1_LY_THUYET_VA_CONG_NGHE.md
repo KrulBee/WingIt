@@ -67,384 +67,69 @@ PhoBERT có thể được fine-tune cho nhiều tác vụ NLP khác nhau:
 
 ## 1.2. Spring Boot Framework
 
-Spring Boot là một framework Java được thiết kế để đơn giản hóa việc phát triển các ứng dụng Spring production-ready. Nó cung cấp cấu hình tự động, starter dependencies và embedded servers để tạo ra các ứng dụng standalone.
+Spring Boot là một lightweight và flexible framework được viết bằng Java. Nó được phân loại là một framework đơn giản hóa việc phát triển các ứng dụng Spring bằng cách không yêu cầu các công cụ hoặc thư viện phức tạp, cho phép các nhà phát triển chỉ thêm những thành phần họ cần.
 
-### 1.2.1. Inversion of Control (IoC) Container
-
-Spring Boot dựa trên nguyên lý IoC, trong đó container quản lý việc tạo và inject dependencies:
-
-**a. Dependency Injection**
-Container tự động inject các dependencies thông qua:
-- Constructor injection (được khuyến nghị)
-- Setter injection  
-- Field injection
-
-**b. Bean Lifecycle Management**
-Container quản lý toàn bộ lifecycle của beans từ khởi tạo đến destruction.
-
-### 1.2.2. Auto-Configuration
-
-Spring Boot sử dụng conditional annotations để tự động cấu hình dựa trên:
-- Classpath dependencies
-- Existing beans
-- Configuration properties
-- Application context
-
-Cơ chế này giảm thiểu việc cấu hình thủ công và sử dụng "convention over configuration".
-
-### 1.2.3. Embedded Server Architecture
-
-Spring Boot tích hợp sẵn servlet containers:
-- **Tomcat**: Default embedded server, phù hợp cho hầu hết ứng dụng
-- **Jetty**: Alternative lightweight option
-- **Undertow**: High-performance option cho concurrent loads
-
-### 1.2.4. Production-Ready Features
-
-**Actuator Monitoring:**
-- Health checks và metrics collection
-- Environment information
-- Application monitoring endpoints
-
-**Security Integration:**
-- Seamless integration với Spring Security
-- OAuth2 và JWT support
-- CORS configuration
+### 1.2.1. Các Tính Năng Chính
+- **Auto-Configuration**: Tự động cấu hình dựa trên dependencies có sẵn
+- **Embedded Servers**: Tích hợp sẵn Tomcat, Jetty hoặc Undertow  
+- **Production-Ready**: Actuator để monitoring và health checks
+- **Starter Dependencies**: Các gói dependency được định nghĩa sẵn
+- **Convention over Configuration**: Sử dụng các quy ước mặc định
 
 ## 1.3. JSON Web Token (JWT)
 
 JWT là một tiêu chuẩn mở (RFC 7519) cho việc truyền thông tin an toàn giữa các bên dưới dạng JSON object được ký số. Nó cho phép xác thực và authorization stateless.
 
-### 1.3.1. Token Structure
+### 1.3.1. Các Tính Năng Chính
+- **Stateless Authentication**: Server không cần lưu trữ session state
+- **Self-contained**: Chứa tất cả thông tin cần thiết trong token
+- **Cross-domain Support**: Có thể sử dụng across multiple domains  
+- **Scalable**: Phù hợp với kiến trúc microservices
+- **Security**: Hỗ trợ nhiều thuật toán ký (HMAC, RSA, ECDSA)
 
-JWT bao gồm ba phần được mã hóa Base64URL và ngăn cách bởi dấu chấm:
+## 1.4. Next.js
 
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-```
+Next.js là một powerful React framework cho phép server-side rendering (SSR), static site generation (SSG), và client-side rendering (CSR) trong một thiết lập thống nhất. Khi kết hợp với TypeScript, nó mang lại type safety và enhanced developer experience.
 
-**a. Header**
-Chứa thông tin về thuật toán ký:
-```json
-{
-  "alg": "HS256",
-  "typ": "JWT"
-}
-```
-
-**b. Payload** 
-Chứa claims (thông tin về user):
-```json
-{
-  "sub": "1234567890",
-  "name": "John Doe", 
-  "iat": 1516239022,
-  "exp": 1516242622
-}
-```
-
-**c. Signature**
-Đảm bảo tính toàn vẹn của token:
-```
-HMACSHA256(
-  base64UrlEncode(header) + "." +
-  base64UrlEncode(payload),
-  secret
-)
-```
-
-### 1.3.2. Cryptographic Signing
-
-JWT hỗ trợ nhiều thuật toán ký:
-- **HMAC**: Shared secret key
-- **RSA**: Public/private key pairs
-- **ECDSA**: Elliptic curve digital signatures
-
-### 1.3.3. Claims Types
-
-**a. Registered Claims**
-- `iss` (issuer): Người phát hành token
-- `exp` (expiration): Thời gian hết hạn
-- `sub` (subject): Chủ thể của token
-- `aud` (audience): Đối tượng sử dụng token
-
-**b. Public Claims**
-Có thể được định nghĩa tùy ý nhưng nên tránh xung đột
-
-**c. Private Claims**
-Claims tùy chỉnh để chia sẻ thông tin giữa các bên
-
-### 1.3.4. Security Considerations
-
-- **Token Expiration**: Sử dụng thời gian hết hạn ngắn
-- **Secure Storage**: Lưu trữ token an toàn ở client
-- **HTTPS Only**: Chỉ truyền token qua HTTPS
-- **Secret Management**: Bảo vệ signing key
-
-## 1.4. Next.js với TypeScript
-
-Next.js là một React framework cung cấp server-side rendering, static site generation và nhiều tính năng optimization. TypeScript bổ sung type safety cho JavaScript, giúp phát hiện lỗi sớm và cải thiện developer experience.
-
-### 1.4.1. Rendering Strategies
-
-**a. Server-Side Rendering (SSR)**
-HTML được generate trên server cho mỗi request:
-- Cải thiện SEO
-- Faster initial page load
-- Better performance trên low-end devices
-
-**b. Static Site Generation (SSG)**
-HTML được generate tại build time:
-- Excellent performance
-- Better caching
-- Reduced server load
-
-**c. Incremental Static Regeneration (ISR)**
-Kết hợp lợi ích của SSG và SSR:
-- Static generation với ability to update
-- Background regeneration
-- Stale-while-revalidate pattern
-
-### 1.4.2. TypeScript Integration
-
-**a. Static Type Checking**
-TypeScript phát hiện lỗi tại compile-time:
-```typescript
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-function getUser(id: number): Promise<User> {
-  // Type-safe implementation
-}
-```
-
-**b. Advanced Type Features**
-- Generics for reusable code
-- Union types for flexible APIs
-- Mapped types for transformations
-- Conditional types for complex logic
-
-### 1.4.3. Code Splitting và Optimization
-
-Next.js tự động tối ưu hóa:
-- **Automatic Code Splitting**: Chỉ load code cần thiết
-- **Image Optimization**: Lazy loading và responsive images
-- **Font Optimization**: Automatic font loading optimization
-- **Script Optimization**: Intelligent script loading
-
-### 1.4.4. API Routes
-
-Next.js cung cấp serverless functions:
-```typescript
-// pages/api/users/[id].ts
-import type { NextApiRequest, NextApiResponse } from 'next'
-
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<User | ErrorResponse>
-) {
-  // Type-safe API implementation
-}
-```
+### 1.4.1. Các Tính Năng Chính
+- **Built-in TypeScript Support**: Next.js có first-class TypeScript support
+- **Flexible Data Fetching**: SSR, SSG, và CSR options
+- **Automatic Code Splitting**: Tối ưu hóa performance tự động
+- **API Routes**: Built-in API endpoints  
+- **Image Optimization**: Automatic image optimization và lazy loading
 
 ## 1.5. WebSocket Protocol
 
-WebSocket là một giao thức truyền thông cung cấp kênh full-duplex communication qua một TCP connection duy nhất. Nó cho phép real-time, bidirectional communication giữa client và server.
+WebSocket là một giao thức truyền thông cung cấp kênh full-duplex communication qua một TCP connection duy nhất. Được thiết kế cho real-time, low latency communication giữa client và server.
 
-### 1.5.1. Protocol Handshake
+### 1.5.1. Các Tính Năng Chính
+- **Real-time Communication**: Bidirectional communication
+- **Low Latency**: Nhanh hơn HTTP polling
+- **Persistent Connection**: Duy trì kết nối liên tục
+- **Cross-platform Support**: Hoạt động trên mọi modern browsers
+- **Protocol Upgrade**: Upgrade từ HTTP connection
 
-WebSocket bắt đầu với HTTP handshake sau đó upgrade thành WebSocket protocol:
+## 1.6. PostgreSQL
 
-**Client Request:**
-```
-GET /chat HTTP/1.1
-Host: server.example.com
-Upgrade: websocket
-Connection: Upgrade
-Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-Sec-WebSocket-Version: 13
-```
+PostgreSQL là một powerful, open-source object-relational database management system (ORDBMS) nhấn mạnh extensibility và SQL compliance. Được phát triển ban đầu tại University of California, Berkeley, nó đã phát triển thành một robust, enterprise-grade database được sử dụng rộng rãi.
 
-**Server Response:**
-```
-HTTP/1.1 101 Switching Protocols
-Upgrade: websocket
-Connection: Upgrade
-Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-```
+### 1.6.1. Các Tính Năng Chính
+- **ACID Compliance**: Đảm bảo atomicity, consistency, isolation, và durability
+- **Advanced SQL Support**: Hỗ trợ complex queries, foreign keys, triggers, views
+- **Extensibility**: Cho phép users định nghĩa custom data types, operators, functions
+- **MVCC**: Multi-Version Concurrency Control cho high concurrent performance
+- **JSON Support**: Native JSON và JSONB support cho semi-structured data
 
-### 1.5.2. Frame Structure
-
-WebSocket data được truyền trong frames với cấu trúc:
-```
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-------+-+-------------+-------------------------------+
-|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
-|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
-|N|V|V|V|       |S|             |   (if payload len==126/127)   |
-| |1|2|3|       |K|             |                               |
-+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
-|     Extended payload length continued, if payload len == 127  |
-+ - - - - - - - - - - - - - - - +-------------------------------+
-|                               |Masking-key, if MASK set to 1  |
-+-------------------------------+-------------------------------+
-| Masking-key (continued)       |          Payload Data         |
-+-------------------------------- - - - - - - - - - - - - - - - +
-:                     Payload Data continued ...                :
-+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
-|                     Payload Data continued ...                |
-+---------------------------------------------------------------+
-```
-
-### 1.5.3. Connection States
-
-WebSocket connection có các states:
-- **CONNECTING**: Connection đang được thiết lập
-- **OPEN**: Connection sẵn sàng để truyền data
-- **CLOSING**: Connection đang được đóng
-- **CLOSED**: Connection đã đóng hoặc không thể mở
-
-### 1.5.4. Error Handling và Reconnection
-
-Strategies để xử lý connection issues:
-- **Heartbeat/Ping-Pong**: Kiểm tra connection alive
-- **Exponential Backoff**: Retry với increasing delays
-- **Queue Management**: Buffer messages khi disconnected
-- **Graceful Degradation**: Fallback sang HTTP polling
-
-## 1.6. PostgreSQL Database Management System
-
-PostgreSQL là một hệ quản trị cơ sở dữ liệu quan hệ-đối tượng (ORDBMS) mã nguồn mở mạnh mẽ, nổi tiếng với tính extensibility và SQL compliance. Được phát triển ban đầu tại University of California, Berkeley, nó đã phát triển thành một database enterprise-grade được sử dụng rộng rãi.
-
-### 1.6.1. ACID Properties
-
-PostgreSQL đảm bảo các thuộc tính ACID cho transactions:
-
-**a. Atomicity (Tính nguyên tử)**
-- Transactions được thực hiện hoàn toàn hoặc không thực hiện
-- Rollback mechanism khi có lỗi xảy ra
-
-**b. Consistency (Tính nhất quán)**
-- Database luôn ở trạng thái valid
-- Constraints và business rules được enforce nghiêm ngặt
-
-**c. Isolation (Tính cô lập)**
-- Concurrent transactions không ảnh hưởng lẫn nhau
-- Multiple isolation levels: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE
-
-**d. Durability (Tính bền vững)**
-- Committed transactions được lưu trữ vĩnh viễn
-- Write-ahead logging (WAL) cho crash recovery
-
-### 1.6.2. Multi-Version Concurrency Control (MVCC)
-
-PostgreSQL sử dụng MVCC để xử lý concurrent access:
-- Readers không block writers và ngược lại
-- Mỗi transaction thấy một consistent snapshot của data
-- Tự động garbage collection cho old versions
-
-### 1.6.3. Advanced Data Types và Extensibility
-
-**a. Built-in Data Types**
-- JSON và JSONB cho semi-structured data
-- Arrays, Ranges, và Geometric types
-- Network address types (INET, CIDR)
-- Full-text search types
-
-**b. Extensibility**
-- Custom data types và operators
-- User-defined functions trong nhiều languages
-- Extensions như PostGIS cho geographic data
-
-### 1.6.4. Query Optimization và Performance
-
-**a. Query Planner**
-PostgreSQL optimizer sử dụng cost-based planning:
-- Statistics collection về data distribution
-- Multiple join algorithms (nested loop, hash, merge)
-- Index usage optimization
-
-**b. Index Types**
-- **B-Tree**: Default index type cho equality và range queries
-- **Hash**: Fast equality lookups
-- **GIN/GiST**: Full-text search và complex data types
-- **Partial Indexes**: Conditional indexing để tiết kiệm space
-
-### 1.6.5. Replication và High Availability
-
-**a. Streaming Replication**
-- Asynchronous và synchronous replication
-- Hot standby servers cho read scaling
-- Automatic failover capabilities
-
-**b. Logical Replication**
-- Row-level replication
-- Selective replication của tables
-- Cross-version compatibility
-
-## 1.7. Cloudinary Media Management
+## 1.7. Cloudinary
 
 Cloudinary là một cloud-based media management platform cung cấp end-to-end image và video management solution. Nó bao gồm upload, storage, manipulation, optimization và delivery.
 
-### 1.7.1. Cloud-Based Architecture
-
-**a. Global CDN Network**
-- Multiple edge locations worldwide
-- Automatic geographic optimization
-- Reduced latency cho end users
-
-**b. Scalable Storage**
-- Auto-scaling storage capacity
-- Redundant backup systems
-- High availability guarantees
-
-### 1.7.2. Image Transformation Pipeline
-
-**a. URL-Based Transformations**
-Transformations được specify trong URL:
-```
-https://res.cloudinary.com/demo/image/upload/w_400,h_400,c_fill/sample.jpg
-```
-
-**b. Transformation Parameters**
-- **Resize**: w_width, h_height
-- **Crop**: c_crop_mode (fill, fit, scale, etc.)
-- **Quality**: q_quality_value
-- **Format**: f_format (auto, webp, jpg, png)
-
-### 1.7.3. Automatic Optimization
-
-**a. Format Selection**
-Cloudinary tự động chọn format tối ưu:
-- WebP cho browsers hỗ trợ
-- JPEG cho compatibility
-- PNG cho images với transparency
-
-**b. Quality Optimization**
-- Intelligent quality adjustment
-- Visual quality analysis
-- File size optimization
-
-### 1.7.4. Advanced Features
-
-**a. AI-Powered Transformations**
-- Automatic cropping với gravity detection
-- Background removal
-- Object recognition và tagging
-
-**b. Video Processing**
-- Adaptive bitrate streaming
-- Video transcoding
-- Thumbnail generation
-
-**c. Security Features**
-- Signed URLs cho private content
-- Access control policies
-- Watermarking protection
+### 1.7.1. Các Tính Năng Chính
+- **Global CDN Network**: Multiple edge locations worldwide cho fast delivery
+- **Automatic Optimization**: Intelligent quality và format selection
+- **URL-based Transformations**: Real-time image processing qua URL parameters
+- **AI-powered Features**: Automatic cropping, background removal, object recognition
+- **Scalable Storage**: Auto-scaling storage capacity với high availability
 
 ## Kết Luận
 

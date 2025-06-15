@@ -18,18 +18,30 @@ COPY requirements_deploy.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements_deploy.txt
 
-# Pre-download the model during build time (not runtime!)
-# This prevents the infinite download loop on Render
-RUN echo "Downloading PhoBERT model during Docker build..." && \
+# Pre-download ALL PhoBERT components during build time
+# This prevents any downloads during runtime, making startup instant
+RUN echo "Pre-downloading PhoBERT model and tokenizer components..." && \
     mkdir -p /app/models && \
+    python3 -c "
+import os
+from transformers import AutoTokenizer, AutoModel
+import torch
+import requests
+print('Downloading PhoBERT tokenizer and base model...')
+# Download tokenizer and base model (this caches them)
+tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
+model = AutoModel.from_pretrained('vinai/phobert-base')
+print('PhoBERT base components cached successfully!')
+print('Downloading trained model weights...')
+" && \
     wget -O /app/models/best_phobert_model.pth \
     "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth" && \
-    echo "Model downloaded successfully during build." && \
-    echo "Model size:" && \
+    echo "All model components downloaded successfully during build." && \
+    echo "Trained model size:" && \
     ls -lh /app/models/best_phobert_model.pth && \
-    echo "Verifying model size is at least 100MB..." && \
+    echo "Verifying trained model size is at least 100MB..." && \
     [ $(stat -c%s /app/models/best_phobert_model.pth) -gt 104857600 ] && \
-    echo "✅ Model validation passed!" || (echo "❌ Model too small!" && exit 1)
+    echo "✅ All model components validated!" || (echo "❌ Model too small!" && exit 1)
 
 # Copy source code
 COPY . .
