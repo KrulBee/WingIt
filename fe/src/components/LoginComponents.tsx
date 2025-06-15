@@ -171,7 +171,7 @@ export const GhostButton = styled(Button)`
 
 export const Paragraph = styled.p`
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 200;
   line-height: 20px;
   letter-spacing: 0.5px;
   margin: 20px 0 30px;
