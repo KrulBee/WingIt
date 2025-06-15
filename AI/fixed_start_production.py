@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def check_model_file():
     """Check if model file exists and is valid"""
-    model_path = "./best_phobert_model.pth"
+    model_path = os.getenv("MODEL_PATH", "/app/models/best_phobert_model.pth")
     
     if os.path.exists(model_path):
         file_size = os.path.getsize(model_path)
@@ -41,7 +41,7 @@ def download_model():
         return True
     
     url = "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth"
-    target_path = "./best_phobert_model.pth"
+    target_path = os.getenv("MODEL_PATH", "/app/models/best_phobert_model.pth")
     
     logger.info(f"Downloading model from: {url}")
     logger.info(f"Saving to: {target_path}")

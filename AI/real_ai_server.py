@@ -115,15 +115,17 @@ class ProfanityDetector:
         else:
             logger.warning(f"Pre-built model not found at: {self.config.MODEL_PATH}")
         
-        # 2. For local development, check current directory
-        local_path = "./best_phobert_model.pth"
-        if os.path.exists(local_path):
-            file_size = os.path.getsize(local_path)
-            if file_size > 100 * 1024 * 1024:  # At least 100MB
-                logger.info(f"✅ Found local model: {local_path} ({file_size} bytes)")
-                return local_path
-            else:
-                logger.warning(f"Local model file seems incomplete ({file_size} bytes)")
+        # 2. For local development, check current directory only if MODEL_PATH is the default
+        default_path = "/app/models/best_phobert_model.pth"
+        if self.config.MODEL_PATH == default_path:
+            local_path = "./best_phobert_model.pth"
+            if os.path.exists(local_path):
+                file_size = os.path.getsize(local_path)
+                if file_size > 100 * 1024 * 1024:  # At least 100MB
+                    logger.info(f"✅ Found local model: {local_path} ({file_size} bytes)")
+                    return local_path
+                else:
+                    logger.warning(f"Local model file seems incomplete ({file_size} bytes)")
         
         logger.error("❌ No valid model file found! Check Docker build logs.")
         return None
@@ -225,10 +227,10 @@ class ProfanityDetector:
                     self.loading_in_progress = False
                     return
                 else:
-                    # Local development - try to download
+                    # Local development - try to download to the configured path
                     logger.info("Local development: downloading model...")
-                    if self._download_model_from_huggingface("./best_phobert_model.pth"):
-                        model_path = "./best_phobert_model.pth"
+                    if self._download_model_from_huggingface(self.config.MODEL_PATH):
+                        model_path = self.config.MODEL_PATH
                     else:
                         error_msg = "Failed to download model for local development"
                         logger.error(f"❌ {error_msg}")
