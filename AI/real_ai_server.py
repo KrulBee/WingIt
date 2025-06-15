@@ -128,11 +128,16 @@ class ProfanityDetector:
     def _load_model_async(self):
         """Load your trained model asynchronously"""
         try:
-            # Download model from Hugging Face if needed
-            if not self._download_model_from_huggingface():
-                logger.error("Failed to download model from Hugging Face")
-                self.model_loaded = False
-                return
+            # Check if model exists locally first
+            if not os.path.exists(self.config.MODEL_PATH):
+                logger.info(f"Local model not found at {self.config.MODEL_PATH}")
+                # Download model from Hugging Face if needed
+                if not self._download_model_from_huggingface():
+                    logger.error("Failed to download model from Hugging Face")
+                    self.model_loaded = False
+                    return
+            else:
+                logger.info(f"✅ Using local model file: {self.config.MODEL_PATH}")
 
             logger.info("Loading PhoBERT tokenizer...")
             self.tokenizer = AutoTokenizer.from_pretrained(self.config.MODEL_NAME)
