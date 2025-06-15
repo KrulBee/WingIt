@@ -29,7 +29,7 @@ class Config:
     ID2LABEL = {i: label for i, label in enumerate(LABELS)}
     NUM_LABELS = len(LABELS)
     CONFIDENCE_THRESHOLD = 0.7
-    MODEL_PATH = "best_phobert_model.pth"
+    MODEL_PATH = os.getenv("MODEL_PATH", "/tmp/best_phobert_model.pth")  # Allow override via env var
     DROPOUT_RATE = 0.3
     # Hugging Face model URL
     HUGGINGFACE_MODEL_URL = "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth"
@@ -94,12 +94,29 @@ class ProfanityDetector:
     def _download_model_from_huggingface(self):
         """Download model from Hugging Face if not exists locally"""
         if os.path.exists(self.config.MODEL_PATH):
-            logger.info(f"Model file already exists: {self.config.MODEL_PATH}")
-            return True
+            # Check if file is complete (not corrupted)
+            try:
+                file_size = os.path.getsize(self.config.MODEL_PATH)
+                if file_size > 100 * 1024 * 1024:  # At least 100MB
+                    logger.info(f"Model file already exists and appears complete: {self.config.MODEL_PATH} ({file_size} bytes)")
+                    return True
+                else:
+                    logger.warning(f"Model file exists but seems incomplete ({file_size} bytes), re-downloading...")
+                    os.remove(self.config.MODEL_PATH)
+            except Exception as e:
+                logger.warning(f"Error checking existing model file: {e}")
+                try:
+                    os.remove(self.config.MODEL_PATH)
+                except:
+                    pass
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(self.config.MODEL_PATH), exist_ok=True)
 
         try:
             logger.info(f"Downloading model from Hugging Face...")
             logger.info(f"URL: {self.config.HUGGINGFACE_MODEL_URL}")
+            logger.info(f"Saving to: {self.config.MODEL_PATH}")
 
             response = requests.get(self.config.HUGGINGFACE_MODEL_URL, stream=True)
             response.raise_for_status()
@@ -114,15 +131,22 @@ class ProfanityDetector:
                         downloaded_size += len(chunk)
 
                         # Log progress every 100MB
-                        if downloaded_size % (100 * 1024 * 1024) == 0:
-                            progress = (downloaded_size / total_size * 100) if total_size > 0 else 0
-                            logger.info(f"Download progress: {progress:.1f}% ({downloaded_size // (1024*1024)}MB)")
+                        if total_size > 0 and downloaded_size % (100 * 1024 * 1024) < 8192:
+                            progress = (downloaded_size / total_size * 100)
+                            logger.info(f"Download progress: {progress:.1f}% ({downloaded_size // (1024*1024)}MB/{total_size // (1024*1024)}MB)")
 
             logger.info(f"✅ Model downloaded successfully: {self.config.MODEL_PATH}")
+            logger.info(f"   Final size: {os.path.getsize(self.config.MODEL_PATH)} bytes")
             return True
 
         except Exception as e:
             logger.error(f"❌ Failed to download model: {e}")
+            # Clean up partial download
+            try:
+                if os.path.exists(self.config.MODEL_PATH):
+                    os.remove(self.config.MODEL_PATH)
+            except:
+                pass
             return False
 
     def _load_model_async(self):

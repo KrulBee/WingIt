@@ -1,9 +1,8 @@
-# AI Model Files (Heavy)
-*.pth
+# AI Model Files (Heavy) - Keep model out of git, download from Hugging Face
 *.pt
+*.pth
 *.bin
 *.safetensors
-best_phobert_model.pth
 
 # Python
 __pycache__/

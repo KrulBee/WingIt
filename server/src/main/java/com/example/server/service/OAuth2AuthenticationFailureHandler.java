@@ -3,6 +3,7 @@ package com.example.server.service;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,9 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2AuthenticationFailureHandler.class);
+    
+    @Value("${app.base-url}")
+    private String frontendUrl;
     
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -44,8 +48,7 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
         if (errorMessage.startsWith("SETUP_REQUIRED:")) {
             String setupToken = errorMessage.substring("SETUP_REQUIRED:".length());
             logger.info("Redirecting to setup page with token: {}", setupToken);
-            
-            String redirectUrl = "http://localhost:3000/auth/setup?token=" + 
+              String redirectUrl = frontendUrl + "/auth/setup?token=" + 
                                URLEncoder.encode(setupToken, StandardCharsets.UTF_8);
             logger.info("Full redirect URL: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
@@ -53,8 +56,7 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
         }
 
         // Default error handling - redirect to callback with error
-        logger.info("Redirecting to error callback with message: {}", errorMessage);
-        String redirectUrl = "http://localhost:3000/auth/callback?error=" +
+        logger.info("Redirecting to error callback with message: {}", errorMessage);        String redirectUrl = frontendUrl + "/auth/callback?error=" +
                            URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
     }

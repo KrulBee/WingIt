@@ -2,7 +2,10 @@ package com.example.server.service;
 
 import com.example.server.config.JwtService;
 import com.example.server.model.Entity.User;
+import com.example.server.service.CustomOAuth2User;
+import com.example.server.service.CustomOidcUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -19,10 +22,11 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandler.class);    @Autowired
+    private JwtService jwtService;
 
-    @Autowired
-    private JwtService jwtService;    @Override
+    @Value("${app.base-url}")
+    private String frontendUrl;@Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                       Authentication authentication) throws IOException, ServletException {
         
@@ -57,10 +61,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             // Generate JWT token
             String token = jwtService.generateToken(userDetails);
             
-            logger.info("Generated JWT token for OAuth2 user: {}", user.getUsername());
-
-            // Redirect to frontend with token
-            String redirectUrl = "http://localhost:3000/auth/callback?token=" + 
+            logger.info("Generated JWT token for OAuth2 user: {}", user.getUsername());            // Redirect to frontend with token
+            String redirectUrl = frontendUrl + "/auth/callback?token=" + 
                                URLEncoder.encode(token, StandardCharsets.UTF_8) + 
                                "&type=success";
             
@@ -68,8 +70,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             
         } catch (Exception e) {
             logger.error("Error handling OAuth2 authentication success", e);
-            
-            String errorUrl = "http://localhost:3000/auth/callback?error=" + 
+              String errorUrl = frontendUrl + "/auth/callback?error=" + 
                             URLEncoder.encode("Authentication processing failed", StandardCharsets.UTF_8);
             response.sendRedirect(errorUrl);
         }

@@ -2,7 +2,6 @@ package com.example.server.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,24 +28,19 @@ public class ProfanityDetectionService {
     
     @Value("${profanity.detection.timeout:5000}")
     private int timeoutMs;
-    
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+      private final RestTemplate restTemplate;
     
     public ProfanityDetectionService() {
         this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
     }
-    
-    /**
+      /**
      * Check if text contains profanity
      * @param text The text to check
      * @return ProfanityResult containing detection results
      */
     public ProfanityResult checkProfanity(String text) {
         if (!profanityDetectionEnabled) {
-            logger.debug("Profanity detection is disabled, returning clean result");
-            return createCleanResult(text);
+            throw new RuntimeException("Profanity detection is disabled in configuration");
         }
         
         if (text == null || text.trim().isEmpty()) {
@@ -54,10 +48,9 @@ public class ProfanityDetectionService {
         }
         
         try {
-            // Check if AI server is available first
+            // Check if AI server is available first - REQUIRED
             if (!isServerHealthy()) {
-                logger.warn("AI server is not healthy, allowing content through");
-                return createCleanResult(text);
+                throw new RuntimeException("AI server is not available - content moderation required");
             }
             
             // Prepare request
@@ -89,40 +82,32 @@ public class ProfanityDetectionService {
                     .error(apiResponse.error)
                     .build();
             } else {
-                logger.error("Received non-2xx response from profanity detection service: {}", 
-                    response.getStatusCode());
-                return createErrorResult(text, "Invalid response from AI server");
+                throw new RuntimeException("Invalid response from AI server: " + response.getStatusCode());
             }
             
         } catch (ResourceAccessException e) {
-            logger.error("Failed to connect to profanity detection service: {}", e.getMessage());
-            // Allow content through if AI service is down
-            return createCleanResult(text);
+            throw new RuntimeException("Failed to connect to AI profanity detection service: " + e.getMessage());
         } catch (Exception e) {
-            logger.error("Error during profanity detection: {}", e.getMessage(), e);
-            // Allow content through on error to avoid blocking users
-            return createCleanResult(text);
+            throw new RuntimeException("Error during profanity detection: " + e.getMessage());
         }
     }
-    
-    /**
+      /**
      * Check multiple texts for profanity in batch
      * @param texts List of texts to check
      * @return List of ProfanityResult
      */
     public List<ProfanityResult> checkProfanityBatch(List<String> texts) {
-        if (!profanityDetectionEnabled || texts == null || texts.isEmpty()) {
-            return texts.stream()
-                .map(this::createCleanResult)
-                .toList();
+        if (!profanityDetectionEnabled) {
+            throw new RuntimeException("Profanity detection is disabled in configuration");
+        }
+        
+        if (texts == null || texts.isEmpty()) {
+            return List.of();
         }
         
         try {
             if (!isServerHealthy()) {
-                logger.warn("AI server is not healthy, allowing all content through");
-                return texts.stream()
-                    .map(this::createCleanResult)
-                    .toList();
+                throw new RuntimeException("AI server is not available - content moderation required");
             }
             
             Map<String, Object> requestBody = new HashMap<>();
@@ -154,18 +139,11 @@ public class ProfanityDetectionService {
                         .build())
                     .toList();
             } else {
-                logger.error("Received non-2xx response from batch profanity detection: {}", 
-                    response.getStatusCode());
-                return texts.stream()
-                    .map(text -> createErrorResult(text, "Invalid response from AI server"))
-                    .toList();
+                throw new RuntimeException("Invalid response from AI server: " + response.getStatusCode());
             }
             
         } catch (Exception e) {
-            logger.error("Error during batch profanity detection: {}", e.getMessage(), e);
-            return texts.stream()
-                .map(this::createCleanResult)
-                .toList();
+            throw new RuntimeException("Error during batch profanity detection: " + e.getMessage());
         }
     }
     
@@ -212,25 +190,13 @@ public class ProfanityDetectionService {
         
         return null;
     }
-    
-    private ProfanityResult createCleanResult(String text) {
+      private ProfanityResult createCleanResult(String text) {
         return ProfanityResult.builder()
             .profane(false)
             .confidence(0.0)
             .originalText(text)
             .processedText(text)
             .timestamp(LocalDateTime.now())
-            .build();
-    }
-    
-    private ProfanityResult createErrorResult(String text, String error) {
-        return ProfanityResult.builder()
-            .profane(false) // Allow content through on error
-            .confidence(0.0)
-            .originalText(text)
-            .processedText(text)
-            .timestamp(LocalDateTime.now())
-            .error(error)
             .build();
     }
     

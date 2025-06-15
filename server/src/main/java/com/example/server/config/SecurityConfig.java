@@ -98,17 +98,15 @@ public class SecurityConfig {    @Autowired
                     response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication required\"}");
                     response.getWriter().flush();
                     System.out.println("=== END AUTHENTICATION FAILURE DEBUG ===");
-                })
-            )
-            // Temporarily disable OAuth2 to test JWT authentication
-            /*.oauth2Login(oauth2 -> oauth2
+                })            )
+            .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(googleOAuth2UserService)
                     .oidcUserService(googleOidcUserService)
                 )
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)
-            )*/
+            )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
