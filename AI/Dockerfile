@@ -22,18 +22,8 @@ RUN pip install --no-cache-dir -r requirements_deploy.txt
 # This prevents any downloads during runtime, making startup instant
 RUN echo "Pre-downloading PhoBERT model and tokenizer components..." && \
     mkdir -p /app/models && \
-    python3 -c "
-import os
-from transformers import AutoTokenizer, AutoModel
-import torch
-import requests
-print('Downloading PhoBERT tokenizer and base model...')
-# Download tokenizer and base model (this caches them)
-tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base')
-model = AutoModel.from_pretrained('vinai/phobert-base')
-print('PhoBERT base components cached successfully!')
-print('Downloading trained model weights...')
-" && \
+    python3 -c "import os; from transformers import AutoTokenizer, AutoModel; import torch; print('Downloading PhoBERT tokenizer and base model...'); tokenizer = AutoTokenizer.from_pretrained('vinai/phobert-base'); model = AutoModel.from_pretrained('vinai/phobert-base'); print('PhoBERT base components cached successfully!')" && \
+    echo "Downloading trained model weights..." && \
     wget -O /app/models/best_phobert_model.pth \
     "https://huggingface.co/ViBuck/best_phobert_model/resolve/main/best_phobert_model.pth" && \
     echo "All model components downloaded successfully during build." && \
