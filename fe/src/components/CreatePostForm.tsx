@@ -1,11 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import { Card, CardBody, Avatar, Button, Textarea, Select, SelectItem } from "@nextui-org/react";
-import { Image as ImageIcon, Smile, MapPin } from "react-feather";
+import { Image as ImageIcon, Smile } from "react-feather";
 import MediaUpload from "./MediaUpload";
 import ProfanityWarningModal from "./ProfanityWarningModal";
 import { PostService } from "@/services";
-import ProfanityService from "@/services/ProfanityService";
 import LocationService, { Location } from "@/services/LocationService";
 import PostTypeService, { PostType } from "@/services/PostTypeService";
 import { AuthService } from "@/services";
@@ -94,22 +93,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // Check for profanity before submitting
-      if (content.trim()) {
-        const profanityResult = await ProfanityService.checkProfanity(content);
-
-        if (profanityResult.is_profane) {
-          // Show profanity warning modal
-          setProfanityResult(profanityResult);
-          setShowProfanityWarning(true);
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
+    setIsSubmitting(true);    try {
       const postData = {
         content,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
@@ -129,15 +113,14 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       setMediaUrls([]);
       setSelectedLocationId(null);
       setShowMediaUpload(false);
-      
-    } catch (error: any) {
+        } catch (error: any) {
       console.error("Failed to create post:", error);
       
-      // Check if it's a profanity error
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      // Check if it's a profanity error from backend
+      const errorData = error?.response?.data;
       
-      if (ProfanityService.isProfanityError(errorMessage)) {
-        // Show profanity warning modal instead of alert
+      if (errorData?.isProfanityError) {
+        // Show profanity warning modal for backend-detected profanity
         setProfanityResult({
           is_profane: true,
           confidence: 0.8, // Default confidence for backend detection
@@ -146,7 +129,9 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
         });
         setShowProfanityWarning(true);
       } else {
-        alert('Không thể tạo bài viết. Vui lòng thử lại.');
+        // Show appropriate error message
+        const errorMessage = errorData?.message || error?.message || 'Không thể tạo bài viết. Vui lòng thử lại.';
+        alert(errorMessage);
       }
     } finally {
       setIsSubmitting(false);

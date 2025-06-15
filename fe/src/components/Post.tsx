@@ -15,7 +15,6 @@ import { PostReactionService, BookmarkService, ReactionTypeService, viewService,
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import ReportService from "@/services/ReportService";
-import ProfanityService from "@/services/ProfanityService";
 import MediaService from "@/services/MediaService";
 
 interface PostProps {
@@ -307,21 +306,10 @@ export default function Post({
   const handleEditPost = () => {
     setShowEditModal(true);
   };
-
   const handleEditSave = async (newContent: string) => {
     try {
       setLoading(true);
       const postId = parseInt(id);
-
-      // Check for profanity before updating
-      const profanityResult = await ProfanityService.checkProfanity(newContent);
-
-      if (profanityResult.is_profane) {
-        // Show profanity warning
-        alert(`Nội dung chứa từ ngữ không phù hợp (độ tin cậy: ${(profanityResult.confidence * 100).toFixed(1)}%). Vui lòng chỉnh sửa và thử lại.`);
-        setLoading(false);
-        return;
-      }
 
       await PostService.updatePost(postId, { content: newContent });
 
@@ -332,12 +320,15 @@ export default function Post({
 
     } catch (error: any) {
       console.error('Error updating post:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-
-      if (ProfanityService.isProfanityError(errorMessage)) {
-        alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.');
-      } else {
-        alert('Không thể cập nhật bài viết. Vui lòng thử lại.');
+      
+      // Check if it's a profanity error from backend
+      const errorData = error?.response?.data;
+      
+      if (errorData?.isProfanityError) {
+        alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.');      } else {
+        // Show appropriate error message
+        const errorMessage = errorData?.message || error?.message || 'Không thể cập nhật bài viết. Vui lòng thử lại.';
+        alert(errorMessage);
       }
     } finally {
       setLoading(false);

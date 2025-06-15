@@ -136,19 +136,6 @@ export default function CommentSection({
 
     setLoading(true);
     try {
-      // Check for profanity before submitting
-      if (newComment.trim()) {
-        const profanityResult = await ProfanityService.checkProfanity(newComment);
-
-        if (profanityResult.is_profane) {
-          // Show profanity warning modal
-          setProfanityResult(profanityResult);
-          setShowProfanityWarning(true);
-          setLoading(false);
-          return;
-        }
-      }
-
       const postIdNum = parseInt(postId);
       const commentData = {
         postId: postIdNum,
@@ -178,6 +165,24 @@ export default function CommentSection({
       
     } catch (error: any) {
       console.error('Error submitting comment:', error);
+      
+      // Check if it's a profanity error from backend
+      const errorData = error?.response?.data;
+      
+      if (errorData?.isProfanityError) {
+        // Show profanity warning modal for backend-detected profanity
+        setProfanityResult({
+          is_profane: true,
+          confidence: 0.8,
+          toxic_spans: [],
+          processed_text: newComment
+        });
+        setShowProfanityWarning(true);
+      } else {
+        // Show appropriate error message
+        const errorMessage = errorData?.message || error?.message || 'Không thể tạo bình luận. Vui lòng thử lại.';
+        alert(errorMessage);
+      }
       
       // Check if it's a profanity error
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
@@ -212,18 +217,6 @@ export default function CommentSection({
   };const handleReply = async (commentId: string, content: string) => {
     try {
       if (!currentUser) return;
-
-      // Check for profanity before submitting reply
-      if (content.trim()) {
-        const profanityResult = await ProfanityService.checkProfanity(content);
-
-        if (profanityResult.is_profane) {
-          // Show profanity warning modal for reply
-          setProfanityResult(profanityResult);
-          setShowProfanityWarning(true);
-          return;
-        }
-      }
 
       const commentIdNum = parseInt(commentId);
       const replyData = {
@@ -266,12 +259,28 @@ export default function CommentSection({
           }
           return comment;
         });
-      };
-
-      setComments(prev => addReplyToComment(prev));
+      };      setComments(prev => addReplyToComment(prev));
       onCommentsCountChange?.(commentsCount + 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting reply:', error);
+      
+      // Check if it's a profanity error from backend
+      const errorData = error?.response?.data;
+      
+      if (errorData?.isProfanityError) {
+        // Show profanity warning modal for backend-detected profanity
+        setProfanityResult({
+          is_profane: true,
+          confidence: 0.8,
+          toxic_spans: [],
+          processed_text: content
+        });
+        setShowProfanityWarning(true);
+      } else {
+        // Show appropriate error message
+        const errorMessage = errorData?.message || error?.message || 'Không thể tạo phản hồi. Vui lòng thử lại.';
+        alert(errorMessage);
+      }
     }
   };const handleLikeComment = async (commentId: string) => {
     try {
@@ -451,19 +460,9 @@ export default function CommentSection({
     setSelectedCommentContent(currentContent);
     setShowEditModal(true);
   };
-
   const handleEditSave = async (newContent: string) => {
     try {
       const commentIdNum = parseInt(selectedCommentId);
-
-      // Check for profanity before updating
-      const profanityResult = await ProfanityService.checkProfanity(newContent);
-
-      if (profanityResult.is_profane) {
-        // Show profanity warning
-        alert(`Nội dung chứa từ ngữ không phù hợp (độ tin cậy: ${(profanityResult.confidence * 100).toFixed(1)}%). Vui lòng chỉnh sửa và thử lại.`);
-        return;
-      }
 
       await CommentService.updateComment(commentIdNum, { content: newContent });
 
@@ -482,16 +481,18 @@ export default function CommentSection({
 
       setComments(prev => updateComment(prev));
 
-      alert('Bình luận đã được cập nhật thành công.');
-
-    } catch (error: any) {
+      alert('Bình luận đã được cập nhật thành công.');    } catch (error: any) {
       console.error('Error updating comment:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-
-      if (ProfanityService.isProfanityError(errorMessage)) {
+      
+      // Check if it's a profanity error from backend
+      const errorData = error?.response?.data;
+      
+      if (errorData?.isProfanityError) {
         alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.');
       } else {
-        alert('Không thể cập nhật bình luận. Vui lòng thử lại.');
+        // Show appropriate error message
+        const errorMessage = errorData?.message || error?.message || 'Không thể cập nhật bình luận. Vui lòng thử lại.';
+        alert(errorMessage);
       }
     }
   };
