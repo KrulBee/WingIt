@@ -52,7 +52,8 @@ def download_model():
         
         total_size = int(response.headers.get('content-length', 0))
         downloaded_size = 0
-          with open(target_path, 'wb') as f:
+        
+        with open(target_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
