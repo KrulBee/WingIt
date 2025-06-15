@@ -42,8 +42,8 @@ ENV MODEL_PATH=/app/models/best_phobert_model.pth
 # Expose port
 EXPOSE 5000
 
-# Health check to ensure model is ready
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check to ensure model is ready - give enough time for model loading
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # Run the application
