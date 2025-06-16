@@ -255,13 +255,20 @@ class ProfanityDetector:
                 dropout_rate=self.config.DROPOUT_RATE
             )
 
-            # Load your trained weights
-            logger.info("⚖️ Loading trained weights...")
+            # Load your trained weights with memory optimization
+            logger.info("⚖️ Loading trained weights (memory-optimized)...")
             checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
             self.model.load_state_dict(checkpoint['model_state_dict'])
 
+            # Clear checkpoint from memory immediately
+            del checkpoint
+            
             self.model.to(self.device)
             self.model.eval()
+            
+            # Force garbage collection to free memory
+            import gc
+            gc.collect()
 
             # Success!
             logger.info(f"✅ Model loaded successfully!")
@@ -476,22 +483,12 @@ if __name__ == '__main__':
     print("🚀 Starting Vietnamese Profanity Detection Server")
     print("📱 Model: Your Trained PhoBERT Model")
     print("🔧 Mode: Production")
-    print("⏳ Loading model... (this may take a minute)")
+    print("⚳ Memory-optimized for Render free tier")
     print("=" * 60)
     
-    # Load the model IMMEDIATELY at startup, not when first request comes in
-    logger.info("Initializing profanity detector at startup...")
-    detector = get_detector()
-    
-    # Wait for model to finish loading before starting the server
-    if hasattr(detector, 'load_model_thread'):
-        logger.info("Waiting for model loading to complete...")
-        detector.load_model_thread.join()  # Wait for the loading thread to finish
-    
-    if detector.is_ready():
-        logger.info("✅ Model loaded successfully! Server ready to accept requests.")
-    else:
-        logger.error(f"❌ Model failed to load: {detector.loading_error}")
-        logger.error("Server will start but may not function properly.")
+    # For Render free tier (512MB), load model on-demand to save memory
+    # This is a compromise between memory usage and response time
+    logger.info("Server starting in memory-optimized mode for Render free tier")
+    logger.info("Model will load on first request to conserve memory")
     
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
