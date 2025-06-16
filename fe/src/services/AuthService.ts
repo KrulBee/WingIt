@@ -132,11 +132,11 @@ const AuthService = {  signin: async (credentials: AuthCredentials): Promise<Log
         },
         credentials: 'include', // Add credentials for CORS
         body: JSON.stringify(credentials),
-      });if (!response.ok) {
+      });      if (!response.ok) {
         let errorData;
         try {
           errorData = await response.text();
-        } catch (parseError) {
+        } catch {
           errorData = `HTTP ${response.status}: ${response.statusText}`;
         }
         throw new Error(errorData || 'Registration failed');
@@ -145,7 +145,7 @@ const AuthService = {  signin: async (credentials: AuthCredentials): Promise<Log
       let result;
       try {
         result = await response.text();
-      } catch (parseError) {
+      } catch {
         throw new Error('Invalid response format from server');
       }
       return result;
@@ -191,12 +191,10 @@ const AuthService = {  signin: async (credentials: AuthCredentials): Promise<Log
           }
         }
         throw new Error(`Failed to get user data: ${response.status} ${response.statusText}`);
-      }
-
-      let userData: UserData;
+      }      let userData: UserData;
       try {
         userData = await response.json();
-      } catch (parseError) {
+      } catch {
         throw new Error('Invalid response format from server');
       }
       return userData;

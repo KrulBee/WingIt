@@ -52,9 +52,10 @@ interface CommentReply {
   updatedDate?: string;
 }
 
-interface CreateCommentRequest {
-  content: string;
-}
+// Removed unused interface - using inline types instead
+// interface CreateCommentRequest {
+//   content: string;
+// }
 
 interface CreateCommentData {
   postId: number;
@@ -95,15 +96,13 @@ const CommentService = {
       if (!response.ok) {
         const errorText = await response.text();
         let errorData;
-        
-        try {
+          try {
           errorData = JSON.parse(errorText);
-        } catch (parseError) {
+        } catch {
           errorData = { message: errorText || 'Failed to create comment' };
         }
-        
-        const error = new Error(errorData.message || 'Failed to create comment');
-        (error as any).response = { data: errorData };
+          const error = new Error(errorData.message || 'Failed to create comment');
+        (error as Error & { response?: { data: unknown } }).response = { data: errorData };
         throw error;
       }
 
@@ -176,15 +175,14 @@ const CommentService = {
         const errorText = await response.text();
         console.error('Reply creation failed with response:', errorText);
         
-        let errorData;
-        try {
+        let errorData;        try {
           errorData = JSON.parse(errorText);
-        } catch (parseError) {
+        } catch {
           errorData = { message: errorText || `Failed to create reply: ${response.status} ${response.statusText}` };
         }
         
         const error = new Error(errorData.message || `Failed to create reply: ${response.status} ${response.statusText}`);
-        (error as any).response = { data: errorData };
+        (error as Error & { response?: { data: unknown } }).response = { data: errorData };
         throw error;
       }
       

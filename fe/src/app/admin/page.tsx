@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardBody, CardHeader, Tabs, Tab, Spinner } from '@nextui-org/react';
+import { Card, CardBody, Tabs, Tab, Spinner } from '@nextui-org/react';
 import { 
   Users, 
   FileText, 
   AlertTriangle, 
   BarChart, 
   Shield, 
-  Settings,
   Activity,
   TrendingUp,
   MessageSquare,

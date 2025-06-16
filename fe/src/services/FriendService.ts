@@ -53,33 +53,33 @@ interface FriendRequestDTO {
   responseDate?: string; // ISO date string
 }
 
-// Backward compatibility interfaces
-interface Friend {
-  id: number;
-  username: string;
-  displayName?: string;
-  profilePicture?: string;
-  friendshipDate?: string;
-}
+// Backward compatibility interfaces (kept for potential future use)
+// interface Friend {
+//   id: number;
+//   username: string;
+//   displayName?: string;
+//   profilePicture?: string;
+//   friendshipDate?: string;
+// }
 
-interface FriendRequest {
-  id: number;
-  sender: {
-    id: number;
-    username: string;
-    displayName?: string;
-    profilePicture?: string;
-  };
-  receiver: {
-    id: number;
-    username: string;
-    displayName?: string;
-    profilePicture?: string;
-  };
-  status: string;
-  requestDate: string;
-  responseDate?: string;
-}
+// interface FriendRequest {
+//   id: number;
+//   sender: {
+//     id: number;
+//     username: string;
+//     displayName?: string;
+//     profilePicture?: string;
+//   };
+//   receiver: {
+//     id: number;
+//     username: string;
+//     displayName?: string;
+//     profilePicture?: string;
+//   };
+//   status: string;
+//   requestDate: string;
+//   responseDate?: string;
+// }
 
 const FriendService = {
   // Get current user's friends
@@ -90,12 +90,11 @@ const FriendService = {
         headers: createAuthHeaders(),
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Failed to fetch friends';
+      if (!response.ok) {        let errorMessage = 'Failed to fetch friends';
         try {
           const errorText = await response.text();
           errorMessage = errorText || errorMessage;
-        } catch (e) {
+        } catch {
           // Ignore parsing errors
         }
         throw new Error(`${response.status}: ${errorMessage}`);
@@ -297,11 +296,10 @@ const FriendService = {
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to remove friend';
-        try {
+        let errorMessage = 'Failed to remove friend';        try {
           const errorText = await response.text();
           errorMessage = errorText || errorMessage;
-        } catch (e) {
+        } catch {
           // Ignore parsing errors
         }
         throw new Error(`${response.status}: ${errorMessage}`);

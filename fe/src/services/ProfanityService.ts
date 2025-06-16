@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Removed unused API_BASE_URL since profanity checking is done on backend
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Interface for profanity detection results
 export interface ProfanityResult {
@@ -35,4 +36,5 @@ class ProfanityService {  /**
   }
 }
 
-export default new ProfanityService();
+const profanityService = new ProfanityService();
+export default profanityService;

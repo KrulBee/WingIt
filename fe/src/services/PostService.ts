@@ -163,15 +163,14 @@ const PostService = {
 
       if (!response.ok) {
         const errorText = await response.text();
-        
-        // Try to parse as JSON first for structured error responses
+          // Try to parse as JSON first for structured error responses
         try {
           const errorData = JSON.parse(errorText);
           const error = new Error(errorData.message || errorText);
-          (error as any).data = errorData;
-          (error as any).response = { data: errorData };
+          (error as Error & { data?: unknown; response?: { data: unknown } }).data = errorData;
+          (error as Error & { data?: unknown; response?: { data: unknown } }).response = { data: errorData };
           throw error;
-        } catch (parseError) {
+        } catch {
           // If not JSON, throw as plain text
           throw new Error(errorText || 'Failed to create post');
         }

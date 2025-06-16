@@ -115,10 +115,9 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       setSelectedLocationId(null);
       setShowMediaUpload(false);    } catch (error: any) {
       console.error("Failed to create post:", error);
-      
-      // Try to parse the error message if it's a JSON string
+        // Try to parse the error message if it's a JSON string
       let errorData: any = null;
-      let errorMessage = error?.message || '';
+      const errorMessage = error?.message || '';
       
       // Check if error message is a JSON string (from backend)
       try {
