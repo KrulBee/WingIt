@@ -1,0 +1,27 @@
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+.DS_Store
+.vscode/
+*.ipynb_checkpoints/
+venv/
+# Ignore the local model file since we download it during build
+best_phobert_model.pth

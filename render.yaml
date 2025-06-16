@@ -24,13 +24,13 @@ services:
     
   # Backend Service (Spring Boot) - Deploy this manually after Blueprint
   # Java is not supported in Render Blueprints, deploy separately
-  # AI Server Service (Python Flask)
+  # AI Server Service (Python Flask) - Optimized Version
   - type: web
     name: wingit-ai
     env: python
     rootDir: AI
     buildCommand: pip install -r requirements_deploy.txt
-    startCommand: python real_ai_server.py
+    startCommand: python fast_ai_server.py
     envVars:
       - key: MODEL_PATH
         value: /app/models/best_phobert_model.pth

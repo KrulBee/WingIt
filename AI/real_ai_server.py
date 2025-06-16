@@ -30,11 +30,11 @@ class Config:
     NUM_LABELS = len(LABELS)
     CONFIDENCE_THRESHOLD = 0.7
     
-    # Model path priority for Render deployment:
+    # Model path priority for deployment:
     # 1. Environment variable (set in Dockerfile)
     # 2. Pre-baked model path (Docker build time)
-    # 3. Local fallback for development
-    MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/best_phobert_model.pth")
+    # 3. Local fallback for development (current directory)
+    MODEL_PATH = os.getenv("MODEL_PATH", "./best_phobert_model.pth")
     
     DROPOUT_RATE = 0.3
     # Hugging Face model URL (only for local development)

@@ -1,0 +1,10 @@
+services:
+  ai-service:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - MODEL_PATH=/app/best_phobert_model.pth

@@ -1,497 +1,379 @@
 # WingIt Social Media Platform - Use Cases Documentation
 
-## 📋 Tổng Quan (Overview)
-
-Tài liệu này mô tả tất cả các use case chính cho nền tảng mạng xã hội WingIt, bao gồm các chức năng quản lý người dùng, tương tác xã hội, nhắn tin thời gian thực, và quản trị hệ thống.
-
-## 🎯 Danh Sách Use Cases Chính
-
-### 1. 👤 **Quản Lý Người Dùng (User Management)**
-
-#### UC001: Đăng Ký Tài Khoản
-- **Mô tả**: Người dùng tạo tài khoản mới trên hệ thống
-- **Actor**: Người dùng chưa đăng ký
-- **Luồng chính**:
-  1. Người dùng nhập thông tin đăng ký (username, email, password)
-  2. Hệ thống xác thực thông tin
-  3. Gửi email xác nhận
-  4. Tạo tài khoản thành công
-- **Điều kiện tiên quyết**: Không có
-- **Kết quả**: Tài khoản được tạo và kích hoạt
-
-#### UC002: Đăng Nhập Hệ Thống
-- **Mô tả**: Người dùng đăng nhập vào hệ thống
-- **Actor**: Người dùng đã đăng ký
-- **Luồng chính**:
-  1. Nhập thông tin đăng nhập (username/email + password)
-  2. Xác thực thông tin
-  3. Tạo session/JWT token
-  4. Chuyển hướng đến trang chủ
-- **Luồng phụ**: Đăng nhập bằng OAuth2 (Google, Facebook)
-
-#### UC003: Quản Lý Hồ Sơ Cá Nhân
-- **Mô tả**: Người dùng chỉnh sửa thông tin cá nhân
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Truy cập trang profile
-  2. Chỉnh sửa thông tin (tên hiển thị, bio, ngày sinh)
-  3. Upload ảnh đại diện/ảnh bìa
-  4. Lưu thay đổi
-- **Tính năng bổ sung**: Crop ảnh, preview thay đổi
-
-#### UC004: Đổi Mật Khẩu
-- **Mô tả**: Người dùng thay đổi mật khẩu
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Nhập mật khẩu cũ
-  2. Nhập mật khẩu mới và xác nhận
-  3. Xác thực mật khẩu cũ
-  4. Cập nhật mật khẩu mới
-
-#### UC005: Quản Lý Cài Đặt Riêng Tư
-- **Mô tả**: Người dùng điều chỉnh các cài đặt về quyền riêng tư
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Truy cập trang settings
-  2. Điều chỉnh mức độ riêng tư (public/private/friends only)
-  3. Cài đặt hiển thị trạng thái online
-  4. Cho phép/không cho phép tìm kiếm từ search engines
-
-### 2. 📝 **Quản Lý Bài Viết (Post Management)**
-
-#### UC006: Tạo Bài Viết
-- **Mô tả**: Người dùng tạo bài viết mới
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Mở form tạo bài viết
-  2. Nhập nội dung text
-  3. Upload hình ảnh (tùy chọn)
-  4. Chọn vị trí (tùy chọn)
-  5. Đăng bài viết
-- **Tính năng bổ sung**: Preview, AI content moderation
-
-#### UC007: Xem Bài Viết
-- **Mô tả**: Người dùng xem chi tiết bài viết
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click vào bài viết từ feed/profile
-  2. Mở modal chi tiết bài viết
-  3. Tracking view analytics
-  4. Hiển thị thông tin đầy đủ (author, content, media, stats)
-
-#### UC008: Tương Tác Với Bài Viết
-- **Mô tả**: Người dùng like/dislike bài viết
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click nút like/dislike
-  2. Cập nhật reaction trong database
-  3. Cập nhật UI real-time
-  4. Gửi notification cho tác giả (nếu like)
-
-#### UC009: Lưu Bài Viết (Bookmark)
-- **Mô tả**: Người dùng lưu bài viết để xem lại sau
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click nút bookmark trên bài viết
-  2. Thêm/xóa bookmark trong database
-  3. Cập nhật trạng thái UI
-
-#### UC010: Báo Cáo Bài Viết
-- **Mô tả**: Người dùng báo cáo nội dung không phù hợp
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click nút "Báo cáo"
-  2. Chọn lý do báo cáo
-  3. Nhập mô tả chi tiết (tùy chọn)
-  4. Gửi báo cáo cho admin
-
-### 3. 💬 **Hệ Thống Bình Luận (Comment System)**
-
-#### UC011: Viết Bình Luận
-- **Mô tả**: Người dùng bình luận trên bài viết
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Nhập nội dung bình luận
-  2. Click "Gửi"
-  3. Lưu comment vào database
-  4. Cập nhật UI real-time
-  5. Gửi notification cho tác giả bài viết
-
-#### UC012: Trả Lời Bình Luận
-- **Mô tả**: Người dùng trả lời bình luận của người khác
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click "Trả lời" trên comment
-  2. Nhập nội dung reply
-  3. Gửi reply
-  4. Hiển thị nested reply structure
-
-#### UC013: Like/Dislike Bình Luận
-- **Mô tả**: Người dùng reaction với bình luận
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click nút like/dislike trên comment
-  2. Cập nhật reaction count
-  3. Thay đổi trạng thái UI
-
-### 4. 👥 **Hệ Thống Bạn Bè (Friend System)**
-
-#### UC014: Gửi Lời Mời Kết Bạn
-- **Mô tả**: Người dùng gửi lời mời kết bạn
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Tìm kiếm user hoặc vào profile
-  2. Click "Thêm bạn bè"
-  3. Gửi friend request
-  4. Gửi notification cho người nhận
-
-#### UC015: Chấp Nhận/Từ Chối Lời Mời
-- **Mô tả**: Người dùng xử lý lời mời kết bạn
-- **Actor**: Người dùng nhận lời mời
-- **Luồng chính**:
-  1. Xem notification/friend request
-  2. Click "Chấp nhận" hoặc "Từ chối"
-  3. Cập nhật trạng thái relationship
-  4. Gửi notification phản hồi
-
-#### UC016: Quản Lý Danh Sách Bạn Bè
-- **Mô tả**: Người dùng xem và quản lý danh sách bạn bè
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Truy cập trang Friends
-  2. Xem danh sách bạn bè hiện tại
-  3. Xem lời mời đã gửi/nhận
-  4. Hủy kết bạn (nếu cần)
-
-#### UC017: Theo Dõi Người Dùng (Follow)
-- **Mô tả**: Người dùng theo dõi user khác (không cần chấp nhận)
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Vào profile người khác
-  2. Click "Theo dõi"
-  3. Thêm vào danh sách following
-  4. Nhận bài viết của người được follow trong feed
-
-### 5. 💬 **Hệ Thống Nhắn Tin (Messaging System)**
-
-#### UC018: Bắt Đầu Cuộc Trò Chuyện
-- **Mô tả**: Người dùng tạo chat room mới
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Click nút "+" trong Messages
-  2. Chọn bạn bè để chat
-  3. Chọn loại chat (direct/group)
-  4. Tạo chat room
-  5. Bắt đầu nhắn tin
-
-#### UC019: Gửi Tin Nhắn
-- **Mô tả**: Người dùng gửi tin nhắn trong chat
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Nhập nội dung tin nhắn
-  2. Click "Gửi" hoặc Enter
-  3. Gửi tin nhắn qua WebSocket
-  4. Cập nhật UI real-time
-  5. Gửi notification cho người nhận
-
-#### UC020: Nhận Tin Nhắn Real-time
-- **Mô tả**: Người dùng nhận tin nhắn ngay lập tức
-- **Actor**: Người dùng trong chat room
-- **Luồng chính**:
-  1. Nhận tin nhắn qua WebSocket
-  2. Cập nhật UI chat interface
-  3. Hiển thị notification (nếu không focus)
-  4. Phát âm thanh thông báo
-
-#### UC021: Hiển Thị Trạng Thái Typing
-- **Mô tả**: Hiển thị khi ai đó đang gõ tin nhắn
-- **Actor**: Người dùng trong chat room
-- **Luồng chính**:
-  1. Detect typing trong input field
-  2. Broadcast typing status qua WebSocket
-  3. Hiển thị "đang nhập..." cho other users
-  4. Ẩn indicator khi ngừng gõ
-
-#### UC022: Quản Lý Chat Room
-- **Mô tả**: Admin quản lý thành viên và cài đặt chat
-- **Actor**: Admin/Moderator của chat room
-- **Luồng chính**:
-  1. Mở chat management modal
-  2. Thêm/xóa thành viên
-  3. Thay đổi quyền thành viên (Admin/Moderator/Member)
-  4. Đổi tên chat room
-  5. Mute/unmute thành viên
-
-### 6. 🔔 **Hệ Thống Thông Báo (Notification System)**
-
-#### UC023: Nhận Thông Báo Real-time
-- **Mô tả**: Người dùng nhận các thông báo ngay lập tức
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Có hoạt động liên quan đến user (like, comment, friend request)
-  2. Hệ thống tạo notification
-  3. Gửi qua WebSocket real-time
-  4. Hiển thị trong notification page
-  5. Cập nhật notification counter
-
-#### UC024: Quản Lý Thông Báo
-- **Mô tả**: Người dùng xem và quản lý thông báo
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Truy cập trang Notifications
-  2. Xem danh sách thông báo
-  3. Đánh dấu đã đọc
-  4. Xóa thông báo không cần thiết
-
-### 7. 🔍 **Hệ Thống Tìm Kiếm (Search System)**
-
-#### UC025: Tìm Kiếm Người Dùng
-- **Mô tả**: Người dùng tìm kiếm user khác
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Nhập từ khóa trong search box
-  2. Hệ thống tìm theo username, display name
-  3. Hiển thị kết quả search
-  4. Click để vào profile
-
-#### UC026: Tìm Kiếm Bài Viết
-- **Mô tả**: Người dùng tìm kiếm nội dung bài viết
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Nhập từ khóa tìm kiếm
-  2. Search trong content của posts
-  3. Hiển thị relevant posts
-  4. Click để xem chi tiết
-
-### 8. 📊 **Analytics và Báo Cáo (Analytics & Reporting)**
-
-#### UC027: Xem Thống Kê Bài Viết
-- **Mô tả**: Người dùng xem analytics bài viết của mình
-- **Actor**: Tác giả bài viết
-- **Luồng chính**:
-  1. Vào profile cá nhân
-  2. Xem post analytics
-  3. Hiển thị view count, engagement rate
-  4. Phân tích view source (feed, modal, profile, etc.)
-
-#### UC028: Tracking Post Views
-- **Mô tả**: Hệ thống track lượt xem bài viết
-- **Actor**: Hệ thống
-- **Luồng chính**:
-  1. User click vào bài viết
-  2. Track view với metadata (source, duration, user info)
-  3. Lưu vào PostView entity
-  4. Cập nhật analytics
-
-### 9. 🛡️ **Kiểm Duyệt Nội Dung (Content Moderation)**
-
-#### UC029: AI Content Moderation
-- **Mô tả**: Hệ thống AI kiểm tra nội dung độc hại
-- **Actor**: Hệ thống AI
-- **Luồng chính**:
-  1. User submit bài viết/comment
-  2. Gửi content đến AI moderation service
-  3. AI phân tích và trả về kết quả (allow/flag/review/block)
-  4. Xử lý theo kết quả moderation
-
-#### UC030: Xử Lý Báo Cáo
-- **Mô tả**: Admin xử lý các báo cáo từ user
-- **Actor**: Administrator
-- **Luồng chính**:
-  1. Xem danh sách reports
-  2. Review nội dung được báo cáo
-  3. Quyết định hành động (approve/remove/warn/ban)
-  4. Gửi notification cho user liên quan
-
-### 10. 🔐 **Bảo Mật và Quyền Truy Cập (Security & Access Control)**
-
-#### UC031: Quản Lý Session
-- **Mô tả**: Hệ thống quản lý phiên đăng nhập
-- **Actor**: Hệ thống
-- **Luồng chính**:
-  1. Tạo JWT token khi login
-  2. Validate token cho mỗi request
-  3. Refresh token khi cần
-  4. Logout và invalidate token
-
-#### UC032: Block/Unblock User
-- **Mô tả**: Người dùng chặn user khác
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Vào profile người cần block
-  2. Click "Block user"
-  3. Xác nhận block
-  4. Ẩn all content từ user đó
-  5. Ngăn interaction giữa 2 users
-
-### 11. 🔄 **Tính Năng Real-time (Real-time Features)**
-
-#### UC033: Online Status Tracking
-- **Mô tả**: Hiển thị trạng thái online của users
-- **Actor**: Tất cả users đã đăng nhập
-- **Luồng chính**:
-  1. User login → broadcast online status
-  2. Update presence khi user active
-  3. Hiển thị green dot cho online users
-  4. Broadcast offline khi user logout/inactive
-
-#### UC034: Real-time Feed Updates
-- **Mô tả**: Feed cập nhật real-time khi có bài viết mới
-- **Actor**: Người dùng đang xem feed
-- **Luồng chính**:
-  1. User khác tạo bài viết mới
-  2. Broadcast post update qua WebSocket
-  3. Cập nhật feed ngay lập tức
-  4. Hiển thị "Cập nhật trực tuyến" indicator
-
-### 12. 👨‍💼 **Quản Trị Hệ Thống (System Administration)**
-
-#### UC035: Quản Lý Người Dùng
-- **Mô tả**: Admin quản lý accounts và permissions
-- **Actor**: System Administrator
-- **Luồng chính**:
-  1. Xem danh sách all users
-  2. View user details và activity
-  3. Ban/unban users
-  4. Reset passwords
-  5. Assign roles (Admin/Moderator/User)
-
-#### UC036: Thống Kê Hệ Thống
-- **Mô tả**: Admin xem analytics tổng quan
-- **Actor**: System Administrator
-- **Luồng chính**:
-  1. Truy cập admin dashboard
-  2. Xem user growth statistics
-  3. Monitor system performance
-  4. View content moderation reports
-  5. Analyze engagement metrics
-
-#### UC037: Quản Lý Nội Dung
-- **Mô tả**: Admin moderate và quản lý content
-- **Actor**: Administrator/Moderator
-- **Luồng chính**:
-  1. Review flagged content
-  2. Remove inappropriate posts/comments
-  3. Issue warnings to users
-  4. Monitor AI moderation results
-  5. Handle user appeals
-
-### 13. 📱 **Tương Thích Mobile (Mobile Compatibility)**
-
-#### UC038: Responsive Interface
-- **Mô tả**: Giao diện tự động thích ứng với mobile devices
-- **Actor**: Mobile users
-- **Luồng chính**:
-  1. Truy cập từ mobile browser
-  2. UI tự động adapt cho mobile screen
-  3. Touch-friendly interactions
-  4. Optimized performance cho mobile
-
-#### UC039: Mobile Notifications
-- **Mô tả**: Push notifications cho mobile browsers
-- **Actor**: Mobile users
-- **Luồng chính**:
-  1. Request notification permission
-  2. Register for push notifications
-  3. Receive notifications khi app không active
-  4. Click notification để mở app
-
-### 14. 🔧 **Cài Đặt và Tùy Chỉnh (Settings & Customization)**
-
-#### UC040: Theme Customization
-- **Mô tả**: Người dùng tùy chỉnh giao diện
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**:
-  1. Truy cập Settings
-  2. Chọn theme (Light/Dark/Auto)
-  3. Tùy chỉnh màu sắc
-  4. Lưu preferences
-
-#### UC041: Language Settings
-- **Mô tả**: Đổi ngôn ngữ interface
-- **Actor**: Người dùng
-- **Luồng chính**:
-  1. Vào Language settings
-  2. Chọn ngôn ngữ (Vietnamese/English)
-  3. Apply changes
-  4. Reload interface với ngôn ngữ mới
-
-### 15. 🔗 **Tích Hợp Bên Ngoài (External Integrations)**
-
-#### UC042: OAuth2 Login
-- **Mô tả**: Đăng nhập bằng social accounts
-- **Actor**: Người dùng
-- **Luồng chính**:
-  1. Click "Login with Google/Facebook"
-  2. Redirect đến OAuth provider
-  3. User authorize application
-  4. Nhận user info và tạo account
-  5. Login successful
-
-#### UC043: Media Upload to Cloud
-- **Mô tả**: Upload hình ảnh lên cloud storage (Cloudinary)
-- **Actor**: Người dùng upload media
-- **Luồng chính**:
-  1. User chọn file để upload
-  2. Validate file type và size
-  3. Upload to Cloudinary
-  4. Nhận URL và lưu vào database
-  5. Hiển thị media trong UI
-
-## 🎯 Các Use Case Nâng Cao (Advanced Use Cases)
-
-### UC044: Live Streaming (Future)
-- **Mô tả**: Người dùng live stream video
-- **Actor**: Content creator
-- **Luồng chính**: Tạo live stream → Broadcast → Viewer interaction
-
-### UC045: Story/Status Updates (Future)
-- **Mô tả**: Chia sẻ story 24h như Instagram
-- **Actor**: Người dùng đã đăng nhập
-- **Luồng chính**: Upload story → Hiển thị 24h → Auto delete
-
-### UC046: E-commerce Integration (Future)
-- **Mô tả**: Bán hàng qua social platform
-- **Actor**: Business users
-- **Luồng chính**: Tạo shop → List products → Process orders
-
-### UC047: Event Management (Future)
-- **Mô tả**: Tạo và quản lý sự kiện
-- **Actor**: Event organizers
-- **Luồng chính**: Tạo event → Invite users → RSVP management
-
-### UC048: Hashtag System (Future)
-- **Mô tả**: Tag và categorize content
-- **Actor**: Người dùng tạo content
-- **Luồng chính**: Add hashtags → Trending topics → Discover content
-
-### UC049: Content Scheduling (Future)
-- **Mô tả**: Lên lịch đăng bài
-- **Actor**: Content creators
-- **Luồng chính**: Tạo post → Schedule time → Auto publish
-
-### UC050: Advanced Analytics (Future)
-- **Mô tả**: Deep analytics cho business accounts
-- **Actor**: Business users
-- **Luồng chính**: View insights → Export reports → Optimize content
-
-## 📊 Ma Trận Use Case theo Độ Ưu Tiên
-
-| Độ Ưu Tiên | Use Cases | Trạng Thái |
-|-------------|-----------|------------|
-| **Cao** | UC001-UC025 | ✅ Đã triển khai |
-| **Trung Bình** | UC026-UC035 | 🔄 Đang phát triển |
-| **Thấp** | UC036-UC043 | 📋 Kế hoạch |
-| **Tương Lai** | UC044-UC050 | 🔮 Roadmap |
-
-## 🔗 Liên Kết Tài Liệu
-
-- [Sequence Diagrams](./SEQUENCE_DIAGRAM_PROMPT.md)
-- [Activity Diagrams](./SEQUENCE_DIAGRAM_PROMPT.md)
-- [WebSocket Integration](./fe/WEBSOCKET_INTEGRATION_SUMMARY.md)
-- [Messaging System](./fe/MESSAGING_SYSTEM_SUMMARY.md)
-- [AI Moderation](./AI/README.md)
+## 📋 Các Chức Năng Theo Diagram Thực Tế
+
+**Người dùng:**
+•	Đăng nhập (bao gồm đăng nhập Google OAuth2)
+•	Đăng ký tài khoản
+•	Chỉnh sửa thông tin cá nhân
+•	Đăng bài viết
+•	Xem thống kê bài viết
+•	Kết bạn với người dùng khác
+•	Lưu bài viết (bookmark)
+•	Báo cáo bình luận và bài đăng vi phạm
+•	Thả cảm xúc (like/dislike) bài viết và bình luận
+•	Nhận thông báo real-time
+•	Theo dõi người dùng (follow/unfollow)
+•	Xem feed và chi tiết bài viết
+•	Chặn người dùng không mong muốn
+•	Nhắn tin thời gian thực
+
+**Quản trị viên:**
+•	Tất cả chức năng của người dùng
+•	Xem, sửa, xóa nhóm chat
+•	Xem, sửa, xóa người dùng
+•	Xem thống kê hệ thống
+•	Xem, sửa, xóa bài đăng
+•	Xử lý các báo cáo vi phạm
+
+## 📋 Bảng Use Cases (Theo Hệ Thống Thực Tế)
+
+| STT | Tên Use Case | Actor | Mô tả |
+|-----|--------------|-------|-------|
+| **AUTHENTICATION & USER MANAGEMENT** | | | |
+| 1 | Đăng nhập | User, Administrator | Cho phép người dùng đăng nhập vào hệ thống bằng email/username và mật khẩu |
+| 2 | Đăng nhập Google OAuth2 | User, Administrator | Cho phép đăng nhập thông qua tài khoản Google (extend của Đăng nhập) |
+| 3 | Đăng ký | User | Cho phép tạo tài khoản mới trong hệ thống |
+| 4 | Quên mật khẩu | User | Cho phép người dùng reset mật khẩu qua email |
+| 5 | Chỉnh sửa thông tin cá nhân | User, Administrator | Cho phép chỉnh sửa profile và thông tin cá nhân |
+| 6 | Đăng xuất | User, Administrator | Cho phép người dùng đăng xuất khỏi hệ thống |
+| **POST & CONTENT MANAGEMENT** | | | |
+| 7 | Đăng bài viết | User, Administrator | Cho phép tạo bài viết mới (có AI moderation) |
+| 8 | Chỉnh sửa bài viết | User, Administrator | Cho phép chỉnh sửa bài viết của chính mình |
+| 9 | Xóa bài viết | User, Administrator | Cho phép xóa bài viết của chính mình |
+| 10 | Xem bài viết | User, Administrator | Hiển thị danh sách và chi tiết bài viết |
+| 11 | Xem bài viết theo người dùng | User, Administrator | Xem tất cả bài viết của một người dùng cụ thể |
+| 12 | Xem bài viết theo vị trí | User, Administrator | Lọc bài viết theo địa điểm/vị trí |
+| 13 | Upload media | User, Administrator | Tải lên hình ảnh/video cho bài viết |
+| **COMMENT SYSTEM** | | | |
+| 14 | Đăng bình luận | User, Administrator | Cho phép bình luận trên bài viết (có AI moderation) |
+| 15 | Xem bình luận | User, Administrator | Hiển thị bình luận của bài viết |
+| 16 | Chỉnh sửa bình luận | User, Administrator | Cho phép chỉnh sửa bình luận của chính mình |
+| 17 | Xóa bình luận | User, Administrator | Cho phép xóa bình luận của chính mình |
+| **REACTION SYSTEM** | | | |
+| 18 | Thả cảm xúc bài viết | User, Administrator | Cho phép like/dislike bài viết |
+| 19 | Thả cảm xúc bình luận | User, Administrator | Cho phép like/dislike bình luận |
+| **SOCIAL FEATURES** | | | |
+| 20 | Theo dõi người dùng | User, Administrator | Cho phép follow/unfollow người dùng khác |
+| 21 | Chặn người dùng | User, Administrator | Cho phép chặn người dùng không mong muốn |
+| 22 | Lưu bài viết | User, Administrator | Cho phép bookmark bài viết để xem lại sau |
+| **COMMUNICATION** | | | |
+| 23 | Nhắn tin thời gian thực | User, Administrator | Cho phép chat real-time với người dùng khác |
+| 24 | Quản lý phòng chat | User, Administrator | Tạo và quản lý các phòng chat |
+| 25 | Nhận thông báo real-time | User, Administrator | Hiển thị thông báo tức thời qua WebSocket |
+| **SAFETY & REPORTS** | | | |
+| 26 | Báo cáo nội dung | User, Administrator | Cho phép báo cáo bài viết/bình luận vi phạm |
+| 27 | Xử lý báo cáo | Administrator | Cho phép admin xem và xử lý các báo cáo |
+| **ADMIN FEATURES** | | | |
+| 28 | Quản lý người dùng | Administrator | Cho phép admin xem, sửa, xóa tài khoản người dùng |
+| 29 | Quản lý bài đăng | Administrator | Cho phép admin xem, sửa, xóa bài viết |
+| 30 | Xem thống kê hệ thống | Administrator | Hiển thị dashboard và thống kê tổng quan |
+| 31 | Kiểm duyệt nội dung với AI | Administrator | Hệ thống AI tự động kiểm duyệt nội dung độc hại |
+
+## 📝 Phân Quyền Chức Năng Theo Vai Trò
+
+| Vai Trò | Chức Năng |
+|---------|-----------|
+| **Người dùng** | - Đăng nhập, đăng ký, xác nhận email, cập nhật thông tin người dùng<br>- Tìm kiếm bài đăng theo nội dung, tác giả, vị trí<br>- Xem chi tiết bài đăng, hình ảnh, video, thông tin vị trí<br>- Tạo, chỉnh sửa, xóa bài đăng (với kiểm duyệt AI)<br>- Bình luận, trả lời bình luận lồng nhau<br>- Thích (like/dislike) bài đăng và bình luận<br>- Lưu bài đăng vào danh sách bookmark<br>- Gửi/chấp nhận yêu cầu kết bạn, theo dõi người dùng<br>- Chặn người dùng để kiểm soát quyền riêng tư<br>- Trò chuyện thời gian thực (riêng hoặc nhóm) qua WebSocket<br>- Nhận thông báo real-time về tương tác và tin nhắn<br>- Báo cáo nội dung vi phạm<br>- Tùy chỉnh cài đặt cá nhân và giao diện<br>- Tải lên và quản lý media (ảnh, video) |
+| **Quản trị viên** | - Quản lý người dùng (tạo, xóa, chỉnh sửa, khóa tài khoản)<br>- Quản lý bài đăng (xóa, chỉnh sửa nội dung vi phạm)<br>- Xem và xử lý báo cáo từ người dùng<br>- Xem thống kê hệ thống và hoạt động người dùng<br>- Kiểm duyệt nội dung với hỗ trợ AI<br>- Quản lý chat room và tin nhắn<br>- Có tất cả quyền của người dùng thông thường |
+
+## 📝 Vai Trò Actors
+
+- **User (Người dùng)**: Người dùng thông thường (bao gồm guest cần đăng nhập để sử dụng)
+- **Administrator (Quản trị viên)**: Quản trị viên hệ thống
+
+## 🎯 Sơ Đồ Use Case Theo Actor
+
+```
+                    HỆ THỐNG WINGIT SOCIAL MEDIA
+                              
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                           NGƯỜI DÙNG                                       │
+│                                                                             │
+│  • Đăng ký tài khoản           • Tìm kiếm bài đăng                         │
+│  • Đăng nhập                   • Tìm kiếm người dùng                       │
+│  • Quên mật khẩu               • Lọc bài đăng theo địa điểm                │
+│  • Chỉnh sửa thông tin         • Lọc bài đăng theo tiêu chí                │
+│  • Đăng bài viết               • Kết bạn                                   │
+│  • Đăng bình luận              • Nhắn tin thời gian thực                   │
+│  • Thả cảm xúc bài viết        • Chặn người dùng                           │
+│  • Thả cảm xúc bình luận       • Báo cáo tin nhắn                          │
+│  • Xem feed bài viết           • Báo cáo bài đăng                          │
+│  • Lưu bài viết                • Theo dõi người dùng                       │
+│  • Nhận thông báo              • Quản lý media                             │
+│  • Xem thống kê bài viết       • Cài đặt cá nhân                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│                          QUẢN TRỊ VIÊN                                     │
+│                                                                             │
+│  • TẤT CẢ CHỨC NĂNG CỦA NGƯỜI DÙNG                                         │
+│  +                                                                          │
+│  • Quản lý người dùng           • Xử lý báo cáo                            │
+│  • Quản lý bài đăng             • Kiểm duyệt nội dung                      │
+│  • Xem thống kê hệ thống        • Quản lý chat room                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                               KẾ THỪA
+                    Quản trị viên ←--extends--← Người dùng
+```
+
+### 📊 Phân Tích Actor:
+
+**👤 NGƯỜI DÙNG (User)**
+- **Vai trò chính**: Sử dụng các tính năng mạng xã hội cơ bản
+- **Số lượng use case**: 24 use case
+- **Nhóm chức năng chính**:
+  - Quản lý tài khoản (4 use case)
+  - Tương tác nội dung (8 use case) 
+  - Tìm kiếm & lọc (4 use case)
+  - Mạng xã hội (4 use case)
+  - Cài đặt & tiện ích (4 use case)
+
+**👨‍💼 QUẢN TRỊ VIÊN (Administrator)**
+- **Vai trò chính**: Quản lý và kiểm soát hệ thống
+- **Số lượng use case**: 28 use case (24 của User + 4 riêng)
+- **Chức năng bổ sung**:
+  - Quản lý người dùng
+  - Xử lý báo cáo
+  - Kiểm duyệt nội dung
+  - Thống kê hệ thống
+
+### 🔗 Mối Quan Hệ:
+- **Kế thừa (Inheritance)**: Quản trị viên kế thừa tất cả chức năng của Người dùng
+- **Mở rộng (Extension)**: Quản trị viên có thêm quyền quản lý hệ thống
+
+## 🔄 Mermaid Use Case Diagram
+
+```mermaid
+graph TB
+    %% Actors
+    User[👤 Người dùng<br/>User]
+    Admin[👨‍💼 Quản trị viên<br/>Administrator]
+    
+    %% System boundary
+    subgraph System["🏠 Hệ Thống WingIt Social Media"]
+        %% Authentication & Account Management
+        UC01[UC01: Đăng nhập]
+        UC02[UC02: Đăng ký tài khoản]
+        UC03[UC03: Quên mật khẩu]
+        UC04[UC04: Chỉnh sửa thông tin tài khoản]
+        
+        %% Content Creation & Interaction
+        UC05[UC05: Đăng bài]
+        UC06[UC06: Đăng bình luận]
+        UC07[UC07: Thả cảm xúc bài viết]
+        UC08[UC08: Thả cảm xúc bình luận]
+        
+        %% Search & Filter
+        UC09[UC09: Tìm kiếm bài đăng]
+        UC10[UC10: Tìm kiếm người dùng]
+        UC11[UC11: Lọc bài đăng theo địa điểm]
+        UC12[UC12: Lọc bài đăng theo tiêu chí]
+        
+        %% Social Features
+        UC13[UC13: Kết bạn]
+        UC14[UC14: Nhắn tin thời gian thực]
+        UC15[UC15: Chặn người dùng]
+        UC20[UC20: Theo dõi người dùng]
+        
+        %% Reports & Safety
+        UC16[UC16: Báo cáo tin nhắn]
+        UC17[UC17: Báo cáo bài đăng]
+        
+        %% General Features
+        UC18[UC18: Xem feed bài viết]
+        UC19[UC19: Lưu bài viết]
+        UC21[UC21: Nhận thông báo]
+        UC22[UC22: Xem thống kê bài viết]
+        UC23[UC23: Quản lý media]
+        UC24[UC24: Cài đặt cá nhân]
+        
+        %% Admin Only Features
+        UC25[UC25: Quản lý người dùng]
+        UC26[UC26: Xử lý báo cáo]
+        UC27[UC27: Kiểm duyệt nội dung]
+        UC28[UC28: Xem thống kê hệ thống]
+    end
+    
+    %% User connections
+    User --> UC01
+    User --> UC02
+    User --> UC03
+    User --> UC04
+    User --> UC05
+    User --> UC06
+    User --> UC07
+    User --> UC08
+    User --> UC09
+    User --> UC10
+    User --> UC11
+    User --> UC12
+    User --> UC13
+    User --> UC14
+    User --> UC15
+    User --> UC16
+    User --> UC17
+    User --> UC18
+    User --> UC19
+    User --> UC20
+    User --> UC21
+    User --> UC22
+    User --> UC23
+    User --> UC24
+    
+    %% Admin connections (inherits all user + admin specific)
+    Admin --> UC01
+    Admin --> UC02
+    Admin --> UC03
+    Admin --> UC04
+    Admin --> UC05
+    Admin --> UC06
+    Admin --> UC07
+    Admin --> UC08
+    Admin --> UC09
+    Admin --> UC10
+    Admin --> UC11
+    Admin --> UC12
+    Admin --> UC13
+    Admin --> UC14
+    Admin --> UC15
+    Admin --> UC16
+    Admin --> UC17
+    Admin --> UC18
+    Admin --> UC19
+    Admin --> UC20
+    Admin --> UC21
+    Admin --> UC22
+    Admin --> UC23
+    Admin --> UC24
+    Admin --> UC25
+    Admin --> UC26
+    Admin --> UC27
+    Admin --> UC28
+    
+    %% Inheritance relationship
+    Admin -.->|kế thừa| User
+    
+    %% Styling
+    classDef userClass fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef adminClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef authClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef contentClass fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef searchClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef socialClass fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef reportClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef generalClass fill:#f5f5f5,stroke:#616161,stroke-width:2px
+    classDef adminOnlyClass fill:#ede7f6,stroke:#512da8,stroke-width:2px
+    
+    class User userClass
+    class Admin adminClass
+    class UC01,UC02,UC03,UC04 authClass
+    class UC05,UC06,UC07,UC08 contentClass
+    class UC09,UC10,UC11,UC12 searchClass
+    class UC13,UC14,UC15,UC20 socialClass
+    class UC16,UC17 reportClass
+    class UC18,UC19,UC21,UC22,UC23,UC24 generalClass
+    class UC25,UC26,UC27,UC28 adminOnlyClass
+```
+
+### 📋 Hướng Dẫn Sử Dụng:
+
+1. **Copy toàn bộ code Mermaid** ở trên
+2. **Paste vào Claude Sonnet** hoặc bất kỳ tool nào hỗ trợ Mermaid
+3. **Xuất ra hình ảnh** để đưa vào báo cáo
+
+### 🎨 Màu Sắc Phân Loại:
+
+- **🔵 Xanh dương**: Người dùng
+- **🟣 Tím**: Quản trị viên  
+- **🟢 Xanh lá**: Xác thực & Tài khoản
+- **🟠 Cam**: Tạo nội dung & Tương tác
+- **🩷 Hồng**: Tìm kiếm & Lọc
+- **🟢 Xanh ngọc**: Tính năng xã hội
+- **🔴 Đỏ**: Báo cáo & An toàn
+- **⚫ Xám**: Tính năng chung
+- **🟣 Tím đậm**: Chỉ dành cho Admin
+
+## 📝 Danh Sách Use Cases Theo Actor (Để Tự Vẽ)
+
+### 👤 **ACTOR: NGƯỜI DÙNG**
+
+**Quản lý tài khoản:**
+- Đăng ký tài khoản
+- Đăng nhập 
+  - *extend*: Đăng nhập OAuth2
+- Quên mật khẩu
+- Chỉnh sửa thông tin tài khoản
+
+**Tạo và tương tác nội dung:**
+- Đăng bài
+- Đăng bình luận
+- Thả cảm xúc bài viết
+- Thả cảm xúc bình luận
+- Xem feed bài viết
+- Lưu bài viết
+
+**Tìm kiếm:**
+- Tìm kiếm bài đăng
+- Tìm kiếm người dùng
+- Lọc bài đăng theo địa điểm
+- Lọc bài đăng theo tiêu chí
+
+**Mạng xã hội:**
+- Kết bạn
+- Nhắn tin thời gian thực
+- Theo dõi người dùng
+- Chặn người dùng
+
+**Báo cáo:**
+- Báo cáo tin nhắn
+- Báo cáo bài đăng
+
+**Khác:**
+- Nhận thông báo
+- Xem thống kê bài viết
+- Quản lý media
+- Cài đặt cá nhân
 
 ---
 
-**Lưu ý**: Tài liệu này sẽ được cập nhật thường xuyên khi có thêm tính năng mới hoặc thay đổi requirements.
+### 👨‍💼 **ACTOR: QUẢN TRỊ VIÊN**
+
+**Kế thừa tất cả chức năng của Người dùng +**
+
+**Quản lý hệ thống:**
+- Quản lý người dùng
+- Xử lý báo cáo
+- Kiểm duyệt nội dung
+- Xem thống kê hệ thống
+
+---
+
+### 🔗 **MỐI QUAN HỆ:**
+
+**Include:** (chỉ khi thật sự cần)
+- Đăng bài *include* Kiểm duyệt AI
+- Đăng bình luận *include* Kiểm duyệt AI
+
+**Extend:** (chỉ khi thật sự cần)
+- Đăng nhập *extend* Đăng nhập OAuth2
+
+**Inheritance:**
+- Quản trị viên *inherits* Người dùng
+
+---
+
+### 📋 **HƯỚNG DẪN VẼ ĐỂ KHỎI NGU:**
+
+1. **Vẽ 2 actors** (stick figure)
+2. **Vẽ hình chữ nhật** (system boundary) 
+3. **Vẽ các ellipse** (use cases) - KHÔNG CẦN SỐ UC
+4. **Nối actors với use cases** (nét liền)
+5. **Chỉ vẽ include/extend khi cần thiết** (đừng vẽ lung tung)
+6. **Vẽ mũi tên inheritance** từ Admin lên User
+

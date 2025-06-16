@@ -9,6 +9,9 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+import jakarta.annotation.PostConstruct;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -25,13 +28,23 @@ public class ProfanityDetectionService {
     
     @Value("${profanity.detection.enabled:true}")
     private boolean profanityDetectionEnabled;
-    
-    @Value("${profanity.detection.timeout:5000}")
+      @Value("${profanity.detection.timeout:120000}")
     private int timeoutMs;
-      private final RestTemplate restTemplate;
+    
+    private RestTemplate restTemplate;
     
     public ProfanityDetectionService() {
-        this.restTemplate = new RestTemplate();
+        // RestTemplate will be configured in @PostConstruct after @Value injection
+    }
+    
+    @PostConstruct
+    public void init() {
+        // Configure RestTemplate with timeout after @Value injection
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(timeoutMs);
+        factory.setReadTimeout(timeoutMs);
+        this.restTemplate = new RestTemplate(factory);
+        logger.info("ProfanityDetectionService initialized with timeout: {}ms", timeoutMs);
     }
       /**
      * Check if text contains profanity
