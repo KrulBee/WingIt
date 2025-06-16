@@ -155,9 +155,8 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
     setSelectedRoom(room);
     onViewOpen();
   };
-
   const filteredRooms = chatRooms.filter(room =>
-    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+    room?.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false
   );
 
   const getRoomStatus = (room: ChatRoom) => {
@@ -198,15 +197,13 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
               <Hash className="text-blue-500" size={24} />
             </div>
           </CardBody>
-        </Card>
-
-        <Card>
+        </Card>        <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Phòng hoạt động</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {chatRooms.filter(room => room.isActive).length}
+                  {chatRooms.filter(room => room?.isActive).length}
                 </p>
               </div>
               <MessageCircle className="text-green-500" size={24} />
@@ -220,7 +217,7 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Tổng người dùng</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {chatRooms.reduce((total, room) => total + room.participantCount, 0)}
+                  {chatRooms.reduce((total, room) => total + (room?.participantCount || 0), 0)}
                 </p>
               </div>
               <Users className="text-purple-500" size={24} />
@@ -263,36 +260,36 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
               loadingContent="Đang tải..."
             >
               {filteredRooms.map((room) => (
-                <TableRow key={room.id}>
+                <TableRow key={room?.id || Math.random()}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Hash size={16} className="text-gray-400" />
-                      <span className="font-medium">{room.name}</span>
+                      <span className="font-medium">{room?.name || 'N/A'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Users size={16} className="text-gray-400" />
-                      <span className="text-sm">{room.participantCount}</span>
+                      <span className="text-sm">{room?.participantCount || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <MessageCircle size={16} className="text-gray-400" />
-                      <span className="text-sm">{room.messageCount}</span>
+                      <span className="text-sm">{room?.messageCount || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Calendar size={16} className="text-gray-400" />
                       <span className="text-sm">
-                        {formatDateTime(room.createdAt)}
+                        {room?.createdAt ? formatDateTime(room.createdAt) : 'N/A'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
-                      {formatDateTime(room.lastActivity)}
+                      {room?.lastActivity ? formatDateTime(room.lastActivity) : 'N/A'}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -326,8 +323,7 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                       )}
                     </div>
                   </TableCell>
-                </TableRow>
-              ))}
+                </TableRow>              ))}
             </TableBody>
           </Table>
 
@@ -351,12 +347,11 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
         <ModalContent>
           <ModalHeader>Xóa phòng chat</ModalHeader>
           <ModalBody>
-            <p>Bạn có chắc chắn muốn xóa phòng chat này không?</p>
-            {selectedRoom && (
+            <p>Bạn có chắc chắn muốn xóa phòng chat này không?</p>            {selectedRoom && (
               <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mt-2">
-                <p className="font-medium">{selectedRoom.name}</p>
+                <p className="font-medium">{selectedRoom?.name || 'N/A'}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedRoom.participantCount} thành viên • {selectedRoom.messageCount} tin nhắn
+                  {selectedRoom?.participantCount || 0} thành viên • {selectedRoom?.messageCount || 0} tin nhắn
                 </p>
               </div>
             )}
@@ -389,12 +384,11 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                     Thông tin cơ bản:
-                  </h4>
-                  <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                    <p className="font-medium text-lg">{selectedRoom.name}</p>
+                  </h4>                  <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="font-medium text-lg">{selectedRoom?.name || 'N/A'}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                      <span>ID: #{selectedRoom.id}</span>
-                      {getRoomStatus(selectedRoom)}
+                      <span>ID: #{selectedRoom?.id || 'N/A'}</span>
+                      {selectedRoom && getRoomStatus(selectedRoom)}
                     </div>
                   </div>
                 </div>
@@ -403,9 +397,8 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white mb-1">
                       Số thành viên:
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {selectedRoom.participantCount} người
+                    </h4>                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {selectedRoom?.participantCount || 0} người
                     </p>
                   </div>
                   
@@ -414,7 +407,7 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                       Số tin nhắn:
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {selectedRoom.messageCount} tin nhắn
+                      {selectedRoom?.messageCount || 0} tin nhắn
                     </p>
                   </div>
                   
@@ -423,7 +416,7 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                       Ngày tạo:
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {formatDateTime(selectedRoom.createdAt)}
+                      {selectedRoom?.createdAt ? formatDateTime(selectedRoom.createdAt) : 'N/A'}
                     </p>
                   </div>
 
@@ -432,7 +425,7 @@ export default function AdminChatRooms({ userRole }: AdminChatRoomsProps) {
                       Hoạt động cuối:
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {formatDateTime(selectedRoom.lastActivity)}
+                      {selectedRoom?.lastActivity ? formatDateTime(selectedRoom.lastActivity) : 'N/A'}
                     </p>
                   </div>
                 </div>
