@@ -8,8 +8,13 @@ import com.example.server.repository.UserRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.repository.CommentRepository;
 import com.example.server.repository.ReportRepository;
+import com.example.server.repository.MessageRepository;
+import com.example.server.repository.ChatRoomRepository;
 import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.Report;
+import com.example.server.model.Entity.Message;
+import com.example.server.model.Entity.ChatRoom;
+import com.example.server.model.Entity.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,13 +47,17 @@ public class AdminController {
     private UserRepository userRepository;
 
     @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
+    private PostRepository postRepository;    @Autowired
     private CommentRepository commentRepository;
 
     @Autowired
     private ReportRepository reportRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
 
     /**
      * Check if current user has admin privileges
@@ -445,6 +454,218 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to check admin access: " + e.getMessage()));
+        }    }    // ===============================
+    // CHAT ROOM MANAGEMENT
+    // ===============================
+
+    /**
+     * Get all chat rooms for admin management
+     */
+    @GetMapping("/chat-rooms")
+    public ResponseEntity<?> getAllChatRooms(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied"));
+            }
+
+            List<ChatRoom> chatRooms = chatRoomRepository.findAll();
+            
+            // Convert to response format
+            List<Map<String, Object>> chatRoomList = chatRooms.stream()
+                .map(chatRoom -> {
+                    Map<String, Object> chatRoomData = new HashMap<>();
+                    chatRoomData.put("id", chatRoom.getId());
+                    chatRoomData.put("roomName", chatRoom.getRoomName());
+                    chatRoomData.put("isGroupChat", chatRoom.getIsGroupChat());
+                    chatRoomData.put("createdDate", chatRoom.getCreatedDate());
+                    chatRoomData.put("messageCount", chatRoom.getMessages() != null ? chatRoom.getMessages().size() : 0);
+                    chatRoomData.put("participantCount", chatRoom.getRoomUsers() != null ? chatRoom.getRoomUsers().size() : 0);
+                    return chatRoomData;
+                })
+                .toList();
+                
+            Map<String, Object> response = new HashMap<>();
+            response.put("chatRooms", chatRoomList);
+            response.put("totalElements", chatRoomList.size());
+            response.put("totalPages", (chatRoomList.size() / size) + 1);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error fetching chat rooms: " + e.getMessage()));
+        }
+    }    /**
+     * Delete a chat room
+     */
+    @DeleteMapping("/chat-rooms/{roomId}")
+    public ResponseEntity<?> deleteChatRoom(@PathVariable Long roomId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isFullAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Full admin access required"));
+            }
+
+            if (chatRoomRepository.existsById(roomId)) {
+                chatRoomRepository.deleteById(roomId);
+                return ResponseEntity.ok(Map.of("message", "Chat room deleted successfully"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Chat room not found"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting chat room: " + e.getMessage()));
+        }
+    }    // ===============================
+    // MESSAGE MANAGEMENT
+    // ===============================
+
+    /**
+     * Get all messages for admin review
+     */
+    @GetMapping("/messages")
+    public ResponseEntity<?> getAllMessages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied"));
+            }
+
+            List<Message> messages = messageRepository.findAll();
+            
+            // Filter by keyword if provided
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                messages = messages.stream()
+                    .filter(message -> message.getContent().toLowerCase().contains(keyword.toLowerCase()))
+                    .toList();
+            }
+            
+            // Convert to response format
+            List<Map<String, Object>> messageList = messages.stream()
+                .map(message -> {
+                    Map<String, Object> messageData = new HashMap<>();
+                    messageData.put("id", message.getId());
+                    messageData.put("content", message.getContent());
+                    messageData.put("timestamp", message.getTimestamp());
+                    messageData.put("senderUsername", message.getSender() != null ? message.getSender().getUsername() : "Unknown");
+                    messageData.put("senderId", message.getSender() != null ? message.getSender().getId() : null);
+                    messageData.put("chatRoomId", message.getChatRoom() != null ? message.getChatRoom().getId() : null);
+                    messageData.put("chatRoomName", message.getChatRoom() != null ? message.getChatRoom().getRoomName() : "Unknown");
+                    return messageData;
+                })
+                .toList();
+                
+            Map<String, Object> response = new HashMap<>();
+            response.put("messages", messageList);
+            response.put("totalElements", messageList.size());
+            response.put("totalPages", (messageList.size() / size) + 1);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error fetching messages: " + e.getMessage()));
+        }
+    }    /**
+     * Delete a message
+     */
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long messageId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied"));
+            }
+
+            if (messageRepository.existsById(messageId)) {
+                messageRepository.deleteById(messageId);
+                return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Message not found"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting message: " + e.getMessage()));
+        }
+    }
+
+    // ===============================
+    // COMMENT MANAGEMENT
+    // ===============================
+
+    /**
+     * Get all comments for admin review
+     */
+    @GetMapping("/comments")
+    public ResponseEntity<?> getAllComments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied"));
+            }
+
+            // Get comments with pagination and search
+            Map<String, Object> response = new HashMap<>();
+              // For now, get all comments (would need pagination implementation)
+            List<Map<String, Object>> comments = commentRepository.findAll().stream()
+                .map(comment -> {
+                    Map<String, Object> commentData = new HashMap<>();
+                    commentData.put("id", comment.getId());
+                    commentData.put("content", comment.getText());
+                    commentData.put("createdAt", comment.getCreatedDate());
+                    commentData.put("authorUsername", comment.getUser() != null ? comment.getUser().getUsername() : "Unknown");
+                    commentData.put("postId", comment.getPost() != null ? comment.getPost().getId() : null);
+                    return commentData;
+                })
+                .toList();
+            
+            response.put("comments", comments);
+            response.put("totalElements", comments.size());
+            response.put("totalPages", (comments.size() / size) + 1);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error fetching comments: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete a comment
+     */
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!isAdmin(auth)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied"));
+            }
+
+            if (commentRepository.existsById(commentId)) {
+                commentRepository.deleteById(commentId);
+                return ResponseEntity.ok(Map.of("message", "Comment deleted successfully"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Comment not found"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting comment: " + e.getMessage()));
         }
     }
 
