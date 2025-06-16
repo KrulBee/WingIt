@@ -377,3 +377,280 @@ graph TB
 5. **Chỉ vẽ include/extend khi cần thiết** (đừng vẽ lung tung)
 6. **Vẽ mũi tên inheritance** từ Admin lên User
 
+## 🚨 **CÁC CHỨC NĂNG CẦN BỔ SUNG**
+
+### **Thiếu 6 chức năng chính:**
+
+| STT | Chức năng thiếu | Controller cần tạo | Mô tả |
+|-----|-----------------|-------------------|-------|
+| 32 | **Tìm kiếm bài đăng** | SearchController | Tìm kiếm bài viết theo từ khóa, nội dung |
+| 33 | **Tìm kiếm người dùng** | SearchController | Tìm kiếm user theo tên, username |
+| 34 | **Lọc bài đăng theo tiêu chí** | PostController (mở rộng) | Lọc theo thời gian, độ phổ biến, reaction |
+| 35 | **Kết bạn** | FriendRequestController (hoàn thiện) | Gửi/nhận/chấp nhận lời mời kết bạn |
+| 36 | **Báo cáo tin nhắn** | ReportController (mở rộng) | Báo cáo message vi phạm |
+| 37 | **Thống kê lượt xem cá nhân** | PostViewController (mở rộng) | User xem stats bài viết của mình |
+| 38 | **Xếp hạng tỉnh thành** | LocationStatsController | Ranking locations theo lượt xem |
+
+### **Tình trạng thực tế:**
+- ✅ **Đã có: 31/38 chức năng** (81%)
+- ❌ **Thiếu: 7/38 chức năng** (19%)
+- 🟡 **FriendRequestController có nhưng rỗng** (cần implement)
+
+### **Ưu tiên bổ sung:**
+1. **Cao:** Tìm kiếm (bài đăng + user)
+2. **Cao:** Kết bạn (controller đã có)
+3. **Trung bình:** Lọc nâng cao
+4. **Trung bình:** Thống kê cá nhân
+5. **Thấp:** Báo cáo tin nhắn
+6. **Thấp:** Xếp hạng tỉnh thành
+
+## 📊 **CẤU TRÚC CƠ SỞ DỮ LIỆU WINGIT**
+
+### **1. BẢNG: role**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | INTEGER | Khóa chính | Mã vai trò |
+| role | VARCHAR(50) | NOT NULL | Tên vai trò (admin, user) |
+
+### **2. BẢNG: users**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | SERIAL | Khóa chính | Mã người dùng |
+| username | VARCHAR(50) | NOT NULL, UNIQUE | Tên đăng nhập |
+| password | VARCHAR(255) | Nullable | Mật khẩu (nullable cho OAuth2) |
+| email | VARCHAR(100) | UNIQUE | Email đăng nhập |
+| provider | VARCHAR(20) |  | Nhà cung cấp OAuth2 (google, facebook) |
+| provider_id | VARCHAR(100) |  | ID người dùng từ OAuth2 |
+| role_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến role(id) |
+
+### **3. BẢNG: user_data**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| user_id | INTEGER | Khóa chính, Khóa ngoại | Tham chiếu đến users(id) |
+| display_name | VARCHAR(50) | NOT NULL | Tên hiển thị |
+| bio | TEXT |  | Tiểu sử người dùng |
+| profile_picture | VARCHAR(255) |  | URL ảnh đại diện |
+| cover_photo | VARCHAR(255) |  | URL ảnh bìa |
+| date_of_birth | DATE |  | Ngày sinh |
+| created_at | DATE | NOT NULL | Ngày tạo hồ sơ |
+
+### **4. BẢNG: user_settings**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| user_id | INTEGER | Khóa chính, Khóa ngoại | Tham chiếu đến users(id) |
+| privacy_level | VARCHAR(20) | NOT NULL, DEFAULT 'friends' | Mức độ riêng tư (public, friends, private) |
+| show_online_status | BOOLEAN | NOT NULL, DEFAULT TRUE | Hiển thị trạng thái online |
+| allow_search_engines | BOOLEAN | NOT NULL, DEFAULT FALSE | Cho phép công cụ tìm kiếm |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo cài đặt |
+| updated_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật cuối |
+
+### **5. BẢNG: password_reset_tokens**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã token |
+| token | VARCHAR(255) | UNIQUE, NOT NULL | Token reset mật khẩu |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| expiry_date | TIMESTAMP | NOT NULL | Ngày hết hạn token |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo token |
+| used | BOOLEAN | NOT NULL, DEFAULT FALSE | Trạng thái đã sử dụng |
+
+### **6. BẢNG: location**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | INTEGER | Khóa chính | Mã địa điểm |
+| location | VARCHAR(50) | NOT NULL | Tên địa điểm |
+
+### **7. BẢNG: post_type**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã loại bài viết |
+| type_name | VARCHAR(50) | NOT NULL | Tên loại bài viết |
+
+### **8. BẢNG: reaction_type**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã loại cảm xúc |
+| name | VARCHAR(50) | NOT NULL | Tên cảm xúc (like, dislike) |
+| description | VARCHAR(255) |  | Mô tả cảm xúc |
+
+### **9. BẢNG: posts**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã bài viết |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| content | TEXT |  | Nội dung bài viết |
+| created_date | TIMESTAMP | NOT NULL | Ngày tạo bài viết |
+| updated_at | TIMESTAMP | NOT NULL | Ngày cập nhật cuối |
+| type | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến post_type(id) |
+| location_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến location(id) |
+
+### **10. BẢNG: post_media**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã media |
+| post_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến posts(id) |
+| media_url | VARCHAR(255) | NOT NULL | URL file media |
+| media_type | VARCHAR(50) | NOT NULL | Loại media (image, video) |
+| uploaded_at | TIMESTAMP | NOT NULL | Ngày tải lên |
+
+### **11. BẢNG: post_reactions**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã phản ứng |
+| post_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến posts(id) |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| react_type | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến reaction_type(id) |
+| timestamp | TIMESTAMP | NOT NULL | Thời gian phản ứng |
+
+### **12. BẢNG: post_views**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã lượt xem |
+| post_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến posts(id) |
+| user_id | INTEGER | Khóa ngoại | Tham chiếu đến users(id) |
+| view_source | VARCHAR(50) | NOT NULL | Nguồn xem (feed, modal, profile, search, bookmark, notification) |
+| duration_ms | BIGINT |  | Thời gian xem (milliseconds) |
+| viewed_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Thời gian xem |
+| session_id | VARCHAR(255) |  | ID phiên làm việc |
+| ip_address | VARCHAR(45) |  | Địa chỉ IP |
+| user_agent | TEXT |  | Thông tin trình duyệt |
+
+### **13. BẢNG: comments**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã bình luận |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| text | TEXT | NOT NULL | Nội dung bình luận |
+| created_date | TIMESTAMP | NOT NULL | Ngày tạo bình luận |
+| updated_at | TIMESTAMP | NOT NULL | Ngày cập nhật cuối |
+| post_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến posts(id) |
+| is_reply | BOOLEAN | NOT NULL, DEFAULT FALSE | Có phải reply không |
+
+### **14. BẢNG: comment_replies**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã reply |
+| root_comment_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến comments(id) - comment gốc |
+| reply_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến comments(id) - comment trả lời |
+| created_date | TIMESTAMP | NOT NULL | Ngày tạo reply |
+
+### **15. BẢNG: comment_reactions**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã phản ứng bình luận |
+| comment_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến comments(id) |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| react_type | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến reaction_type(id) |
+| timestamp | TIMESTAMP | NOT NULL | Thời gian phản ứng |
+
+### **16. BẢNG: friends**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã kết bạn |
+| user1_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người dùng 1 |
+| user2_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người dùng 2 |
+| friendship_date | TIMESTAMP | NOT NULL | Ngày kết bạn |
+
+### **17. BẢNG: request_status**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã trạng thái yêu cầu |
+| status_name | VARCHAR(50) | NOT NULL | Tên trạng thái (pending, accepted, rejected) |
+
+### **18. BẢNG: friend_requests**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã yêu cầu kết bạn |
+| sender_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người gửi |
+| receiver_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người nhận |
+| request_status | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến request_status(id) |
+| request_date | TIMESTAMP | NOT NULL | Ngày gửi yêu cầu |
+| response_date | TIMESTAMP |  | Ngày phản hồi |
+
+### **19. BẢNG: follows**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã theo dõi |
+| follower_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người theo dõi |
+| following_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người được theo dõi |
+| timestamp | TIMESTAMP | NOT NULL | Thời gian theo dõi |
+
+### **20. BẢNG: block**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã chặn |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người chặn |
+| blocked_user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người bị chặn |
+| created_at | TIMESTAMP | NOT NULL | Thời gian chặn |
+
+### **21. BẢNG: chat_room**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã phòng chat |
+| room_name | VARCHAR(50) | NULL | Tên phòng chat (NULL cho chat tự động) |
+| is_group_chat | BOOLEAN | NOT NULL, DEFAULT FALSE | Có phải chat nhóm không |
+| is_auto_created | BOOLEAN | NOT NULL, DEFAULT FALSE | Có phải tự động tạo không |
+| created_date | TIMESTAMP | NOT NULL | Ngày tạo phòng |
+
+### **22. BẢNG: room_user**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã thành viên phòng |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| chat_room_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến chat_room(id) |
+| joined_at | TIMESTAMP | NOT NULL | Thời gian tham gia |
+
+### **23. BẢNG: messages**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã tin nhắn |
+| sender_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| chat_room_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến chat_room(id) |
+| content | TEXT | NOT NULL | Nội dung tin nhắn |
+| timestamp | TIMESTAMP | NOT NULL | Thời gian gửi |
+
+### **24. BẢNG: notifications**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã thông báo |
+| recipient_user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người nhận |
+| actor_user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người thực hiện |
+| type | VARCHAR(50) | NOT NULL | Loại thông báo |
+| post_id | BIGINT | Khóa ngoại | Tham chiếu đến posts(id) |
+| comment_id | BIGINT | Khóa ngoại | Tham chiếu đến comments(id) |
+| content | TEXT |  | Nội dung thông báo |
+| read_status | BOOLEAN | NOT NULL, DEFAULT FALSE | Trạng thái đã đọc |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo thông báo |
+
+### **25. BẢNG: bookmarks**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã bookmark |
+| user_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) |
+| post_id | BIGINT | NOT NULL, Khóa ngoại | Tham chiếu đến posts(id) |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo bookmark |
+
+### **26. BẢNG: reports**
+| Tên trường | Kiểu dữ liệu | Ràng buộc | Diễn giải |
+|------------|--------------|-----------|-----------|
+| id | BIGSERIAL | Khóa chính | Mã báo cáo |
+| reporter_id | INTEGER | NOT NULL, Khóa ngoại | Tham chiếu đến users(id) - người báo cáo |
+| reported_user_id | INTEGER | Khóa ngoại | Tham chiếu đến users(id) - người bị báo cáo |
+| post_id | BIGINT | Khóa ngoại | Tham chiếu đến posts(id) - bài viết bị báo cáo |
+| comment_id | BIGINT | Khóa ngoại | Tham chiếu đến comments(id) - bình luận bị báo cáo |
+| reason | VARCHAR(255) | NOT NULL | Lý do báo cáo |
+| description | TEXT |  | Mô tả chi tiết |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'PENDING' | Trạng thái (PENDING, REVIEWED, RESOLVED, DISMISSED) |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo báo cáo |
+| updated_at | TIMESTAMP |  | Ngày cập nhật cuối |
+
+---
+
+**📊 TỔNG QUAN CƠ SỞ DỮ LIỆU:**
+- **Tổng số bảng:** 26 bảng
+- **Bảng chính:** users, posts, comments, messages
+- **Bảng lookup:** role, reaction_type, post_type, location, request_status  
+- **Bảng quan hệ:** friends, follows, block, bookmarks
+- **Bảng thống kê:** post_views, notifications
+- **Bảng bảo mật:** password_reset_tokens, user_settings, reports
+

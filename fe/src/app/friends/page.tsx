@@ -73,12 +73,9 @@ const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; 
           onClick={handleAvatarClick}
         />
         <div>
-          <h3 className="font-medium">{friend.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>{friend.mutualFriends && friend.mutualFriends > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {friend.mutualFriends} bạn chung
-            </p>
-          )}
+          <h3 className="font-medium">{friend.name}</h3>          <p className="text-sm text-gray-500 dark:text-gray-400">@{friend.username}</p>          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            0 bạn chung
+          </p>
         </div>
       </div>
       <div className="flex justify-end gap-2">
@@ -123,12 +120,9 @@ const RequestCard = ({ request, onAccept, onReject, currentUser }: { request: Fr
           onClick={handleAvatarClick}
         />
         <div>
-          <h3 className="font-medium">{request.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>{request.mutualFriends && request.mutualFriends > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {request.mutualFriends} bạn chung
-            </p>
-          )}
+          <h3 className="font-medium">{request.name}</h3>          <p className="text-sm text-gray-500 dark:text-gray-400">@{request.username}</p>          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            0 bạn chung
+          </p>
         </div>
       </div>
       <div className="flex justify-end gap-2">
@@ -174,12 +168,9 @@ const SuggestionCard = ({ suggestion, onAddFriend, currentUser }: { suggestion: 
           onClick={handleAvatarClick}
         />
         <div>
-          <h3 className="font-medium">{suggestion.name}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>          {suggestion.mutualFriends !== undefined && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {suggestion.mutualFriends} bạn chung
-            </p>
-          )}
+          <h3 className="font-medium">{suggestion.name}</h3>          <p className="text-sm text-gray-500 dark:text-gray-400">@{suggestion.username}</p>          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            0 bạn chung
+          </p>
         </div>
       </div>
       <div className="flex justify-end gap-2">
@@ -214,33 +205,7 @@ export default function FriendsPage() {
       const user = await AuthService.getCurrentUser();
       setCurrentUser(user);
     } catch (error) {
-      console.error('Error getting current user:', error);
-    }  };
-
-  // Calculate mutual friends between current user and another user
-  const calculateMutualFriends = async (userId: number): Promise<number> => {
-    try {
-      if (!currentUser || currentUser.id === userId) {
-        return 0;
-      }
-
-      // Get friends of the target user
-      const targetUserFriends = await FriendService.getFriendsByUserId(userId);
-
-      // Get current user's friends (use cached data if available)
-      const myFriends = currentUserFriends.length > 0
-        ? currentUserFriends
-        : await FriendService.getFriends();
-
-      // Find mutual friends by comparing friend IDs
-      const myFriendIds = new Set(myFriends.map(f => f.friend.id));
-      const mutualCount = targetUserFriends.filter(f => myFriendIds.has(f.friend.id)).length;
-
-      return mutualCount;
-    } catch (error) {
-      console.error('Error calculating mutual friends:', error);
-      return 0;
-    }
+      console.error('Error getting current user:', error);    }
   };
 
   // Transform backend data to UI format
@@ -249,25 +214,20 @@ export default function FriendsPage() {
     name: user.displayName || user.username,
     username: user.username,
     avatar: getAvatarSrc(user.profilePicture, user.username),
-    mutualFriends: 0, // Will be calculated properly
     originalId: originalId || user.id
   });
-
   const transformFriendDTOToFriendProps = (friendDTO: FriendDTO): FriendProps => ({
     id: friendDTO.id.toString(),
     name: friendDTO.friend.displayName || friendDTO.friend.username,
     username: friendDTO.friend.username,
     avatar: getAvatarSrc(friendDTO.friend.profilePicture, friendDTO.friend.username),
-    mutualFriends: 0, // Will be calculated properly
     originalId: friendDTO.friend.id
   });
-
   const transformFriendRequestDTOToFriendProps = (requestDTO: FriendRequestDTO): FriendProps => ({
     id: requestDTO.id.toString(),
     name: requestDTO.sender.displayName || requestDTO.sender.username,
     username: requestDTO.sender.username,
     avatar: getAvatarSrc(requestDTO.sender.profilePicture, requestDTO.sender.username),
-    mutualFriends: 0, // Will be calculated properly
     originalId: requestDTO.sender.id
   });
   const fetchFriendsData = useCallback(async () => {
@@ -287,31 +247,15 @@ export default function FriendsPage() {
 
       // Transform friends data (no mutual friends needed for current user's friends)
       const transformedFriends = friendsData.map(transformFriendDTOToFriendProps);
-      setFriends(transformedFriends);
-
-      // Transform friend requests data with mutual friends calculation
-      const transformedRequests = await Promise.all(
-        requestsData.map(async (requestDTO) => {
-          const mutualCount = await calculateMutualFriends(requestDTO.sender.id);
-          return {
-            ...transformFriendRequestDTOToFriendProps(requestDTO),
-            mutualFriends: mutualCount
-          };
-        })
-      );
-      setFriendRequests(transformedRequests);
-
-      // Transform smart suggestions from backend (already filtered and scored)
-      const transformedSuggestions = await Promise.all(
-        suggestionsData.slice(0, 6).map(async (user) => {
-          const mutualCount = await calculateMutualFriends(user.id);
-          return {
-            ...transformUserToFriendProps(user, 'suggestion'),
-            mutualFriends: mutualCount
-          };
-        })
-      );
-      setSuggestions(transformedSuggestions);    } catch (err) {
+      setFriends(transformedFriends);      // Transform friend requests data
+      const transformedRequests = requestsData.map((requestDTO) => {
+        return transformFriendRequestDTOToFriendProps(requestDTO);
+      });
+      setFriendRequests(transformedRequests);// Transform smart suggestions from backend (already filtered and scored)
+      const transformedSuggestions = suggestionsData.slice(0, 6).map((user) => {
+        return transformUserToFriendProps(user, 'suggestion');
+      });
+      setSuggestions(transformedSuggestions);} catch (err) {
       console.error('Error fetching friends data:', err);
       
       // Check if it's an authentication error
