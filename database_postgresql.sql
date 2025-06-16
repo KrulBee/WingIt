@@ -351,6 +351,3 @@ CREATE INDEX idx_reports_post ON reports(post_id);
 CREATE INDEX idx_reports_comment ON reports(comment_id);
 CREATE INDEX idx_reports_status ON reports(status);
 CREATE INDEX idx_reports_created_at ON reports(created_at);
-
--- Data initialization will be handled by the backend API
--- Run POST /api/v1/init/database after deploying the backend

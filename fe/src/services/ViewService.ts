@@ -408,30 +408,33 @@ class ViewService {
     const localTopSources = Object.entries(localSourceStats)
       .map(([source, count]) => ({ source, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    // Try to get enhanced analytics from backend
-    try {      const response = await fetch(`${this.API_BASE_URL}/api/v1/post-views/analytics`, {
+      .slice(0, 5);    // Try to get enhanced analytics from backend
+    try {
+      console.log('🔍 ViewService: Calling analytics API...');
+      const response = await fetch(`${this.API_BASE_URL}/api/v1/post-views/analytics`, {
         method: 'GET',
         headers: this.createAuthHeaders()
       });
 
-      if (response.ok) {
+      console.log('📊 Analytics API response status:', response.status);      if (response.ok) {
         const backendAnalytics = await response.json();
+        console.log('✅ Backend analytics received:', backendAnalytics);
         return {
-          totalPosts: backendAnalytics.totalPosts || this.viewedPosts.size,
-          totalViews: backendAnalytics.totalViews || this.postViews.length,
-          averageViewsPerPost: backendAnalytics.averageViewsPerPost || 
+          totalPosts: backendAnalytics.totalPosts ?? this.viewedPosts.size,
+          totalViews: backendAnalytics.totalViews ?? this.postViews.length,
+          averageViewsPerPost: backendAnalytics.averageViewsPerPost ?? 
             (this.viewedPosts.size > 0 ? this.postViews.length / this.viewedPosts.size : 0),
-          topSources: backendAnalytics.topSources || localTopSources,
-          viewsToday: backendAnalytics.viewsToday || localViewsToday,
-          viewsThisWeek: backendAnalytics.viewsThisWeek || localViewsThisWeek
-        };
+          topSources: backendAnalytics.topSources ?? localTopSources,
+          viewsToday: backendAnalytics.viewsToday ?? localViewsToday,
+          viewsThisWeek: backendAnalytics.viewsThisWeek ?? localViewsThisWeek        };
+      } else {
+        console.warn('❌ Analytics API failed with status:', response.status);
       }
     } catch (error) {
-      console.warn('Failed to fetch backend analytics, using local only:', error);
+      console.warn('❌ Failed to fetch backend analytics, using local only:', error);
     }
 
+    console.log('📈 Using localStorage fallback analytics');
     return {
       totalPosts: this.viewedPosts.size,
       totalViews: this.postViews.length,

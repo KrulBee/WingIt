@@ -31,7 +31,7 @@ function ResetPasswordPageContent() {
   }, [searchParams]);
   const validateToken = async (token: string) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/password-reset/validate/${token}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/password-reset/validate/${token}`, {
         method: 'GET',
       });
 
@@ -70,7 +70,7 @@ function ResetPasswordPageContent() {
     }
 
     setLoading(true);    try {
-      const response = await fetch('http://localhost:8080/api/v1/password-reset/reset', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/password-reset/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

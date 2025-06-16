@@ -24,7 +24,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
   const handleSubmit = async () => {
     setError('');
     setLoading(true);    try {
-      const response = await fetch('http://localhost:8080/api/v1/password-reset/request', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/password-reset/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
