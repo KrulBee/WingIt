@@ -105,7 +105,7 @@ public class EmailService {
                     .content { padding: 20px; background-color: #f9f9f9; }
                     .button { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
                     .button:hover { background-color: #218838; }
-                    .link { color: #007bff; text-decoration: underline; word-break: break-all; }
+                    .link { color:rgb(255, 255, 255); text-decoration: underline; word-break: break-all; }
                     .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
                 </style>
             </head>

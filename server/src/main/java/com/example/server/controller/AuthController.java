@@ -214,7 +214,7 @@ public class AuthController {
 
         // Check if username is already taken
         if (userRepository.existsByUsername(username)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Username already taken"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Tên đăng nhập đã được sử dụng"));
         }
 
         // Check if email is already used (in case someone registered with same email)

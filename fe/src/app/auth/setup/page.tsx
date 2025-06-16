@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardBody, Button, Input, Select, SelectItem, Spinner, Divider } from "@nextui-org/react";
-import { User, Mail, Eye, EyeOff, CheckCircle, AlertCircle } from "react-feather";
+import { User, Eye, EyeOff, CheckCircle, AlertCircle } from "react-feather";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 interface SetupInfo {
   email: string;

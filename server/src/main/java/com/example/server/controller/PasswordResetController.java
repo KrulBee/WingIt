@@ -17,27 +17,25 @@ public class PasswordResetController {
     
     @Autowired
     private PasswordResetService passwordResetService;
-    
-    @PostMapping("/request")
+      @PostMapping("/request")
     public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
             passwordResetService.requestPasswordReset(request);
             return ResponseEntity.ok(Map.of(
-                "message", "If an account with that email exists, you will receive a password reset link shortly."
+                "message", "Nếu tài khoản với email đó tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu trong thời gian ngắn."
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Failed to process password reset request"
+                "error", "Không thể xử lý yêu cầu đặt lại mật khẩu"
             ));
         }
     }
-    
-    @PostMapping("/reset")
+      @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             passwordResetService.resetPassword(request);
             return ResponseEntity.ok(Map.of(
-                "message", "Password has been successfully reset"
+                "message", "Mật khẩu đã được đặt lại thành công"
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -45,12 +43,11 @@ public class PasswordResetController {
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Failed to reset password"
+                "error", "Không thể đặt lại mật khẩu"
             ));
         }
     }
-    
-    @GetMapping("/validate/{token}")
+      @GetMapping("/validate/{token}")
     public ResponseEntity<?> validateResetToken(@PathVariable String token) {
         try {
             boolean isValid = passwordResetService.validateResetToken(token);
@@ -60,7 +57,7 @@ public class PasswordResetController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "valid", false,
-                "error", "Invalid token"
+                "error", "Mã thông báo không hợp lệ"
             ));
         }
     }

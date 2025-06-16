@@ -60,30 +60,28 @@ public class PasswordResetService {
         // Send email
         try {
             emailService.sendPasswordResetEmail(user.getEmail(), token, user.getUsername());
-            logger.info("Password reset email sent for user: {}", user.getUsername());
-        } catch (Exception e) {
+            logger.info("Password reset email sent for user: {}", user.getUsername());        } catch (Exception e) {
             logger.error("Failed to send password reset email for user: {}", user.getUsername(), e);
-            throw new RuntimeException("Failed to send password reset email");
+            throw new RuntimeException("Không thể gửi email đặt lại mật khẩu");
         }
     }
     
     public void resetPassword(ResetPasswordRequest request) {
         String token = request.getToken();
         String newPassword = request.getNewPassword();
-        
-        Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByTokenAndUsedFalse(token);
+          Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByTokenAndUsedFalse(token);
         if (tokenOpt.isEmpty()) {
-            throw new RuntimeException("Invalid or expired reset token");
+            throw new RuntimeException("Mã thông báo đặt lại không hợp lệ hoặc đã hết hạn");
         }
         
         PasswordResetToken resetToken = tokenOpt.get();
         
         if (resetToken.isExpired()) {
-            throw new RuntimeException("Reset token has expired");
+            throw new RuntimeException("Mã thông báo đặt lại đã hết hạn");
         }
         
         if (resetToken.isUsed()) {
-            throw new RuntimeException("Reset token has already been used");
+            throw new RuntimeException("Mã thông báo đặt lại đã được sử dụng");
         }
         
         User user = resetToken.getUser();

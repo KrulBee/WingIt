@@ -61,8 +61,8 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
         setSuccess(true);
       } else {
         setError(data.error || 'Không thể gửi email đặt lại mật khẩu');
-      }
-    } catch (err) {
+      }    } catch (error) {
+      console.error('Error sending password reset email:', error);
       setError('Lỗi mạng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
