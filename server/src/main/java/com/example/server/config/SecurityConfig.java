@@ -72,7 +72,9 @@ public class SecurityConfig {    @Autowired
                 .requestMatchers("/api/v1/users/verify-email-change").permitAll() // Allow email change verification
                 .requestMatchers("/api/v1/init/**").permitAll() // Allow database initialization endpoints
                 .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
-                .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints
+                .requestMatchers("/api/v1/post-views/locations/**").permitAll() // Allow location view stats without auth
+                .requestMatchers("/api/v1/post-views/analytics/global").permitAll() // Allow global analytics without auth
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // Allow OAuth2 endpoints
                 .requestMatchers("/api/admin/**").hasRole("admin") // Admin endpoints require admin role
                 .anyRequest().authenticated()
             )            .sessionManagement(session -> session
