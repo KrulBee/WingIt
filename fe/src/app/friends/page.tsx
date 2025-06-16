@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
 import { Avatar, Tabs, Tab, Button } from "@nextui-org/react";
@@ -53,7 +54,7 @@ const getAvatarSrc = (avatar?: string, username?: string) => {
   return avatarBase64;
 };
 
-const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; onUnfriend: (friendId: string) => void; currentUser: any }) => {
+const FriendCard = ({ friend, onUnfriend, currentUser, router }: { friend: FriendProps; onUnfriend: (friendId: string) => void; currentUser: any; router: any }) => {
   const { navigateToProfile } = useProfileNavigation();
 
   const handleAvatarClick = () => {
@@ -78,12 +79,13 @@ const FriendCard = ({ friend, onUnfriend, currentUser }: { friend: FriendProps; 
           </p>
         </div>
       </div>
-      <div className="flex justify-end gap-2">
-        <Button 
+      <div className="flex justify-end gap-2">        <Button 
           size="sm" 
           color="primary"
           variant="flat"
-          startContent={<User size={16} />}        >
+          startContent={<User size={16} />}
+          onPress={() => router.push(`/profile/${friend.username}`)}
+        >
           Hồ Sơ
         </Button>
         <Button 
@@ -187,13 +189,14 @@ const SuggestionCard = ({ suggestion, onAddFriend, currentUser }: { suggestion: 
 };
 
 export default function FriendsPage() {
+  const router = useRouter();
   const [friends, setFriends] = useState<FriendProps[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendProps[]>([]);
   const [suggestions, setSuggestions] = useState<FriendProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentUserFriends, setCurrentUserFriends] = useState<FriendDTO[]>([]);  // Fetch data on component mount
+  const [currentUserFriends, setCurrentUserFriends] = useState<FriendDTO[]>([]);// Fetch data on component mount
   useEffect(() => {
     fetchFriendsData();
     getCurrentUser();
@@ -374,12 +377,12 @@ export default function FriendsPage() {
           )}
             <Tabs aria-label="Tùy chọn bạn bè" className="mb-6">            <Tab key="all-friends" title={`Tất Cả Bạn Bè (${friends.length})`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {friends.map((friend) => (
-                  <FriendCard 
+                {friends.map((friend) => (                  <FriendCard 
                     key={friend.id} 
                     friend={friend} 
                     onUnfriend={handleUnfriend}
                     currentUser={currentUser}
+                    router={router}
                   />
                 ))}{friends.length === 0 && (
                   <div className="col-span-2 text-center py-8 text-gray-500 dark:text-gray-400">
