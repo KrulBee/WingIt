@@ -479,4 +479,19 @@ if __name__ == '__main__':
     print("⏳ Loading model... (this may take a minute)")
     print("=" * 60)
     
+    # Load the model IMMEDIATELY at startup, not when first request comes in
+    logger.info("Initializing profanity detector at startup...")
+    detector = get_detector()
+    
+    # Wait for model to finish loading before starting the server
+    if hasattr(detector, 'load_model_thread'):
+        logger.info("Waiting for model loading to complete...")
+        detector.load_model_thread.join()  # Wait for the loading thread to finish
+    
+    if detector.is_ready():
+        logger.info("✅ Model loaded successfully! Server ready to accept requests.")
+    else:
+        logger.error(f"❌ Model failed to load: {detector.loading_error}")
+        logger.error("Server will start but may not function properly.")
+    
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
