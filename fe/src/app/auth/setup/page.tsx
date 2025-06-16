@@ -34,10 +34,9 @@ function SetupPageContent() {
 
     fetchSetupInfo();
   }, [setupToken, router]);
-
   const fetchSetupInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/auth/oauth2/setup/info?token=${setupToken}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info?token=${setupToken}`);
       const data = await response.json();
 
       if (response.ok) {
