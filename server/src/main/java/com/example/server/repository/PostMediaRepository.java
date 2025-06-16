@@ -10,4 +10,7 @@ import java.util.List;
 public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     List<PostMedia> findByPostId(Long postId);
     List<PostMedia> findByPostIdOrderByUploadedAtAsc(Long postId);
+    
+    // Method for cascade deletion
+    void deleteByPostId(Long postId);
 }

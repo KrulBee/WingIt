@@ -95,7 +95,34 @@ public class ChatRoomService {
                 .orElseThrow(() -> new RuntimeException("User not in chat room"));
 
         roomUserRepository.delete(roomUser);
-    }    public List<MessageDTO> getChatRoomMessages(Long chatRoomId) {
+    }    /**
+     * Deletes a chat room completely (used when friends unfriend each other)
+     */
+    public void deleteChatRoom(Long chatRoomId) {
+        try {
+            // First delete all messages in the chat room
+            List<Message> messages = messageRepository.findByChatRoomIdOrderByTimestampAsc(chatRoomId);
+            if (!messages.isEmpty()) {
+                messageRepository.deleteAll(messages);
+            }
+            
+            // Then delete all room users
+            List<RoomUser> roomUsers = roomUserRepository.findByChatRoomId(chatRoomId);
+            if (!roomUsers.isEmpty()) {
+                roomUserRepository.deleteAll(roomUsers);
+            }
+            
+            // Finally delete the chat room itself
+            chatRoomRepository.deleteById(chatRoomId);
+            
+            System.out.println("Successfully deleted chat room " + chatRoomId + " and all associated data");
+        } catch (Exception e) {
+            System.err.println("Error deleting chat room " + chatRoomId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to delete chat room", e);
+        }
+    }
+
+    public List<MessageDTO> getChatRoomMessages(Long chatRoomId) {
         return messageRepository.findByChatRoomIdOrderByTimestampAsc(chatRoomId).stream()
                 .map(this::convertMessageToDTO)
                 .collect(Collectors.toList());

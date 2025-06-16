@@ -55,7 +55,7 @@ git push origin main
 ```
 DATABASE_URL=postgresql://wingit_user:password@host:port/wingit
 JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
-PROFANITY_DETECTION_URL=https://wingit-ai.onrender.com
+PROFANITY_DETECTION_URL=http://YOUR_LOCAL_IP:5000
 SPRING_PROFILES_ACTIVE=production
 PORT=8080
 

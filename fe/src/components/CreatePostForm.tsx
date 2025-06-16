@@ -113,7 +113,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       setMediaUrls([]);
       setSelectedLocationId(null);
       setShowMediaUpload(false);
-        } catch (error: any) {
+    } catch (error: any) {
       console.error("Failed to create post:", error);
       
       // Check if it's a profanity error from backend
@@ -123,8 +123,8 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
         // Show profanity warning modal for backend-detected profanity
         setProfanityResult({
           is_profane: true,
-          confidence: 0.8, // Default confidence for backend detection
-          toxic_spans: [],
+          confidence: errorData.confidence || 0.8, // Use actual confidence from backend
+          toxic_spans: errorData.toxicSpans || [],
           processed_text: content
         });
         setShowProfanityWarning(true);

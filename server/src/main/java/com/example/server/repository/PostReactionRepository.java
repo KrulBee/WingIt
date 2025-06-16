@@ -20,4 +20,7 @@ public interface PostReactionRepository extends JpaRepository<PostReaction, Long
     
     @Query("SELECT COUNT(pr) FROM PostReaction pr WHERE pr.post.id = :postId AND pr.reactionType.id = :reactionTypeId")
     long countByPostIdAndReactionTypeId(@Param("postId") Long postId, @Param("reactionTypeId") Long reactionTypeId);
+    
+    // Method for cascade deletion
+    void deleteByPostId(Long postId);
 }

@@ -82,15 +82,22 @@ class PhoBERTForTokenClassification(nn.Module):
         return {'logits': logits}
 
 class ProfanityDetector:
-    """Vietnamese Profanity Detection using your trained PhoBERT model - Memory optimized"""
+    """Vietnamese Profanity Detection using your trained PhoBERT model - Persistent model"""
     
     def __init__(self):
         self.config = Config()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.loading_error = None
+        self.model_loaded = False
+        self.loading_in_progress = False
+        self.model = None
+        self.tokenizer = None
         
         logger.info(f"Using device: {self.device}")
-        logger.info("🧠 Memory-optimized mode: Model loads per request to save RAM")
+        logger.info("🧠 Persistent mode: Model will stay loaded in memory")
+        
+        # Start loading model in background
+        threading.Thread(target=self._load_model_async, daemon=True).start()
         
     def _find_model_file(self):
         """Find the model file in order of preference for Render deployment"""
@@ -246,8 +253,8 @@ class ProfanityDetector:
                 dropout_rate=self.config.DROPOUT_RATE
             )
 
-            # Load your trained weights with memory optimization
-            logger.info("⚖️ Loading trained weights (memory-optimized)...")
+            # Load your trained weights
+            logger.info("⚖️ Loading trained weights...")
             checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
             self.model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -262,10 +269,7 @@ class ProfanityDetector:
             gc.collect()
 
             # Success!
-            logger.info(f"✅ Model loaded successfully!")
-            logger.info(f"   📊 Epoch: {checkpoint.get('epoch', 'Unknown')}")
-            logger.info(f"   🎯 Best F1: {checkpoint.get('best_f1', 'Unknown')}")
-            logger.info(f"   💾 Model path: {model_path}")
+            logger.info(f"✅ Model loaded successfully and ready for requests!")
             logger.info(f"   🖥️ Device: {self.device}")
 
             self.model_loaded = True
@@ -280,55 +284,43 @@ class ProfanityDetector:
             self.loading_in_progress = False
     
     def is_ready(self):
-        # Always ready since we load on-demand
-        return True
+        """Check if model is loaded and ready"""
+        return self.model_loaded and self.model is not None and self.tokenizer is not None
     
     def detect_profanity(self, text):
-        """Memory-optimized profanity detection: Load → Process → Unload"""
-        logger.info("🔄 Loading model for request...")
+        """Fast profanity detection using persistent model"""
         
-        try:
-            # Step 1: Find model file
-            model_path = self._find_model_file()
-            if not model_path:
+        # Check if model is ready
+        if not self.is_ready():
+            if self.loading_in_progress:
                 return {
-                    'error': 'Model file not found',
+                    'error': 'Model is still loading, please wait...',
                     'is_profane': False,
                     'confidence': 0.0,
                     'toxic_spans': [],
                     'processed_text': text
                 }
-            
-            # Step 2: Load tokenizer (lightweight)
-            from transformers import AutoTokenizer
-            tokenizer = AutoTokenizer.from_pretrained(self.config.MODEL_NAME)
-            
-            # Step 3: Load model temporarily
-            from transformers import AutoModel
-            model = PhoBERTForTokenClassification(
-                model_name=self.config.MODEL_NAME,
-                num_labels=self.config.NUM_LABELS,
-                dropout_rate=self.config.DROPOUT_RATE
-            )
-            
-            # Load trained weights
-            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
-            model.load_state_dict(checkpoint['model_state_dict'])
-            del checkpoint  # Free memory immediately
-            
-            model.to(self.device)
-            model.eval()
-            
-            # Step 4: Process the request
-            result = self._process_text_with_model(text, tokenizer, model)
-            
-            # Step 5: Immediately unload model to free memory
-            del model
-            del tokenizer
-            import gc
-            gc.collect()
-            
-            logger.info("✅ Request processed, model unloaded")
+            elif self.loading_error:
+                return {
+                    'error': f'Model loading failed: {self.loading_error}',
+                    'is_profane': False,
+                    'confidence': 0.0,
+                    'toxic_spans': [],
+                    'processed_text': text
+                }
+            else:
+                return {
+                    'error': 'Model not available',
+                    'is_profane': False,
+                    'confidence': 0.0,
+                    'toxic_spans': [],
+                    'processed_text': text
+                }
+        
+        try:
+            # Process the request with the loaded model
+            result = self._process_text_with_model(text, self.tokenizer, self.model)
+            logger.info(f"✅ Fast detection completed for: '{text[:30]}...'")
             return result
             
         except Exception as e:
@@ -421,12 +413,12 @@ class ProfanityDetector:
 # Initialize Flask app and detector
 app = Flask(__name__)
 
-# Configure CORS to allow frontend access
+# Configure CORS to allow all origins (temporary fix)
 CORS(app, 
-     origins=["https://wingit-frontend.onrender.com", "http://localhost:3000", "https://wingit-backend-s1gb.onrender.com"],
+     origins="*",
      methods=["GET", "POST", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization", "Accept"],
-     supports_credentials=True)
+     supports_credentials=False)
 
 # Initialize detector ONLY ONCE - this is critical!
 detector = None
@@ -440,16 +432,17 @@ def get_detector():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Enhanced health check endpoint - memory optimized"""
+    """Enhanced health check endpoint"""
     detector = get_detector()
     
     response = {
         'status': 'healthy',
-        'model_loaded': 'on-demand',
-        'model_status': 'ready',
+        'model_loaded': detector.is_ready(),
+        'model_status': 'ready' if detector.is_ready() else ('loading' if detector.loading_in_progress else 'error'),
         'model_type': 'phobert_trained',
         'device': str(detector.device),
-        'memory_mode': 'optimized',
+        'memory_mode': 'persistent',
+        'loading_error': detector.loading_error,
         'timestamp': time.time()
     }
     
@@ -501,6 +494,7 @@ def model_info():
         'labels': detector.config.LABELS,
         'confidence_threshold': detector.config.CONFIDENCE_THRESHOLD,
         'model_loaded': detector.is_ready(),
+        'memory_mode': 'persistent',
         'device': str(detector.device)
     })
 
@@ -508,12 +502,10 @@ if __name__ == '__main__':
     print("🚀 Starting Vietnamese Profanity Detection Server")
     print("📱 Model: Your Trained PhoBERT Model")
     print("🔧 Mode: Production")
-    print("⚳ Memory-optimized for Render free tier")
+    print("⚡ Persistent model for fast responses")
     print("=" * 60)
     
-    # For Render free tier (512MB), load model on-demand to save memory
-    # This is a compromise between memory usage and response time
-    logger.info("Server starting in memory-optimized mode for Render free tier")
-    logger.info("Model will load on first request to conserve memory")
+    logger.info("Server starting in persistent mode - model will stay loaded")
+    logger.info("Model loading will begin in background thread")
     
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

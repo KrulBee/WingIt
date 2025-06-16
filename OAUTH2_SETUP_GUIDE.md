@@ -20,7 +20,7 @@ OAUTH2_REDIRECT_URI=https://your-backend-url.onrender.com/login/oauth2/code/goog
 # Service URLs
 BACKEND_URL=https://your-backend-url.onrender.com
 FRONTEND_URL=https://your-frontend-url.onrender.com
-PROFANITY_DETECTION_URL=https://wingit-ai.onrender.com
+PROFANITY_DETECTION_URL=http://YOUR_LOCAL_IP:5000
 
 # Cloudinary (Image Storage)
 CLOUDINARY_CLOUD_NAME=your-cloudinary-name

@@ -1,745 +1,1271 @@
-# WingIt Social Media Platform - Sequence Diagram Generation Prompt
-
-## System Overview
-WingIt is a comprehensive social media platform built with modern technology stack:
-- **Backend**: Spring Boot + MySQL with JWT authentication and OAuth2 integration
-- **Frontend**: Next.js + TypeScript with real-time WebSocket communication
-- **Database**: MySQL with 20+ interconnected tables
-- **Real-time Features**: WebSocket for messaging, notifications, and live updates
-
-## Core System Architecture
-
-### Backend Components
-- **Controllers**: AuthController, UserController, PostController, CommentController, FriendController, ChatRoomController, NotificationController
-- **Services**: UserService, PostService, CommentService, FriendService, NotificationService, ChatRoomService
-- **Entities**: User, Post, Comment, Friend, Message, Notification, PostReaction, CommentReaction
-- **Security**: JWT + OAuth2 (Google login) with Spring Security
-
-### Frontend Components
-- **Services**: AuthService, PostService, CommentService, ChatService, UserService, FriendService, NotificationService
-- **Components**: Feed, Post, CommentSection, FriendChatModal, RealTimeNotification
-- **Real-time**: WebSocket integration for live updates
-
-### Database Schema (Key Tables)
-- **Users**: user, user_data, user_settings
-- **Social**: posts, comments, comment_replies, friends, friend_requests, follows, block
-- **Engagement**: post_reactions, comment_reactions, bookmarks, post_views
-- **Communication**: chat_room, room_user, messages
-- **System**: notifications, location, post_type, reaction_type, request_status
-
-## Key User Flows for Sequence Diagrams
-
-### 1. Authentication Flow
-**Actors**: User, Frontend (Next.js), AuthController, UserService, JWT Service, Database
-**Scenarios**:
-- Regular login with username/password
-- OAuth2 Google login
-- JWT token validation and refresh
-- User registration with email verification
-
-### 2. Post Management Flow
-**Actors**: User, Frontend, PostController, PostService, NotificationService, Database, WebSocket
-**Scenarios**:
-- Create new post with media upload
-- View post feed with pagination
-- React to posts (like/dislike)
-- Bookmark posts
-- View post analytics and statistics
-
-### 3. Comment System Flow
-**Actors**: User, Frontend, CommentController, CommentService, NotificationService, Database
-**Scenarios**:
-- Add comment to post
-- Reply to existing comment
-- React to comments
-- Nested comment replies handling
-- Real-time comment updates
-
-### 4. Friend System Flow
-**Actors**: User, Frontend, FriendController, FriendService, NotificationService, Database
-**Scenarios**:
-- Send friend request
-- Accept/reject friend request
-- View friends list
-- Block/unblock users
-- Follow/unfollow users
-
-### 5. Real-time Chat Flow
-**Actors**: User, Frontend, ChatRoomController, ChatRoomService, WebSocket, Database
-**Scenarios**:
-- Create chat room (1-on-1 or group)
-- Send/receive messages in real-time
-- Join/leave chat rooms
-- Typing indicators
-- Message history retrieval
-
-### 6. Notification System Flow
-**Actors**: System, NotificationController, NotificationService, WebSocket, Database, Frontend
-**Scenarios**:
-- Generate notifications (friend request, comment, reaction)
-- Real-time notification delivery via WebSocket
-- Mark notifications as read
-- Notification preferences management
-
-### 7. Content Moderation Flow
-**Actors**: Admin, User, Frontend, AdminController, PostService, CommentService, Database
-**Scenarios**:
-- Report inappropriate content
-- Admin content review and moderation
-- Content approval/rejection
-- User account management
-
-## Technical Integration Points
-
-### API Communication
-- RESTful endpoints for CRUD operations
-- JWT authentication headers
-- Request/response data transformation
-- Error handling and validation
-
-### Real-time Features
-- WebSocket connection establishment
-- Real-time message broadcasting
-- Live notification delivery
-- Online status tracking
-
-### Database Interactions
-- Complex JOIN operations across multiple tables
-- Transaction management for data consistency
-- Indexing for performance optimization
-- Foreign key constraint enforcement
-
-## Sequence Diagram Creation Instructions
-
-When creating sequence diagrams for WingIt, please:
-
-1. **Choose specific user flow** from the scenarios above
-2. **Include all relevant actors** (User, Frontend components, Backend controllers/services, Database, WebSocket when applicable)
-3. **Show complete request/response cycle** including:
-   - Frontend service calls
-   - Controller endpoint handling
-   - Service layer business logic
-   - Database operations
-   - Response data flow back to frontend
-   - Real-time updates via WebSocket (when applicable)
-
-4. **Include error handling scenarios** such as:
-   - Authentication failures
-   - Validation errors
-   - Database constraint violations
-   - Network connectivity issues
-
-5. **Show data transformation** at each layer:
-   - Frontend form data → API request
-   - API response → Database entity
-   - Database result → Frontend display format
-
-6. **Highlight security checks**:
-   - JWT token validation
-   - User authorization for actions
-   - Data access permissions
-
-7. **Include notification triggers** where relevant:
-   - When notifications are generated
-   - How they're delivered in real-time
-   - Update UI components
-
-## Example Prompt for Specific Flow
-
-**"Create a sequence diagram for the 'User Creates Post with Image' flow in WingIt social media platform. Include the following actors: User, CreatePostForm (Frontend), PostService (Frontend), PostController (Backend), PostService (Backend), NotificationService, Database, and WebSocket. Show the complete flow from user uploading image and entering post content, through backend processing, database storage, friend notification generation, and real-time feed updates. Include error handling for image upload failures and authentication validation."**
-
-## Sample Data Models for Reference
-
-### User Entity
-```
-User: id, username, email, provider, provider_id, role_id
-UserData: user_id, display_name, bio, profile_picture, date_of_birth
-UserSettings: user_id, privacy_level, show_online_status
-```
-
-### Post Entity
-```
-Post: id, user_id, content, created_date, type, location_id
-PostMedia: id, post_id, media_url, media_type
-PostReaction: id, post_id, user_id, react_type, timestamp
-```
-
-### Comment Entity
-```
-Comment: id, user_id, text, created_date, post_id, is_reply
-CommentReply: id, root_comment_id, reply_id
-CommentReaction: id, comment_id, user_id, react_type
-```
-
-This prompt provides comprehensive context for generating detailed and accurate sequence diagrams for any user flow within the WingIt social media platform.
-
----
-
-## READY-TO-USE SEQUENCE DIAGRAM PROMPTS
-
-### 1. User Creates Post Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "User Creates New Post" flow in WingIt social media platform.
-
-**Actors:**
-- User (browser)
-- CreatePostForm (Frontend Component)
-- PostService (Frontend Service)
-- PostController (Spring Boot Controller)
-- PostService (Backend Service)
-- NotificationService (Backend Service)
-- Database (MySQL)
-- WebSocket (Real-time updates)
-
-**Flow Description:**
-1. User fills out post form (content, image upload, location)
-2. Frontend validates input and calls API
-3. Backend processes request with JWT authentication
-4. Save post to database with media handling
-5. Generate notifications for user's friends
-6. Broadcast new post via WebSocket to online friends
-7. Return success response and update UI
-
-**Include:**
-- Error handling for authentication, validation, and upload failures
-- Image upload and processing steps
-- Real-time notification delivery
-- Database transaction management
-- JWT token validation
-
-**Format:** Use Mermaid sequenceDiagram syntax with proper actor naming and detailed step descriptions.
-```
-
-### 2. Friend Request Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "Send Friend Request" flow in WingIt social media platform.
-
-**Actors:**
-- User A (Sender)
-- User B (Receiver)
-- FriendService (Frontend)
-- FriendController (Backend)
-- FriendService (Backend)
-- NotificationService (Backend)
-- Database (MySQL)
-- WebSocket (Real-time)
-
-**Flow Description:**
-1. User A clicks "Add Friend" on User B's profile
-2. Frontend sends friend request via API
-3. Backend validates users exist and aren't already friends
-4. Create friend_request record in database
-5. Generate notification for User B
-6. Send real-time notification via WebSocket
-7. Update User A's UI with "Request Sent" status
-8. User B receives notification and can accept/reject
-
-**Include:**
-- Duplicate request prevention
-- Privacy settings validation
-- Block status checking
-- Real-time notification delivery
-- Error handling for various edge cases
-
-**Format:** Use Mermaid sequenceDiagram syntax with clear actor interactions.
-```
-
-### 3. Real-time Chat Message Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "Send Real-time Chat Message" flow in WingIt social media platform.
-
-**Actors:**
-- User A (Sender)
-- User B (Receiver)
-- ChatService (Frontend)
-- WebSocket Client (Frontend)
-- WebSocket Server (Backend)
-- ChatRoomController (Backend)
-- ChatRoomService (Backend)
-- Database (MySQL)
-
-**Flow Description:**
-1. User A types message in chat interface
-2. Frontend sends message via WebSocket connection
-3. Backend receives message and validates user authentication
-4. Save message to database with timestamp
-5. Broadcast message to all chat room participants
-6. User B receives message in real-time
-7. Update message status to "delivered"
-8. Show typing indicators and online status
-
-**Include:**
-- WebSocket connection establishment
-- Message persistence
-- Typing indicators
-- Online status tracking
-- Message delivery confirmation
-- Error handling for connection issues
-
-**Format:** Use Mermaid sequenceDiagram syntax with WebSocket communication patterns.
-```
-
-### 4. User Login with JWT Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "User Login Authentication" flow in WingIt social media platform.
-
-**Actors:**
-- User (browser)
-- LoginForm (Frontend Component)
-- AuthService (Frontend Service)
-- AuthController (Spring Boot Controller)
-- UserService (Backend Service)
-- JWT Service (Backend Service)
-- Database (MySQL)
-- SecurityFilter (Spring Security)
-
-**Flow Description:**
-1. User enters username/password and submits login form
-2. Frontend validates input and calls login API
-3. Backend authenticates credentials against database
-4. Generate JWT access token and refresh token
-5. Return tokens to frontend
-6. Store tokens in secure storage
-7. Redirect to main feed page
-8. Subsequent requests include JWT in Authorization header
-
-**Include:**
-- Password hashing and verification
-- JWT token generation and validation
-- Refresh token mechanism
-- Security filter authentication
-- Error handling for invalid credentials
-- Session management
-
-**Format:** Use Mermaid sequenceDiagram syntax with security flow details.
-```
-
-### 5. Comment with Nested Replies Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "Add Comment with Nested Replies" flow in WingIt social media platform.
-
-**Actors:**
-- User (commenter)
-- CommentSection (Frontend Component)
-- CommentService (Frontend Service)
-- CommentController (Spring Boot Controller)
-- CommentService (Backend Service)
-- NotificationService (Backend Service)
-- Database (MySQL)
-- WebSocket (Real-time updates)
-
-**Flow Description:**
-1. User clicks "Reply" on existing comment or post
-2. User types comment text and submits
-3. Frontend determines if it's root comment or reply
-4. Backend processes comment with proper parent-child relationship
-5. Save comment/reply to database with threading structure
-6. Generate notification for original poster/commenter
-7. Broadcast new comment via WebSocket
-8. Update comment section UI with new comment
-9. Handle nested reply structure display
-
-**Include:**
-- Comment threading and hierarchy
-- Notification generation for multiple users
-- Real-time comment updates
-- Comment validation and moderation
-- Database relationship management
-- UI update for nested structure
-
-**Format:** Use Mermaid sequenceDiagram syntax showing the comment hierarchy handling.
-```
-
-### 6. OAuth2 Google Login with Setup Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "OAuth2 Google Login with Profile Setup" flow in WingIt social media platform.
-
-**Actors:**
-- User (browser)
-- LoginPage (Frontend Component)
-- Google OAuth2 Server
-- OAuth2AuthenticationSuccessHandler (Backend)
-- GoogleOAuth2UserService (Backend Service)
-- TempOAuth2UserService (Backend Service)
-- UserService (Backend Service)
-- JWT Service (Backend Service)
-- Database (MySQL)
-- SetupProfilePage (Frontend Component)
-
-**Flow Description:**
-1. User clicks "Login with Google" button
-2. Redirect to Google OAuth2 authorization server
-3. User authenticates with Google and grants permissions
-4. Google redirects back with authorization code
-5. Backend exchanges code for access token with Google
-6. Fetch user profile information from Google API
-7. Check if user exists in database by Google ID
-8. If new user: store temporarily and redirect to profile setup
-9. If existing user: generate JWT tokens and complete login
-10. Complete profile setup for new users and finalize registration
-
-**Include:**
-- OAuth2 authorization code flow
-- Temporary user storage mechanism
-- Profile setup validation
-- JWT token generation after setup
-- Error handling for OAuth2 failures
-- Google API integration
-- User data mapping and validation
-
-**Format:** Use Mermaid sequenceDiagram syntax with OAuth2 flow details.
-```
-
-### 7. AI Content Moderation Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "AI-Powered Content Moderation" flow in WingIt social media platform.
-
-**Actors:**
-- User (content creator)
-- PostService/CommentService (Backend)
-- AIContentModerationService (Backend Service)
-- AI Server (Python Flask with PhoBERT)
-- Database (MySQL)
-- AdminNotificationService (Backend Service)
-- WebSocket (Real-time alerts)
-
-**Flow Description:**
-1. User submits post or comment content
-2. Backend triggers AI content moderation check
-3. Send content to AI server for analysis
-4. AI server processes text using PhoBERT model for Vietnamese
-5. Return moderation result with confidence score and action
-6. Based on AI decision: ALLOW, FLAG, REVIEW, or BLOCK content
-7. If flagged/blocked: prevent publication and log incident
-8. If needs review: queue for admin approval
-9. Generate admin notifications for flagged content
-10. Update content status and notify user if blocked
-
-**Include:**
-- PhoBERT model integration for Vietnamese text
-- Confidence scoring and threshold management
-- Multi-level moderation actions
-- Admin notification system
-- Content queuing for manual review
-- Real-time admin alerts
-- Error handling for AI server downtime
-
-**Format:** Use Mermaid sequenceDiagram syntax with AI integration patterns.
-```
-
-### 8. Password Reset Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "Password Reset with Email Verification" flow in WingIt social media platform.
-
-**Actors:**
-- User (browser)
-- ForgotPasswordModal (Frontend Component)
-- ResetPasswordPage (Frontend Component)
-- AuthController (Backend Controller)
-- PasswordResetService (Backend Service)
-- EmailService (Backend Service)
-- Database (MySQL)
-- Email Server (SMTP)
-
-**Flow Description:**
-1. User clicks "Forgot Password" and enters email
-2. Frontend calls password reset request API
-3. Backend validates email exists in system
-4. Generate secure reset token with expiration
-5. Save reset token to database
-6. Send HTML email with reset link containing token
-7. User receives email and clicks reset link
-8. Frontend validates token and shows reset form
-9. User enters new password and confirms
-10. Backend validates token, updates password, and invalidates token
-
-**Include:**
-- Secure token generation and validation
-- Token expiration handling
-- Email template and HTML content
-- Password strength validation
-- Token invalidation after use
-- Error handling for expired/invalid tokens
-- SMTP email delivery confirmation
-
-**Format:** Use Mermaid sequenceDiagram syntax with security token flow.
-```
-
-### 9. Bookmark Management Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "Bookmark Post Management" flow in WingIt social media platform.
-
-**Actors:**
-- User (browser)
-- Post Component (Frontend)
-- BookmarksPage (Frontend Component)
-- BookmarkService (Frontend Service)
-- BookmarkController (Backend Controller)
-- BookmarkService (Backend Service)
-- Database (MySQL)
-- NotificationService (Backend Service)
-
-**Flow Description:**
-1. User clicks bookmark icon on post
-2. Frontend determines current bookmark status
-3. Call API to add/remove bookmark
-4. Backend validates user authentication and post existence
-5. Toggle bookmark status in database
-6. Update bookmark collections if specified
-7. Generate notification for post author (optional)
-8. Return updated bookmark status
-9. Update UI with new bookmark state
-10. Sync bookmarks page with latest changes
-
-**Include:**
-- Bookmark status toggle functionality
-- Collection-based bookmark organization
-- Bulk bookmark operations
-- Bookmark analytics and statistics
-- Privacy settings for bookmarks
-- Error handling for non-existent posts
-- Real-time UI updates
-
-**Format:** Use Mermaid sequenceDiagram syntax with state management patterns.
-```
-
-### 10. User Block/Unblock Flow (Complete)
-```
-Create a detailed sequence diagram using Mermaid syntax for the "User Block and Unblock Management" flow in WingIt social media platform.
-
-**Actors:**
-- User A (blocker)
-- User B (blocked user)
-- UserProfile (Frontend Component)
-- BlockService (Frontend Service)
-- UserController (Backend Controller)
-- BlockService (Backend Service)
-- FriendService (Backend Service)
-- Database (MySQL)
-- NotificationService (Backend Service)
-
-**Flow Description:**
-1. User A clicks "Block User" on User B's profile
-2. Frontend confirms action with user
-3. Call block user API endpoint
-4. Backend validates both users exist
-5. Create block relationship in database
-6. Remove existing friendship if present
-7. Cancel pending friend requests between users
-8. Update privacy restrictions for blocked user
-9. Hide User B's content from User A's feeds
-10. Return success and update UI restrictions
-
-**Include:**
-- Block relationship creation and management
-- Friendship removal upon blocking
-- Content filtering and privacy enforcement
-- Reverse block detection (mutual blocking)
-- Unblock process and relationship restoration
-- Admin override capabilities
-- Error handling for self-blocking attempts
-
-**Format:** Use Mermaid sequenceDiagram syntax with relationship management patterns.
-```
-
----
-
-## HOW TO USE THESE PROMPTS
-
-1. **Copy any prompt above** and paste it into your sequence diagram generation tool (ChatGPT, Claude, etc.)
-2. **The tool will generate** complete Mermaid sequence diagram code
-3. **Paste the Mermaid code** into any Mermaid editor (mermaid.live, VS Code extension, etc.)
-4. **Customize as needed** - modify actors, add/remove steps, adjust error handling
-
-Each prompt is designed to generate a complete, production-ready sequence diagram that accurately represents the WingIt system architecture and data flows.
-
----
-
-## READY-TO-USE ACTIVITY DIAGRAM PROMPTS
-
-### 1. User Registration Flow
-```
-Create a Mermaid activity diagram for "User Registration" in WingIt:
-
-**Main Flow:**
-Start → Choose method (Email/Google) → Validate credentials → Email verification → Profile setup → Complete registration → End
-
-**Key Decisions:**
-- Registration method?
-- Email valid?
-- Profile complete?
-
-**Format:** Use Mermaid flowchart with decision diamonds and process rectangles.
-```
-
-### 2. Create Post Flow
-```
-Create a Mermaid activity diagram for "Create Post" in WingIt:
-
-**Main Flow:**
-Start → Compose content → Upload media → Set privacy → AI moderation → Publish/Queue for review → Notify friends → End
-
-**Key Decisions:**
-- Include media?
-- Privacy level?
-- AI approval?
-
-**Format:** Use Mermaid flowchart with parallel processes.
-```
-
-### 3. Friend Request Flow
-```
-Create a Mermaid activity diagram for "Friend Request" in WingIt:
-
-**Main Flow:**
-Start → Find user → Send request → Validate users → Create request → Notify receiver → Update UI → End
-
-**Key Decisions:**
-- Users exist?
-- Already friends?
-- Not blocked?
-
-**Format:** Use Mermaid flowchart with validation checks.
-```
-
-### 4. Real-time Chat Flow
-```
-Create a Mermaid activity diagram for "Real-time Chat" in WingIt:
-
-**Main Flow:**
-Start → Connect WebSocket → Join room → Send message → Validate → Deliver → Update status → End
-
-**Key Decisions:**
-- Connection OK?
-- Permission granted?
-- Message valid?
-
-**Format:** Use Mermaid flowchart with real-time emphasis.
-```
-
-### 5. Content Feed Flow
-```
-Create a Mermaid activity diagram for "Content Feed" in WingIt:
-
-**Main Flow:**
-Start → Load preferences → Filter by location → Rank content → Compose feed → Display → Track engagement → End
-
-**Key Decisions:**
-- Location filter on?
-- Content available?
-- More content?
-
-**Format:** Use Mermaid flowchart with data processing flow.
-```
-
-### 6. Content Moderation Flow
-```
-Create a Mermaid activity diagram for "Content Moderation" in WingIt:
-
-**Main Flow:**
-Start → AI analysis → Risk scoring → Auto-approve/Flag/Block → Human review (if needed) → Final decision → End
-
-**Key Decisions:**
-- Risk level?
-- Need human review?
-- Appeal valid?
-
-**Format:** Use Mermaid flowchart with AI and human review lanes.
-```
-
-### 7. User Login Flow
-```
-Create a Mermaid activity diagram for "User Login" in WingIt:
-
-**Main Flow:**
-Start → Enter credentials → Validate → Generate JWT → Store tokens → Redirect to feed → End
-
-**Key Decisions:**
-- Credentials valid?
-- Account active?
-- Need 2FA?
-
-**Format:** Use Mermaid flowchart with security checkpoints.
-```
-
-### 8. Notification Flow
-```
-Create a Mermaid activity diagram for "Notification System" in WingIt:
-
-**Main Flow:**
-Start → Event trigger → Check preferences → Format message → Choose channel → Send → Track delivery → End
-
-**Key Decisions:**
-- User preferences?
-- Delivery method?
-- Retry needed?
-
-**Format:** Use Mermaid flowchart with multi-channel delivery.
-```
-
-### 9. Bookmark Management Flow
-```
-Create a Mermaid activity diagram for "Bookmark Management" in WingIt:
-
-**Main Flow:**
-Start → Click bookmark → Check status → Toggle bookmark → Update database → Sync UI → End
-
-**Key Decisions:**
-- Currently bookmarked?
-- Post exists?
-- Collection specified?
-
-**Format:** Use Mermaid flowchart with state management.
-```
-
-### 10. User Block Flow
-```
-Create a Mermaid activity diagram for "User Block" in WingIt:
-
-**Main Flow:**
-Start → Confirm block → Validate users → Create block → Remove friendship → Hide content → Update UI → End
-
-**Key Decisions:**
-- Confirm action?
-- Users exist?
-- Currently friends?
-
-**Format:** Use Mermaid flowchart with relationship management.
-```
-
----
-
-## ACTIVITY DIAGRAM USAGE INSTRUCTIONS
-
-### For Activity Diagrams:
-1. **Copy any activity diagram prompt** from the section above
-2. **Paste into your diagram generation tool** (ChatGPT, Claude, etc.)
-3. **The tool will generate** complete Mermaid flowchart code
-4. **Use these Mermaid editors:**
-   - mermaid.live (online editor)
-   - VS Code Mermaid extension
-   - GitHub/GitLab (native support)
-   - Draw.io (with Mermaid plugin)
-
-### Key Differences from Sequence Diagrams:
-- **Activity Diagrams** focus on **business processes and workflows**
-- **Sequence Diagrams** focus on **technical interactions between systems**
-- **Activity Diagrams** show **decision points and parallel processes**
-- **Sequence Diagrams** show **chronological message exchanges**
-
-### When to Use Each:
-- **Use Activity Diagrams for:**
-  - Business process documentation
-  - User journey mapping
-  - Workflow optimization
-  - Stakeholder communication
-  - Requirements gathering
-
-- **Use Sequence Diagrams for:**
-  - Technical system design
-  - API interaction documentation
-  - Debugging and troubleshooting
-  - Developer onboarding
-  - System integration planning
-
-Both diagram types complement each other and provide comprehensive system documentation for the WingIt social media platform.
+2025-06-16T13:21:45.381458854Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.384525872Z Hibernate: select count(cr1_0.id) from comment_reactions cr1_0 where cr1_0.comment_id=? and cr1_0.react_type=?
+2025-06-16T13:21:45.485087808Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:45.515710699Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:45.546100535Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.583402662Z Hibernate: select cr1_0.id,cr1_0.comment_id,cr1_0.react_type,cr1_0.timestamp,cr1_0.user_id from comment_reactions cr1_0 left join comments c1_0 on c1_0.id=cr1_0.comment_id left join users u1_0 on u1_0.id=cr1_0.user_id where c1_0.id=? and u1_0.id=?
+2025-06-16T13:21:45.684311245Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:45.782414664Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:45.783529415Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:45.783543666Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:45.882742135Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:45.908641037Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:45.910644624Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:45.911079573Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:45.912428818Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.935126479Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.939079014Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.981666451Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:45.982192591Z Hibernate: select count(cr1_0.id) from comment_reactions cr1_0 where cr1_0.comment_id=? and cr1_0.react_type=?
+2025-06-16T13:21:45.982588718Z Hibernate: select count(cr1_0.id) from comment_reactions cr1_0 where cr1_0.comment_id=? and cr1_0.react_type=?
+2025-06-16T13:21:46.014476963Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:46.083529231Z Hibernate: select count(cr1_0.id) from comment_reactions cr1_0 where cr1_0.comment_id=? and cr1_0.react_type=?
+2025-06-16T13:21:46.115006098Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:46.144856194Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:46.185996434Z Hibernate: select cr1_0.id,cr1_0.comment_id,cr1_0.react_type,cr1_0.timestamp,cr1_0.user_id from comment_reactions cr1_0 left join comments c1_0 on c1_0.id=cr1_0.comment_id left join users u1_0 on u1_0.id=cr1_0.user_id where c1_0.id=? and u1_0.id=?
+2025-06-16T13:21:49.091345452Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:49.181627753Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:49.281750021Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:49.482825882Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:21:49.509898485Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:21:49.541975453Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:21:49.56926827Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:21:59.851989848Z ==> Detected service running on port 8080
+2025-06-16T13:21:59.931367889Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-06-16T13:22:02.397082178Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:02.452183942Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:02.480976188Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:02.516119594Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:02.544345129Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:02.570854271Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:02.599750509Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:22:02.632040781Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:02.658952911Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:02.687651325Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:02.71589229Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:02.745262987Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:22:02.775961339Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:02.803772186Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:02.831408639Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:22:02.8583199Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:22:27.138864689Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:27.225026472Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:27.264985939Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:27.364817571Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:27.399909816Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:27.432455963Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:27.500174207Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:22:27.533638141Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:27.580669532Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:27.659998776Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:27.713273766Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:27.749785427Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:22:27.782926826Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:27.815176367Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:27.856534411Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:22:27.951955159Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:22:57.175933052Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:57.23810399Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:57.269328222Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:57.302693734Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:22:57.3341453Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:22:57.364415294Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:22:57.396931Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:22:57.430467706Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:57.463313438Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:57.49557083Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:57.529043354Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:22:57.564605848Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:22:57.617811906Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:57.682163236Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:22:57.713624332Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:22:57.781789784Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:23:12.573316424Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:12.6442987Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:12.674853589Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:12.706830815Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:12.736734632Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:12.767071246Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:12.79735443Z Hibernate: select pt1_0.id,pt1_0.type_name from post_type pt1_0 where pt1_0.id=?
+2025-06-16T13:23:12.858598551Z Hibernate: select l1_0.id,l1_0.location from location l1_0 where l1_0.id=?
+2025-06-16T13:23:27.156311816Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:27.161240459Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:27.235793452Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:27.238369381Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:27.27894249Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:27.283127849Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:27.322292141Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:23:27.323536085Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:27.414283845Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:27.455343333Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:27.489769746Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:23:27.530762382Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:27.563396931Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:27.590434963Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:27.618678748Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:27.654563358Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:23:27.7184846Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:23:27.77126767Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:23:27.799175249Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:23:27.826389505Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:23:57.204159406Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:57.295562228Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:57.324265122Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:57.364149898Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:23:57.393021585Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:23:57.421739659Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:23:57.452212237Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:23:57.487808402Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:57.518956282Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:57.548978091Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:57.580334965Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:23:57.61277115Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:23:57.642949611Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:23:57.67404048Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:23:57.703717553Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:23:57.734411115Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:02.111988791Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:02.186215068Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:02.213976324Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:02.2465159Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:02.277193312Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:02.307405834Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:02.340302698Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:02.371862016Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:02.410546149Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:02.435718736Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:02.468767122Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:02.500932561Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:25:02.532373797Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:02.56363076Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:02.594427833Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:25:02.681761158Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:27.501204744Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:27.566012732Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:27.595791307Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:27.626253074Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:27.653715305Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:27.682737284Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:27.713955786Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:27.741768623Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:27.768969088Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:27.803732507Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:27.831720777Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:27.859518064Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:25:27.918669625Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:27.956805777Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:27.992506384Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:25:28.020525305Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:57.127806429Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:57.184499444Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:57.211058147Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:57.241005545Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:25:57.268600157Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:25:57.295346944Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:25:57.323279563Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:25:57.353071678Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:57.380073539Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:57.409616529Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:57.437069239Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:25:57.465729592Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:25:57.492984969Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:57.520029361Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:25:57.548270826Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:25:57.576138314Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:26:27.564289418Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:26:27.641887508Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:26:27.670525741Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:26:27.707479561Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:26:27.753842319Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:26:27.792030263Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:26:27.838489643Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:26:27.872325164Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:26:27.918933107Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:26:27.952476723Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:26:28.023740583Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:26:28.06208852Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:26:28.100035598Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:26:28.140182369Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:26:28.19192946Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:26:28.23732808Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:27:15.564208868Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:27:15.629829031Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:27:15.662070922Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:27:15.718817487Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:27:15.750596839Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:27:15.85254914Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:27:15.902509247Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:27:15.922549586Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:27:15.955353818Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:27:15.98925036Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:27:16.02088464Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:27:16.061223214Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:27:16.095766878Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:27:16.132922062Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:27:16.168294172Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:27:16.19931721Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:28:15.17543211Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:28:15.228275951Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:28:15.25671856Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:28:15.285082867Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:28:15.31111135Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:28:15.336713615Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:28:15.363766197Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:28:15.393774676Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:28:15.419987393Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:28:15.446665948Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:28:15.473817222Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:28:15.500303224Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:28:15.52646772Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:28:15.556252294Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:28:15.58505296Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:28:15.611373278Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:28:27.526321466Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:28:27.586049837Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:28:27.615526566Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:28:27.646601325Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:29:15.181214299Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:29:15.234974827Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:29:15.260820997Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:29:15.29053848Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:29:15.317689785Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:29:15.343466703Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:29:15.375483729Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:29:15.399229539Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:29:15.42566765Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:29:15.451748124Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:29:15.480843035Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:29:15.507232625Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:29:15.53390909Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:29:15.561519683Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:29:15.587799861Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:29:15.614022998Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:30:15.279676948Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:30:15.343967526Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:30:15.371198951Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:30:15.401124428Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:30:15.427916916Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:30:15.454887416Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:30:15.48198928Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:30:15.509122814Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:30:15.536237027Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:30:15.564627835Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:30:15.600984294Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:30:15.628603397Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:30:15.660619413Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:30:15.692302153Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:30:15.740140679Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:30:15.771969813Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:31:15.567699Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:31:15.631679742Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:31:15.661276002Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:31:15.692915812Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:31:15.722664075Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:31:15.755994187Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:31:15.791314205Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:31:15.821690101Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:31:15.851054907Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:31:15.880428083Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:31:15.90982407Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:31:15.939587594Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:31:15.969898818Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:31:15.999764233Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:31:16.031355562Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:31:16.060719258Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:32:15.573607127Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:32:15.632987331Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:32:15.662759295Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:32:15.69576592Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:32:15.725365831Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:32:15.75490284Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:32:15.786208673Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:32:15.818151908Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:32:15.851372317Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:32:15.880158032Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:32:15.910608859Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:32:15.941133657Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:32:15.971418671Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:32:16.000835258Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:32:16.030789375Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:32:16.060201882Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:33:15.647824292Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:33:15.71161878Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:33:15.74114691Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:33:15.774625404Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:33:15.802718806Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:33:15.830805837Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:33:15.863085549Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:33:15.892785201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:33:15.920639879Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:33:15.948671389Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:33:15.981356688Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:33:16.010784806Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:33:16.0389784Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:33:16.06805166Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:33:16.098259322Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:33:16.126590999Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:33:27.131216634Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:33:27.212267269Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:33:27.263739063Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:33:27.300799035Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:34:15.198487384Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:15.257654734Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:15.2869984Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:15.337635759Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:15.367843301Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:15.397426541Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:15.429015159Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:34:15.461706668Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:15.492800317Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:15.522565141Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:15.552996157Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:15.585253077Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:34:15.617303744Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:34:15.647387864Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:34:15.677379992Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:34:15.707822318Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:34:20.643247474Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:20.697563653Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:20.724944141Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:20.755209125Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:20.782376859Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:20.809981172Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:20.837177517Z Hibernate: select pt1_0.id,pt1_0.type_name from post_type pt1_0 where pt1_0.id=?
+2025-06-16T13:34:20.896181284Z Hibernate: select l1_0.id,l1_0.location from location l1_0 where l1_0.id=?
+2025-06-16T13:34:26.957583041Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:27.015960216Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:27.043565799Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:27.074026986Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:27.104142746Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:27.134023852Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:27.163738554Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:34:27.193268783Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:27.221354015Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:27.249238943Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:27.281228699Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:34:27.320237998Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:34:27.351578991Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:34:27.380624371Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:34:27.408850306Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:34:27.441511654Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:34:49.805494913Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:49.857811224Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:49.88349215Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:49.913365276Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:34:49.939556852Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:34:49.965019994Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:34:49.991500335Z Hibernate: select pt1_0.id,pt1_0.type_name from post_type pt1_0 where pt1_0.id=?
+2025-06-16T13:34:50.046435806Z Hibernate: select l1_0.id,l1_0.location from location l1_0 where l1_0.id=?
+2025-06-16T13:35:42.019200894Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:35:42.070867862Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:35:42.096850254Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:35:42.124465137Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:35:42.150046071Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:35:42.175792849Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:35:42.206829186Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:35:42.235848386Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:42.262275746Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:42.289160555Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:42.316603704Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:42.344940911Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:35:42.371565015Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:35:42.39771016Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:35:42.427112337Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:35:42.45949362Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:35:57.517122607Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:35:57.580401136Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:35:57.609741561Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:35:57.641126655Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:35:57.670268597Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:35:57.699629633Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:35:57.730508747Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:35:57.760929683Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:57.79135425Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:57.824528458Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:57.91338739Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:35:57.982177283Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:35:58.012397085Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:35:58.042177439Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:35:58.071711028Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:35:58.102178915Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:36:27.153466091Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:36:27.273538534Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:36:27.344985547Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:36:27.385945263Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:36:27.414681387Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:36:27.443841759Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:36:27.475256164Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:36:27.509034483Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:36:27.571845742Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:36:27.603150155Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:36:27.63565791Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:36:27.668187976Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:36:27.698297816Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:36:27.727584311Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:36:27.757852544Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:36:27.801764705Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:15.550763859Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:15.604774332Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:15.631792364Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:15.66327476Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:15.689100269Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:15.716064279Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:15.744334744Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:15.778508581Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:15.805645365Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:15.835895008Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:15.866298493Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:15.893741693Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:37:15.920576181Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:15.946685355Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:15.972967393Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:37:16.00030214Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:47.167738867Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:47.219939315Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:47.245811575Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:47.275059828Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:47.313127659Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:47.332858023Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:47.361215019Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:47.388373564Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:47.414431447Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:47.440781866Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:47.46793886Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:47.494431021Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:37:47.521156898Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:47.547593618Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:47.584992716Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:37:47.601361496Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:56.977726401Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:57.040276075Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:57.070511887Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:57.103862699Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:57.136963665Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:57.166095657Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:57.196990502Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:57.228639541Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:57.259707249Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:57.28936468Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:57.319347528Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:37:57.350512878Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:37:57.382905991Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:57.417615968Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:37:57.448701127Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:37:57.479607152Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:37:57.629107332Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:57.685149003Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:57.71194505Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:57.74150126Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:37:57.769174224Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:37:57.798838425Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:37:57.826488879Z Hibernate: select pt1_0.id,pt1_0.type_name from post_type pt1_0 where pt1_0.id=?
+2025-06-16T13:37:57.981881891Z Hibernate: select l1_0.id,l1_0.location from location l1_0 where l1_0.id=?
+2025-06-16T13:37:59.419847222Z Hibernate: insert into posts (content,created_date,location_id,type,updated_at,user_id) values (?,?,?,?,?,?)
+2025-06-16T13:37:59.477052905Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:37:59.50370139Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:37:59.531605098Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:37:59.558277193Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:37:59.586485237Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:37:59.641492989Z Hibernate: select f1_0.follower_id from follows f1_0 where f1_0.following_id=?
+2025-06-16T13:37:59.671017928Z Hibernate: insert into notifications (actor_user_id,comment_id,content,created_at,post_id,read_status,recipient_user_id,type) values (?,?,?,?,?,?,?,?)
+2025-06-16T13:37:59.731211887Z Hibernate: insert into notifications (actor_user_id,comment_id,content,created_at,post_id,read_status,recipient_user_id,type) values (?,?,?,?,?,?,?,?)
+2025-06-16T13:38:00.299683669Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:00.327564066Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:00.352332715Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:00.380811474Z === AUTH DEBUG /me endpoint ===
+2025-06-16T13:38:00.380832955Z Authentication: UsernamePasswordAuthenticationToken [Principal=org.springframework.security.core.userdetails.User [Username=hole, Password=[PROTECTED], Enabled=true, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, Granted Authorities=[ROLE_user]], Credentials=[PROTECTED], Authenticated=true, Details=WebAuthenticationDetails [RemoteIpAddress=104.23.160.4, SessionId=null], Granted Authorities=[ROLE_user]]
+2025-06-16T13:38:00.380850095Z Is authenticated: true
+2025-06-16T13:38:00.380853055Z Principal: org.springframework.security.core.userdetails.User [Username=hole, Password=[PROTECTED], Enabled=true, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, Granted Authorities=[ROLE_user]]
+2025-06-16T13:38:00.380855415Z Name: hole
+2025-06-16T13:38:00.381864614Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:00.407946538Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:00.434130924Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:00.45980735Z User found: hole (ID: 3)
+2025-06-16T13:38:00.903333657Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:00.962075338Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:00.994706016Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.025113312Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.094862102Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.206068337Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.238671685Z Hibernate: select pr1_0.id,pr1_0.post_id,pr1_0.react_type,pr1_0.timestamp,pr1_0.user_id from post_reactions pr1_0 left join posts p1_0 on p1_0.id=pr1_0.post_id left join users u1_0 on u1_0.id=pr1_0.user_id where p1_0.id=? and u1_0.id=?
+2025-06-16T13:38:01.305240565Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.365481625Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.395589005Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.404159618Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.434589774Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.484635631Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.514020737Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.51523153Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.547512991Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.557230465Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.579560158Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:01.585341848Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.615216243Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:01.621734917Z Hibernate: insert into post_views (duration_ms,ip_address,post_id,session_id,user_id,user_agent,view_source,viewed_at) values (?,?,?,?,?,?,?,?)
+2025-06-16T13:38:01.646833012Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:01.685513704Z Hibernate: insert into post_views (duration_ms,ip_address,post_id,session_id,user_id,user_agent,view_source,viewed_at) values (?,?,?,?,?,?,?,?)
+2025-06-16T13:38:01.709665991Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:01.893073773Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:01.993892752Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:02.02125887Z Hibernate: select count(pr1_0.id) from post_reactions pr1_0 where pr1_0.post_id=? and pr1_0.react_type=?
+2025-06-16T13:38:02.495453677Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:02.52200828Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:02.548136814Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:02.581355333Z Hibernate: select count(pr1_0.id) from post_reactions pr1_0 where pr1_0.post_id=? and pr1_0.react_type=?
+2025-06-16T13:38:03.047219492Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:03.075010668Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:03.101846336Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:03.131382855Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:03.157190384Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:03.18442788Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:03.211621115Z Hibernate: select b1_0.id from bookmarks b1_0 left join users u1_0 on u1_0.id=b1_0.user_id left join posts p1_0 on p1_0.id=b1_0.post_id where u1_0.id=? and p1_0.id=? limit ?
+2025-06-16T13:38:27.130499974Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:27.216869819Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:27.249102139Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:27.275954488Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:27.310317178Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:38:27.341432977Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:27.371324113Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:27.403294988Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:27.66750998Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:27.697136331Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:27.728856391Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:27.858377213Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:27.858397543Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:27.858951034Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:27.888479673Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:27.918471481Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:27.948486079Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:38:27.978471057Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:28.009512274Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:28.038919231Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:38:28.068721115Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:34.357108576Z 2025-06-16T13:38:34.356Z  INFO 1 --- [server] [nio-8080-exec-3] c.e.server.handler.WebSocketHandler      : WebSocket connection established: 1f88d8f7-bf55-fc24-6b7a-f15aa02b431a
+2025-06-16T13:38:34.568473027Z 2025-06-16T13:38:34.567Z  INFO 1 --- [server] [nio-8080-exec-8] c.e.server.handler.WebSocketHandler      : Received WebSocket message - Type: authenticate, SessionId: 1f88d8f7-bf55-fc24-6b7a-f15aa02b431a
+2025-06-16T13:38:34.570154659Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:34.628377381Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:34.656257709Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:34.684645826Z 2025-06-16T13:38:34.684Z  INFO 1 --- [server] [nio-8080-exec-8] c.e.server.handler.WebSocketHandler      : User hole authenticated via WebSocket
+2025-06-16T13:38:38.086119267Z 2025-06-16T13:38:38.083Z ERROR 1 --- [server] [nio-8080-exec-7] c.e.server.handler.WebSocketHandler      : WebSocket transport error for session 2a58a2ca-fff1-967e-7222-000fc87ca87e
+2025-06-16T13:38:38.086137657Z 
+2025-06-16T13:38:38.086142308Z java.io.EOFException: null
+2025-06-16T13:38:38.086146718Z 	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.fillReadBuffer(NioEndpoint.java:1295) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086150158Z 	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.read(NioEndpoint.java:1183) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086152788Z 	at org.apache.tomcat.websocket.server.WsFrameServer.onDataAvailable(WsFrameServer.java:74) ~[tomcat-embed-websocket-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086155188Z 	at org.apache.tomcat.websocket.server.WsFrameServer.doOnDataAvailable(WsFrameServer.java:184) ~[tomcat-embed-websocket-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086157418Z 	at org.apache.tomcat.websocket.server.WsFrameServer.notifyDataAvailable(WsFrameServer.java:164) ~[tomcat-embed-websocket-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086160568Z 	at org.apache.tomcat.websocket.server.WsHttpUpgradeHandler.upgradeDispatch(WsHttpUpgradeHandler.java:152) ~[tomcat-embed-websocket-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086162668Z 	at org.apache.coyote.http11.upgrade.UpgradeProcessorInternal.dispatch(UpgradeProcessorInternal.java:60) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086165048Z 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:57) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086166978Z 	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086169078Z 	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1740) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086171218Z 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086173298Z 	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086175228Z 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086177168Z 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.40.jar!/:na]
+2025-06-16T13:38:38.086180158Z 	at java.base/java.lang.Thread.run(Thread.java:833) ~[na:na]
+2025-06-16T13:38:38.086182018Z 
+2025-06-16T13:38:38.086183938Z 2025-06-16T13:38:38.084Z  INFO 1 --- [server] [nio-8080-exec-7] c.e.server.handler.WebSocketHandler      : Cleaned up session for user: hole
+2025-06-16T13:38:38.086186398Z 2025-06-16T13:38:38.085Z  INFO 1 --- [server] [nio-8080-exec-7] c.e.server.handler.WebSocketHandler      : WebSocket connection closed: 2a58a2ca-fff1-967e-7222-000fc87ca87e - Status: CloseStatus[code=1006, reason=null]
+2025-06-16T13:38:57.185070538Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:57.24222015Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:57.270807451Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:57.303689053Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:38:57.331950078Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:38:57.359607562Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:38:57.389003678Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:57.41972857Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.448383792Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.487411771Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.518667873Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.546835016Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.575831045Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:38:57.604180091Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.632465907Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.66434913Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:38:57.693143906Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.558835341Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.619517546Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.649019917Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.67915114Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.707939628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.736979541Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.766618335Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.79579339Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.823974616Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.85197201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.879982593Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.911729456Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.943812396Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:40:15.971884171Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.000310512Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.032385211Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:40:16.06121918Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.285652692Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.342043696Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.368149984Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.397026064Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.426527755Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.452573142Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.481317949Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.508059509Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.538212463Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.566751376Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.5942341Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.621344526Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.650044483Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:41:15.676752012Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.708862292Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.783396715Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:41:15.823695408Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.563213617Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.66663859Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.707110426Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.765921145Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.804960125Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.849197172Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.88491897Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.942385714Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:15.978601941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.022092123Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.051433972Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.08183223Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.111999054Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:42:16.143005043Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.175358008Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.207706933Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:42:16.236607853Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.192130325Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.25021529Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.277799786Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.308804266Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.337813628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.36575027Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.3946085Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.42456737Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.454084381Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.482659415Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.510586637Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.542905292Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.581191847Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:43:15.686553617Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.714384967Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.782078183Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:43:15.833729858Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:27.1323472Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:27.187107864Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:27.217196246Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:27.2441537Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:44:15.574640007Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.628673107Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.654611502Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.683608494Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.708360307Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.734534676Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.761689674Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:44:15.790411941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.817955266Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.84602762Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.872267601Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.899526201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.930485429Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:44:15.956655769Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:15.990361759Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:16.017611468Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:44:16.052025921Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:57.389003678Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:57.41972857Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.448383792Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.487411771Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.518667873Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.546835016Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.575831045Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:38:57.604180091Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.632465907Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.66434913Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:38:57.693143906Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.558835341Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.619517546Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.649019917Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.67915114Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.707939628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.736979541Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.766618335Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.79579339Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.823974616Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.85197201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.879982593Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.911729456Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.943812396Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:40:15.971884171Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.000310512Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.032385211Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:40:16.06121918Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.285652692Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.342043696Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.368149984Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.397026064Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.426527755Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.452573142Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.481317949Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.508059509Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.538212463Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.566751376Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.5942341Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.621344526Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.650044483Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:41:15.676752012Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.708862292Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.783396715Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:41:15.823695408Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.563213617Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.66663859Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.707110426Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.765921145Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.804960125Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.849197172Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.88491897Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.942385714Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:15.978601941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.022092123Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.051433972Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.08183223Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.111999054Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:42:16.143005043Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.175358008Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.207706933Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:42:16.236607853Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.192130325Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.25021529Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.277799786Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.308804266Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.337813628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.36575027Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.3946085Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.42456737Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.454084381Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.482659415Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.510586637Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.542905292Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.581191847Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:43:15.686553617Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.714384967Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.782078183Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:43:15.833729858Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:27.1323472Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:27.187107864Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:27.217196246Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:27.2441537Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:44:15.574640007Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.628673107Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.654611502Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.683608494Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.708360307Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.734534676Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.761689674Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:44:15.790411941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.817955266Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.84602762Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.872267601Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.899526201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.930485429Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:44:15.956655769Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:15.990361759Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:16.017611468Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:44:16.052025921Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:57.389003678Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:38:57.41972857Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.448383792Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.487411771Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.518667873Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.546835016Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:38:57.575831045Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:38:57.604180091Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.632465907Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:38:57.66434913Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:38:57.693143906Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.558835341Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.619517546Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.649019917Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.67915114Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:40:15.707939628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:40:15.736979541Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:40:15.766618335Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:40:15.79579339Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.823974616Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.85197201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.879982593Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.911729456Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:40:15.943812396Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:40:15.971884171Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.000310512Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:40:16.032385211Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:40:16.06121918Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.285652692Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.342043696Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.368149984Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.397026064Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:41:15.426527755Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:41:15.452573142Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:41:15.481317949Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:41:15.508059509Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.538212463Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.566751376Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.5942341Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.621344526Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:41:15.650044483Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:41:15.676752012Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.708862292Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:41:15.783396715Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:41:15.823695408Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.563213617Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.66663859Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.707110426Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.765921145Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:42:15.804960125Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:42:15.849197172Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:42:15.88491897Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:42:15.942385714Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:15.978601941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.022092123Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.051433972Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.08183223Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:42:16.111999054Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:42:16.143005043Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.175358008Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:42:16.207706933Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:42:16.236607853Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.192130325Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.25021529Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.277799786Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.308804266Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:15.337813628Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:15.36575027Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:15.3946085Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:15.42456737Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.454084381Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.482659415Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.510586637Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.542905292Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:43:15.581191847Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:43:15.686553617Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.714384967Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:43:15.782078183Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:43:15.833729858Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:43:27.1323472Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:43:27.187107864Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:43:27.217196246Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:43:27.2441537Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:44:15.574640007Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.628673107Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.654611502Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.683608494Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:44:15.708360307Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:44:15.734534676Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:44:15.761689674Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:44:15.790411941Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.817955266Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.84602762Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.872267601Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.899526201Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:44:15.930485429Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:44:15.956655769Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:15.990361759Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:44:16.017611468Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:44:16.052025921Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:45:15.576503638Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:45:15.637630781Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:45:15.668150142Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:45:15.703214887Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:45:15.732203539Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:45:15.761036298Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:45:15.791863915Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:45:15.835912978Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:45:15.869329463Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:45:15.900660858Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:45:15.956132126Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:45:15.9868772Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:45:16.017999012Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:45:16.047136857Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:45:16.079418011Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:45:16.108742229Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:45:16.139015115Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:46:15.210005697Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:46:15.266244099Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:46:15.293845965Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:46:15.324226143Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:46:15.351772128Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:46:15.379004867Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:46:15.407930448Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:46:15.438736894Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:46:15.468964749Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:46:15.501245542Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:46:15.529936189Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:46:15.558591165Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:46:15.588117637Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:46:15.616804523Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:46:15.644879728Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:46:15.673832749Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:46:15.701970186Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:47:15.659915524Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:47:15.719260804Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:47:15.746962682Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:47:15.777604665Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:47:15.806678489Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:47:15.83402217Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:47:15.862719787Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:47:15.891473654Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:47:15.921331713Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:47:15.949342826Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:47:15.978146115Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:47:16.007191098Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:47:16.038525664Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:47:16.065258734Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:47:16.09391776Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:47:16.123937511Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:47:16.151820702Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:48:15.573542017Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:48:15.636926092Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:48:15.667163338Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:48:15.699111875Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:48:15.727377604Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:48:15.782574986Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:48:15.811856103Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:48:15.840574751Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:48:15.869019062Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:48:15.897733979Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:48:15.930879979Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:48:15.982107377Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:48:16.081613438Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:48:16.116823046Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:48:16.150858933Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:48:16.180274903Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:48:16.208279146Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:48:27.159215586Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:48:27.219514864Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:48:27.247058299Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:48:27.276395157Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:49:15.555467065Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:49:15.628504782Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:49:15.656371472Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:49:15.686145959Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:49:15.714079072Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:49:15.741318081Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:49:15.769774303Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:49:15.801404855Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:49:15.830162103Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:49:15.858183767Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:49:15.886279512Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:49:15.916955446Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:49:15.946086861Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:49:15.97440469Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:49:16.00379731Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:49:16.033265681Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:49:16.064659218Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:50:15.21632207Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:50:15.2885174Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:50:15.314859393Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:50:15.348617764Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:50:15.380040852Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:50:15.409516263Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:50:15.43877754Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:50:15.467282253Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:50:15.496181684Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:50:15.524022915Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:50:15.552826704Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:50:15.582933447Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:50:15.611756446Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:50:15.640142986Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:50:15.66812984Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:50:15.696107983Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:50:15.725023484Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:51:15.543094977Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:51:15.605997113Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:51:15.641193072Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:51:15.702153932Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:51:15.785292507Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:51:15.823834288Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:51:15.853505272Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:51:15.892313838Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:51:15.93303877Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:51:15.963429308Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:51:15.995316985Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:51:16.08168241Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:51:16.110301506Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:51:16.181612299Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:51:16.210165373Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:51:16.239272308Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:51:16.281779323Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:52:15.206564673Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:52:15.263364086Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:52:15.381593577Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:52:15.481963245Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:52:15.510859205Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:52:15.538753047Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:52:15.569747216Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:52:15.606083096Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:52:15.635540277Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:52:15.66512252Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:52:15.693552642Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:52:15.722034695Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:52:15.752833051Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:52:15.787613522Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:52:15.819100551Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:52:15.847688425Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:52:15.876233039Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:53:15.298581172Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:53:15.367664644Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:53:15.402454845Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:53:15.433556816Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:53:15.462320594Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:53:15.491677554Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:53:15.521322368Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:53:15.550363801Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:53:15.579079259Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:53:15.609024109Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:53:15.63795953Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:53:15.666570985Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:53:15.695618469Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:53:15.724247254Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:53:15.753077464Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:53:15.781623467Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:53:15.810193832Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:54:15.556918118Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:54:15.580687763Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:54:15.627714142Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:54:15.657929428Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:54:15.657946768Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:54:15.686826408Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:54:15.689014919Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:54:15.725375469Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:54:15.757381648Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:54:15.785922132Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:54:15.818537892Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:54:15.851197053Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:54:15.890203293Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:54:15.922428405Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:54:15.951414328Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:54:15.981255106Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:54:16.015042228Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:54:16.043695084Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:54:16.072672666Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:54:16.101126999Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:54:16.129732814Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:55:15.553491072Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:55:15.613204189Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:55:15.644898932Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:55:15.675053076Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:55:15.703511168Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:55:15.73355677Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:55:15.764190654Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:55:15.798485935Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:55:15.826898487Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:55:15.856241096Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:55:15.885536074Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:55:15.913761822Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:55:15.942573081Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:55:15.971332029Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:55:15.999905693Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:55:16.030031877Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:55:16.062868271Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:15.592801498Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:15.652310542Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:15.701498982Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:15.881867787Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:15.912040581Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:15.940629006Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:15.982456779Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:16.011812118Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:16.040525195Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:16.11188886Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:16.181162156Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:16.210386673Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:16.239309644Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:56:16.281882061Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:16.312536545Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:16.41650509Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:56:16.447812965Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:27.582766839Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:27.639406449Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:27.667220349Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:27.69721134Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:27.727315163Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:27.756847606Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.066951918Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.091151041Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.118987922Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.13175631Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.14829828Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.178076437Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.181824947Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.206495519Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.23436119Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.29155232Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.322411017Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.360035901Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.389702437Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:28.422921128Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:28.457145738Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:28.495859423Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:28.526628229Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:28.583251938Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:28.594750143Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.633015469Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:56:28.662040102Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.699570384Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:28.699594975Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.728535996Z === JWT FILTER DEBUG ===
+2025-06-16T13:56:28.728558517Z Request: GET /api/admin/check-access
+2025-06-16T13:56:28.728562187Z Authorization Header: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJob2xlIiwiaWF0IjoxNzUwMDc1Nzk2LCJleHAiOjE3NTA0MzU3OTZ9.HMJMfGnVqP33aUL6gNBP10GfbJswfqCFSKxCcxyUgeSXNRtotvyx2wYXIMRHL5ZT
+2025-06-16T13:56:28.728565257Z Content-Type: application/json
+2025-06-16T13:56:28.728568007Z JWT Token extracted: Present (length: 150)
+2025-06-16T13:56:28.728570637Z JWT Token extracted: eyJhbGciOiJIUzM4NCJ9...
+2025-06-16T13:56:28.729204769Z JWT Token valid: true
+2025-06-16T13:56:28.729598026Z Username from JWT: hole
+2025-06-16T13:56:28.729958363Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:28.730069235Z DEBUG: Extracting user ID for username: hole
+2025-06-16T13:56:28.730815239Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.731378229Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:28.758960076Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.76347675Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:56:28.869050445Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.871586423Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:28.87303807Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:28.897558789Z User authorities: [ROLE_user]
+2025-06-16T13:56:28.897586209Z Authentication set successfully for user: hole
+2025-06-16T13:56:28.897589569Z === End JWT Filter Debug ===
+2025-06-16T13:56:28.898815112Z === AUTHENTICATION FAILURE DEBUG ===
+2025-06-16T13:56:28.898826822Z Request URI: /error
+2025-06-16T13:56:28.898829433Z Request Method: GET
+2025-06-16T13:56:28.898831753Z Authorization Header: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJob2xlIiwiaWF0IjoxNzUwMDc1Nzk2LCJleHAiOjE3NTA0MzU3OTZ9.HMJMfGnVqP33aUL6gNBP10GfbJswfqCFSKxCcxyUgeSXNRtotvyx2wYXIMRHL5ZT
+2025-06-16T13:56:28.898834033Z Exception: Full authentication is required to access this resource
+2025-06-16T13:56:28.898836453Z Exception Type: InsufficientAuthenticationException
+2025-06-16T13:56:28.898838263Z API endpoint detected - returning 401: /error
+2025-06-16T13:56:28.899125298Z === END AUTHENTICATION FAILURE DEBUG ===
+2025-06-16T13:56:28.912166812Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:28.9494572Z DEBUG: Found user with ID: 3 for username: hole
+2025-06-16T13:56:28.951670461Z Hibernate: select us1_0.user_id,us1_0.allow_search_engines,us1_0.created_at,us1_0.privacy_level,us1_0.show_online_status,us1_0.updated_at from user_settings us1_0 where us1_0.user_id=?
+2025-06-16T13:56:58.450644666Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.450672257Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.453464529Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.509923705Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.512395821Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.513561043Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.539925207Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.541243071Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.543722468Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.575809468Z DEBUG: Extracting user ID for username: hole
+2025-06-16T13:56:58.576815647Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.577656963Z Hibernate: select l1_0.id,l1_0.location,count(pv1_0.id),count(distinct pv1_0.user_id) from post_views pv1_0 join posts p1_0 on p1_0.id=pv1_0.post_id join location l1_0 on l1_0.id=p1_0.location_id where pv1_0.viewed_at>=? group by l1_0.id,l1_0.location order by count(pv1_0.id) desc limit ?
+2025-06-16T13:56:58.585968878Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.607624703Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.614803278Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.637858489Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.643511355Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.668578064Z DEBUG: Found user with ID: 3 for username: hole
+2025-06-16T13:56:58.669612533Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:56:58.701586032Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:58.73627711Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:58.769073724Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:58.812399795Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:58.833119233Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.888072701Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.889009878Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.982585879Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:58.982604719Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:58.982814623Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:58.983525417Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.010041133Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.022649149Z DEBUG: Extracting user ID for username: hole
+2025-06-16T13:56:59.023392833Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.038623938Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.052831073Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.052844584Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.055047535Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.081911557Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.081945458Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.083245493Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.083698261Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.109917292Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.11034422Z DEBUG: Found user with ID: 3 for username: hole
+2025-06-16T13:56:59.111500351Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:56:59.113372346Z === AUTH DEBUG /me endpoint ===
+2025-06-16T13:56:59.113386477Z Authentication: UsernamePasswordAuthenticationToken [Principal=org.springframework.security.core.userdetails.User [Username=hole, Password=[PROTECTED], Enabled=true, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, Granted Authorities=[ROLE_user]], Credentials=[PROTECTED], Authenticated=true, Details=WebAuthenticationDetails [RemoteIpAddress=172.71.214.127, SessionId=null], Granted Authorities=[ROLE_user]]
+2025-06-16T13:56:59.113390086Z Is authenticated: true
+2025-06-16T13:56:59.113401547Z Principal: org.springframework.security.core.userdetails.User [Username=hole, Password=[PROTECTED], Enabled=true, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, Granted Authorities=[ROLE_user]]
+2025-06-16T13:56:59.113404417Z Name: hole
+2025-06-16T13:56:59.114044439Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.141249228Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.181600433Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.182252095Z DEBUG: Extracting user ID for username: hole
+2025-06-16T13:56:59.182739924Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 left join users u1_0 on u1_0.id=pv1_0.user_id where u1_0.id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:59.21138558Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:59.215610959Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.242061874Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:59.255662288Z User found: hole (ID: 3)
+2025-06-16T13:56:59.270243651Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:59.281518432Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.281849218Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.298552971Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:59.311219738Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.312777547Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.321331077Z === JWT FILTER DEBUG ===
+2025-06-16T13:56:59.321347337Z Request: GET /api/admin/check-access
+2025-06-16T13:56:59.321350838Z Authorization Header: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJob2xlIiwiaWF0IjoxNzUwMDc1Nzk2LCJleHAiOjE3NTA0MzU3OTZ9.HMJMfGnVqP33aUL6gNBP10GfbJswfqCFSKxCcxyUgeSXNRtotvyx2wYXIMRHL5ZT
+2025-06-16T13:56:59.321353828Z Content-Type: application/json
+2025-06-16T13:56:59.321361858Z JWT Token extracted: Present (length: 150)
+2025-06-16T13:56:59.321364958Z JWT Token extracted: eyJhbGciOiJIUzM4NCJ9...
+2025-06-16T13:56:59.321885667Z JWT Token valid: true
+2025-06-16T13:56:59.322119252Z Username from JWT: hole
+2025-06-16T13:56:59.323362225Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:56:59.327544564Z Hibernate: select p1_0.id,p1_0.content,p1_0.created_date,p1_0.location_id,l1_0.id,l1_0.location,p1_0.type,t1_0.id,t1_0.type_name,p1_0.updated_at,p1_0.user_id,u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from posts p1_0 join location l1_0 on l1_0.id=p1_0.location_id join post_type t1_0 on t1_0.id=p1_0.type join users u1_0 on u1_0.id=p1_0.user_id join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where p1_0.id=?
+2025-06-16T13:56:59.34496635Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.346108091Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.378208461Z DEBUG: Found user with ID: 3 for username: hole
+2025-06-16T13:56:59.381433922Z Hibernate: select fr1_0.id,fr1_0.receiver_id,fr1_0.request_date,fr1_0.response_date,fr1_0.sender_id,fr1_0.request_status from friend_requests fr1_0
+2025-06-16T13:56:59.381917231Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:56:59.382502372Z Hibernate: select count(distinct pv1_0.post_id) from post_views pv1_0 where pv1_0.user_id=?
+2025-06-16T13:56:59.404649576Z Hibernate: select fr1_0.id,fr1_0.receiver_id,fr1_0.request_date,fr1_0.response_date,fr1_0.sender_id,fr1_0.request_status from friend_requests fr1_0
+2025-06-16T13:56:59.415217544Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.415280665Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.482606905Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:59.483767007Z User authorities: [ROLE_user]
+2025-06-16T13:56:59.483791097Z Authentication set successfully for user: hole
+2025-06-16T13:56:59.483794617Z === End JWT Filter Debug ===
+2025-06-16T13:56:59.483797907Z Hibernate: select rs1_0.id,rs1_0.status_name from request_status rs1_0 where rs1_0.id=?
+2025-06-16T13:56:59.483800447Z Hibernate: select rs1_0.id,rs1_0.status_name from request_status rs1_0 where rs1_0.id=?
+2025-06-16T13:56:59.483802827Z === AUTHENTICATION FAILURE DEBUG ===
+2025-06-16T13:56:59.483805647Z Request URI: /error
+2025-06-16T13:56:59.483808107Z Request Method: GET
+2025-06-16T13:56:59.483811087Z Authorization Header: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJob2xlIiwiaWF0IjoxNzUwMDc1Nzk2LCJleHAiOjE3NTA0MzU3OTZ9.HMJMfGnVqP33aUL6gNBP10GfbJswfqCFSKxCcxyUgeSXNRtotvyx2wYXIMRHL5ZT
+2025-06-16T13:56:59.483814227Z Exception: Full authentication is required to access this resource
+2025-06-16T13:56:59.483817537Z Exception Type: InsufficientAuthenticationException
+2025-06-16T13:56:59.483820048Z API endpoint detected - returning 401: /error
+2025-06-16T13:56:59.483822528Z === END AUTHENTICATION FAILURE DEBUG ===
+2025-06-16T13:56:59.510229302Z Hibernate: select count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? and pv1_0.viewed_at>=?
+2025-06-16T13:56:59.582469673Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.610777113Z Hibernate: select pv1_0.view_source,count(pv1_0.id) from post_views pv1_0 where pv1_0.user_id=? group by pv1_0.view_source
+2025-06-16T13:56:59.619304223Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.64160057Z Hibernate: select pv1_0.id,pv1_0.duration_ms,pv1_0.ip_address,pv1_0.post_id,pv1_0.session_id,pv1_0.user_id,pv1_0.user_agent,pv1_0.view_source,pv1_0.viewed_at from post_views pv1_0 where pv1_0.user_id=? order by pv1_0.viewed_at desc
+2025-06-16T13:56:59.649035009Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0
+2025-06-16T13:56:59.652788569Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:56:59.687611561Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:56:59.792702757Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:56:59.984060437Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:57:00.082164483Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:57:16.958221428Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:57:17.015279546Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:57:17.043052676Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:57:17.072046458Z DEBUG: Extracting user ID for username: hole
+2025-06-16T13:57:17.072970376Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,u1_0.username from users u1_0 where u1_0.username=?
+2025-06-16T13:57:17.170006481Z Hibernate: select r1_0.id,r1_0.role from role r1_0 where r1_0.id=?
+2025-06-16T13:57:17.197357743Z Hibernate: select ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture from user_data ud1_0 where ud1_0.user_id=?
+2025-06-16T13:57:17.227813663Z DEBUG: Found user with ID: 3 for username: hole
+2025-06-16T13:57:17.228838142Z Hibernate: select f1_0.id,f1_0.friendship_date,f1_0.user1_id,f1_0.user2_id from friends f1_0
+2025-06-16T13:57:17.257747423Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:57:17.286175335Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:57:17.318593981Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:57:17.356312087Z Hibernate: select u1_0.id,u1_0.email,u1_0.password,u1_0.provider,u1_0.provider_id,u1_0.role_id,r1_0.id,r1_0.role,ud1_0.user_id,ud1_0.bio,ud1_0.cover_photo,ud1_0.created_at,ud1_0.date_of_birth,ud1_0.display_name,ud1_0.profile_picture,u1_0.username from users u1_0 join role r1_0 on r1_0.id=u1_0.role_id left join user_data ud1_0 on u1_0.id=ud1_0.user_id where u1_0.id=?
+2025-06-16T13:57:17.584410775Z Hibernate: delete from friends where id=?
+2025-06-16T13:57:21.386005742Z 2025-06-16T13:57:21.385Z  INFO 1 --- [server] [nio-8080-exec-1] c.e.server.handler.WebSocketHandler      : WebSocket connection closed: 1f88d8f7-bf55-fc24-6b7a-f15aa02b431a - Status: CloseStatus[code=1001, reason=null]
+2025-06-16T13:57:21.386031712Z 2025-06-16T13:57:21.385Z  INFO 1 --- [server] [nio-8080-exec-1] c.e.server.handler.WebSocketHandler      : Cleaned up session for user: hole

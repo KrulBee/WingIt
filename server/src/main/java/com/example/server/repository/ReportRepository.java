@@ -39,4 +39,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     
     // Admin analytics methods - count by status enum
     long countByStatus(Report.ReportStatus status);
+    
+    // Method for cascade deletion
+    void deleteByPostId(Long postId);
 }

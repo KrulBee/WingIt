@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardBody, Avatar, Divider, Input, Button } from "@nextui-org/react";
 import { Search, Send, Plus, Settings } from "react-feather";
@@ -37,6 +38,15 @@ interface ChatMessage {
 }
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
+  const searchParams = useSearchParams();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeChat, setActiveChat] = useState<number | null>(null);
@@ -48,6 +58,7 @@ export default function MessagesPage() {
   const [currentUserId, setCurrentUserId] = useState<number>(0); // Will be set from auth context
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [wsConnected, setWsConnected] = useState(false);
+  const [pendingUserChat, setPendingUserChat] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
   const [typingUserNames, setTypingUserNames] = useState<string[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Set<number>>(new Set());
@@ -146,13 +157,59 @@ export default function MessagesPage() {
       return newMap;
     });
   }, []);
-
   // Handle notifications
   const handleNotificationClick = useCallback((notification: NotificationData) => {
     if (notification.type === 'message' && notification.actionData?.roomId) {
       setActiveChat(notification.actionData.roomId);
     }
-  }, []);  // Fetch chat rooms on component mount
+  }, []);
+  // Function to find or create a private chat with a specific user
+  const findOrCreateChatWithUser = useCallback(async (username: string) => {
+    try {
+      // First, try to find an existing chat room with this user
+      const existingRoom = chatRooms.find(room => {
+        if (room.isGroupChat) return false;
+        return room.participants?.some(participant => 
+          participant.username === username
+        );
+      });
+
+      if (existingRoom) {
+        setActiveChat(existingRoom.id);
+        setPendingUserChat(null); // Clear pending state
+        return;
+      }
+
+      // If no existing room, try to create a new private chat
+      try {
+        // Import UserService dynamically to avoid circular dependencies
+        const { default: UserService } = await import('@/services/UserService');
+        
+        // Get the user by username to get their ID
+        const user = await UserService.getUserByUsername(username);
+        
+        // Create a private chat room with this user
+        const chatRoomData = {
+          roomName: user.displayName || user.username,
+          isGroupChat: false,
+          participantIds: [user.id]
+        };
+
+        const newRoom = await ChatService.createChatRoom(chatRoomData);
+        setChatRooms(prev => [newRoom, ...prev]);
+        setActiveChat(newRoom.id);
+        setPendingUserChat(null); // Clear pending state
+      } catch (createError) {
+        console.error('Error creating chat with user:', createError);
+        setError(`Không thể tạo cuộc trò chuyện với @${username}. Người dùng có thể không tồn tại hoặc bạn không có quyền tạo cuộc trò chuyện với họ.`);
+        setPendingUserChat(null); // Clear pending state
+      }
+    } catch (error) {
+      console.error('Error finding or creating chat with user:', error);
+      setError(`Không thể tạo cuộc trò chuyện với @${username}`);
+      setPendingUserChat(null); // Clear pending state
+    }
+  }, [chatRooms]);// Fetch chat rooms on component mount
   useEffect(() => {
     fetchChatRooms();
     getCurrentUser();
@@ -189,6 +246,15 @@ export default function MessagesPage() {
       }
     };
   }, [handleNewMessage, handleTypingUpdate, handleUserStatusUpdate, handleMessageStatusUpdate]);
+  // Handle URL parameter to start chat with specific user
+  useEffect(() => {
+    const username = searchParams.get('user');
+    if (username && chatRooms.length > 0 && username !== pendingUserChat) {
+      setPendingUserChat(username);
+      findOrCreateChatWithUser(username);
+    }
+  }, [chatRooms, searchParams, pendingUserChat, findOrCreateChatWithUser]);
+  
   // Fetch messages when active chat changes
   useEffect(() => {
     if (activeChat) {
@@ -322,8 +388,8 @@ export default function MessagesPage() {
     setChatRooms(prev => prev.filter(room => room.id !== roomId));
     if (activeChat === roomId) {
       setActiveChat(null);
-    }
-    setShowChatManagementModal(false);  };
+    }    setShowChatManagementModal(false);
+  };
   
   // Generate a consistent avatar src with fallback
   const getAvatarSrc = (avatar?: string, username?: string) => {
@@ -730,9 +796,7 @@ export default function MessagesPage() {
           currentUserId={currentUserId}          onChatUpdated={handleChatUpdated}
           onChatDeleted={handleChatDeleted}
         />
-      )}
-
-      {/* Real-time notifications */}
+      )}      {/* Real-time notifications */}
       <RealTimeNotification onNotificationClick={handleNotificationClick} />
     </div>
   );

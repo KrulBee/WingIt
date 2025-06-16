@@ -17,27 +17,19 @@ services:
       - key: NEXT_PUBLIC_WEBSOCKET_URL
         value: wss://wingit-backend-s1gb.onrender.com/ws
       - key: NEXT_PUBLIC_AI_URL
-        value: https://wingit-ai.onrender.com
+        value: http://YOUR_LOCAL_IP:5000
       - key: NODE_ENV
         value: production
     healthCheckPath: /
     
   # Backend Service (Spring Boot) - Deploy this manually after Blueprint
   # Java is not supported in Render Blueprints, deploy separately
-  # AI Server Service (Python Flask) - Optimized Version
-  - type: web
-    name: wingit-ai
-    env: python
-    rootDir: AI
-    buildCommand: pip install -r requirements_deploy.txt
-    startCommand: python fast_ai_server.py
-    envVars:
-      - key: MODEL_PATH
-        value: /app/models/best_phobert_model.pth
-      - key: FLASK_ENV
-        value: production
-      - key: PORT
-        value: 5000
+  
+  # NOTE: AI Server runs locally due to RAM limitations on Render free tier
+  # Make sure to:
+  # 1. Run AI server locally: docker-compose up --build (in AI directory)
+  # 2. Update YOUR_LOCAL_IP in environment variables
+  # 3. Ensure your local machine is accessible from Render (public IP/ngrok)
     healthCheckPath: /health
 
 # Database

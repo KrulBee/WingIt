@@ -21,6 +21,7 @@ import { Search, Users, MessageCircle, X } from "react-feather";
 import { FriendService } from "@/services";
 import ChatService from "@/services/ChatService";
 import avatarBase64 from "@/static/images/avatarDefault";
+import { filterNonAdminUsers } from "@/utils/adminUtils";
 
 interface Friend {
   id: number;
@@ -55,31 +56,46 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
       fetchFriends();
     }
   }, [isOpen]);
-
   useEffect(() => {
-    // Filter friends based on search term
+    // Filter friends based on search term and exclude admin users
     const filtered = friends.filter(friendship => {
       const friend = friendship.friend;
       const searchLower = searchTerm.toLowerCase();
-      return (
+      
+      // Check if friend passes text search
+      const matchesSearch = (
         friend.displayName?.toLowerCase().includes(searchLower) ||
         friend.username.toLowerCase().includes(searchLower)
       );
+      
+      return matchesSearch;
     });
-    setFilteredFriends(filtered);
+    
+    // Filter out admin users from the results
+    const filteredNonAdmins = filtered.filter(friendship => 
+      filterNonAdminUsers([friendship.friend]).length > 0
+    );
+    
+    setFilteredFriends(filteredNonAdmins);
   }, [friends, searchTerm]);
 
   useEffect(() => {
     // Auto-enable group chat if more than one friend is selected
     setIsGroupChat(selectedFriends.size > 1);
   }, [selectedFriends]);
-
   const fetchFriends = async () => {
     try {
       setLoading(true);
       setError(null);
       const friendsData = await FriendService.getFriends();
-      setFriends(friendsData);    } catch (err) {
+      
+      // Filter out admin users from friends list
+      const filteredFriendsData = friendsData.filter(friendship => 
+        filterNonAdminUsers([friendship.friend]).length > 0
+      );
+      
+      setFriends(filteredFriendsData);
+    } catch (err) {
       console.error('Error fetching friends:', err);
       setError('Không thể tải danh sách bạn bè');
     } finally {

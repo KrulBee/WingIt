@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import RightSidebar from "@/components/RightSidebar";
-import { Card, CardBody, Avatar, Tabs, Tab, Button } from "@nextui-org/react";
+import { Avatar, Tabs, Tab, Button } from "@nextui-org/react";
 import { User, UserCheck, UserPlus, UserX } from "react-feather";
 import FriendService from "@/services/FriendService";
-import UserService from "@/services/UserService";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
@@ -203,12 +202,11 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentUserFriends, setCurrentUserFriends] = useState<FriendDTO[]>([]);
-
-  // Fetch data on component mount
+  const [currentUserFriends, setCurrentUserFriends] = useState<FriendDTO[]>([]);  // Fetch data on component mount
   useEffect(() => {
     fetchFriendsData();
     getCurrentUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getCurrentUser = async () => {
@@ -272,8 +270,7 @@ export default function FriendsPage() {
     mutualFriends: 0, // Will be calculated properly
     originalId: requestDTO.sender.id
   });
-
-  const fetchFriendsData = async () => {
+  const fetchFriendsData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -316,12 +313,21 @@ export default function FriendsPage() {
       );
       setSuggestions(transformedSuggestions);    } catch (err) {
       console.error('Error fetching friends data:', err);
-      setError('Không thể tải dữ liệu bạn bè. Vui lòng thử lại.');
-    } finally {
+      
+      // Check if it's an authentication error
+      if (err instanceof Error && (err.message.includes('401') || err.message.includes('403'))) {
+        // Clear local storage and redirect to auth
+        localStorage.removeItem('auth-token');
+        localStorage.removeItem('user');
+        window.location.href = '/auth';
+        return;
+      }
+      
+      setError('Không thể tải dữ liệu bạn bè. Vui lòng thử lại.');    } finally {
       setLoading(false);
     }
-  };
-
+  }, [currentUser, currentUserFriends]);
+  
   const handleUnfriend = async (friendId: string) => {
     try {
       const friend = friends.find(f => f.id === friendId);
@@ -329,10 +335,21 @@ export default function FriendsPage() {
 
       await FriendService.removeFriend(friend.originalId);
       
-      // Update local state
+      // Update local state immediately for better UX
       setFriends(prev => prev.filter(f => f.id !== friendId));
+      
+      // Show success message
+      console.log('Friend removed successfully');
     } catch (err) {
       console.error('Error removing friend:', err);
+      
+      // Check if it's an authentication error
+      if (err instanceof Error && (err.message.includes('401') || err.message.includes('403'))) {
+        // Token might be expired, try to refresh the page
+        window.location.reload();
+        return;
+      }
+      
       setError('Không thể xóa bạn bè. Vui lòng thử lại.');
     }
   };

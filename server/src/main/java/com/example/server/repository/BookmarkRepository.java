@@ -24,6 +24,9 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     // Count bookmarks for a post
     long countByPostId(Long postId);
     
+    // Find all bookmarks for a post (for deletion cascade)
+    List<Bookmark> findByPostId(Long postId);
+    
     // Delete bookmark by user and post
     void deleteByUserIdAndPostId(Integer userId, Long postId);
     

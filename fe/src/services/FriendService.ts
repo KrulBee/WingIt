@@ -1,5 +1,7 @@
 "use client";
 
+import { filterNonAdminUsers } from '@/utils/adminUtils';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Helper function to get auth token
@@ -89,7 +91,14 @@ const FriendService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch friends');
+        let errorMessage = 'Failed to fetch friends';
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        } catch (e) {
+          // Ignore parsing errors
+        }
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
 
       const friends: FriendDTO[] = await response.json();
@@ -279,7 +288,6 @@ const FriendService = {
       throw error;
     }
   },
-
   // Remove friend
   removeFriend: async (friendId: number): Promise<void> => {
     try {
@@ -289,14 +297,20 @@ const FriendService = {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to remove friend');
+        let errorMessage = 'Failed to remove friend';
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        } catch (e) {
+          // Ignore parsing errors
+        }
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Remove friend error:', error);
       throw error;
     }
   },
-
   // Get friend suggestions
   getFriendSuggestions: async (): Promise<UserDTO[]> => {
     try {
@@ -310,7 +324,11 @@ const FriendService = {
       }
 
       const suggestions: UserDTO[] = await response.json();
-      return suggestions;
+      
+      // Filter out admin users from suggestions
+      const filteredSuggestions = filterNonAdminUsers(suggestions);
+      
+      return filteredSuggestions;
     } catch (error) {
       console.error('Get friend suggestions error:', error);
       throw error;

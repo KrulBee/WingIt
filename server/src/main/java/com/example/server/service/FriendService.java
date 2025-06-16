@@ -172,16 +172,20 @@ public class FriendService {    private final FriendRepository friendRepository;
         request.setStatus(rejectedStatus);
         request.setResponseDate(LocalDateTime.now());
         friendRequestRepository.save(request);
-    }
-
-    public void removeFriend(Integer userId, Integer friendId) {
+    }    public void removeFriend(Integer userId, Integer friendId) {
         Friend friendship = friendRepository.findAll().stream()
                 .filter(friend -> 
                     (friend.getUser1().getId().equals(userId) && friend.getUser2().getId().equals(friendId)) ||
                     (friend.getUser1().getId().equals(friendId) && friend.getUser2().getId().equals(userId))
                 )
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Friendship not found"));        friendRepository.delete(friendship);
+                .orElseThrow(() -> new RuntimeException("Friendship not found"));
+
+        // Delete the friendship record
+        friendRepository.delete(friendship);
+        
+        // Note: We keep the private chat room intact so users can preserve their conversation history
+        // The chat room can be manually deleted by users if they choose to do so
     }
 
     /**
@@ -237,11 +241,54 @@ public class FriendService {    private final FriendRepository friendRepository;
                 if (containsUser1 && containsUser2) {
                     return true;
                 }
-            }
-        }
+            }        }
         
         return false;
     }
+
+    /**
+     * Removes the private chat room between two users
+     * Note: Currently not used automatically when unfriending, but available for manual chat deletion
+     */
+    /*
+    private void removePrivateChatRoomBetweenUsers(Integer userId1, Integer userId2) {
+        try {
+            // Get all chat rooms for user1
+            List<RoomUser> user1Rooms = roomUserRepository.findByUserId(userId1);
+            
+            for (RoomUser roomUser1 : user1Rooms) {
+                // Get all participants in this room
+                List<RoomUser> roomParticipants = roomUserRepository
+                        .findByChatRoomId(roomUser1.getChatRoom().getId());
+                
+                // Check if this is a 2-person room containing both users
+                if (roomParticipants.size() == 2) {
+                    boolean containsUser1 = roomParticipants.stream()
+                            .anyMatch(ru -> ru.getUser().getId().equals(userId1));
+                    boolean containsUser2 = roomParticipants.stream()
+                            .anyMatch(ru -> ru.getUser().getId().equals(userId2));
+                    
+                    if (containsUser1 && containsUser2) {
+                        // This is the private chat room between these two users
+                        Long chatRoomId = roomUser1.getChatRoom().getId();
+                        
+                        // Remove all room users (participants)
+                        roomUserRepository.deleteAll(roomParticipants);
+                        
+                        // Delete the chat room itself
+                        chatRoomService.deleteChatRoom(chatRoomId);
+                        
+                        System.out.println("Deleted private chat room " + chatRoomId + " between users " + userId1 + " and " + userId2);
+                        break; // Found and deleted the room, exit loop
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error removing private chat room between users " + userId1 + " and " + userId2 + ": " + e.getMessage());
+            // Don't throw the exception to avoid breaking the friend removal process
+        }
+    }
+    */
 
     public List<UserDTO> getFriendSuggestions(Integer userId) {
         // Get current user's friends

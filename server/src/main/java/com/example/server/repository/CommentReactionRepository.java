@@ -20,4 +20,7 @@ public interface CommentReactionRepository extends JpaRepository<CommentReaction
     
     @Query("SELECT COUNT(cr) FROM CommentReaction cr WHERE cr.comment.id = :commentId AND cr.reactionType.id = :reactionTypeId")
     long countByCommentIdAndReactionTypeId(@Param("commentId") Long commentId, @Param("reactionTypeId") Long reactionTypeId);
+    
+    // Method for cascade deletion
+    void deleteByCommentId(Long commentId);
 }

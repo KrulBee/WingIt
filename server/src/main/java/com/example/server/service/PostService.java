@@ -1,6 +1,7 @@
 package com.example.server.service;
 
 import com.example.server.dto.*;
+import com.example.server.exception.ProfanityException;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,23 @@ public class PostService {
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final NotificationService notificationService;
-    private final ProfanityDetectionService profanityDetectionService;    public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
+    private final ProfanityDetectionService profanityDetectionService;
+    
+    // Additional repositories for cascade deletion
+    private final NotificationRepository notificationRepository;
+    private final BookmarkRepository bookmarkRepository;
+    private final PostReactionRepository postReactionRepository;
+    private final PostViewRepository postViewRepository;
+    private final ReportRepository reportRepository;
+    private final CommentRepository commentRepository;
+    private final CommentReactionRepository commentReactionRepository;    public PostService(PostRepository postRepository, PostTypeRepository postTypeRepository, 
                       PostMediaRepository postMediaRepository, UserRepository userRepository,
                       LocationRepository locationRepository, NotificationService notificationService,
-                      ProfanityDetectionService profanityDetectionService) {
+                      ProfanityDetectionService profanityDetectionService,
+                      NotificationRepository notificationRepository, BookmarkRepository bookmarkRepository,
+                      PostReactionRepository postReactionRepository, PostViewRepository postViewRepository,
+                      ReportRepository reportRepository, CommentRepository commentRepository,
+                      CommentReactionRepository commentReactionRepository) {
         this.postRepository = postRepository;
         this.postTypeRepository = postTypeRepository;
         this.postMediaRepository = postMediaRepository;
@@ -28,6 +42,15 @@ public class PostService {
         this.locationRepository = locationRepository;
         this.notificationService = notificationService;
         this.profanityDetectionService = profanityDetectionService;
+        
+        // Initialize cascade deletion repositories
+        this.notificationRepository = notificationRepository;
+        this.bookmarkRepository = bookmarkRepository;
+        this.postReactionRepository = postReactionRepository;
+        this.postViewRepository = postViewRepository;
+        this.reportRepository = reportRepository;
+        this.commentRepository = commentRepository;
+        this.commentReactionRepository = commentReactionRepository;
     }
 
     public List<PostDTO> getAllPosts() {
@@ -60,8 +83,13 @@ public class PostService {
                 profanityDetectionService.checkProfanity(request.getContent());
             
             if (profanityResult.isProfane()) {
-                throw new RuntimeException("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.");
-            }        } catch (RuntimeException e) {
+                // Create a profanity-specific exception that can be caught by the controller
+                ProfanityException profanityException = new ProfanityException(
+                    "Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa và thử lại.",
+                    profanityResult
+                );
+                throw profanityException;
+            }} catch (RuntimeException e) {
             // If AI server is loading or unavailable, check if error message indicates loading
             String errorMsg = e.getMessage();
             if (errorMsg != null && (
@@ -153,9 +181,7 @@ public class PostService {
 
         Post updatedPost = postRepository.save(post);
         return convertToDTO(updatedPost);
-    }
-
-    public void deletePost(Long id, Integer userId) {
+    }    public void deletePost(Long id, Integer userId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -164,14 +190,65 @@ public class PostService {
             throw new RuntimeException("You can only delete your own posts");
         }
 
-        postRepository.delete(post);
-    }
-
-    // Keep the old method for backward compatibility (admin use)
+        // Perform cascade deletion
+        deletePostWithCascade(id);
+    }    // Keep the old method for backward compatibility (admin use)
     public void deletePost(Long id) {
-        Post post = postRepository.findById(id)
+        // Verify post exists
+        postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        postRepository.delete(post);
+        
+        // Perform cascade deletion
+        deletePostWithCascade(id);
+    }
+    
+    /**
+     * Helper method to delete a post and all its related entities
+     */
+    private void deletePostWithCascade(Long postId) {
+        try {
+            // 1. Delete all comment reactions for comments on this post
+            List<Comment> comments = commentRepository.findByPostId(postId);
+            for (Comment comment : comments) {
+                commentReactionRepository.deleteByCommentId(comment.getId());
+            }
+            
+            // 2. Delete all comments on this post
+            commentRepository.deleteByPostId(postId);
+            
+            // 3. Delete all post reactions
+            postReactionRepository.deleteByPostId(postId);
+            
+            // 4. Delete all post views
+            postViewRepository.deleteByPostId(postId);
+            
+            // 5. Delete all bookmarks for this post
+            List<Bookmark> bookmarks = bookmarkRepository.findByPostId(postId);
+            if (!bookmarks.isEmpty()) {
+                bookmarkRepository.deleteAll(bookmarks);
+            }
+            
+            // 6. Delete all notifications related to this post
+            List<Notification> notifications = notificationRepository.findByPostId(postId);
+            if (!notifications.isEmpty()) {
+                notificationRepository.deleteAll(notifications);
+            }
+            
+            // 7. Delete all reports for this post
+            reportRepository.deleteByPostId(postId);
+            
+            // 8. Delete all post media
+            postMediaRepository.deleteByPostId(postId);
+            
+            // 9. Finally, delete the post itself
+            postRepository.deleteById(postId);
+            
+            System.out.println("Successfully deleted post " + postId + " with all related data");
+            
+        } catch (Exception e) {
+            System.err.println("Error during cascade deletion of post " + postId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to delete post and related data", e);
+        }
     }
 
     public List<PostDTO> getPostsByUserId(Integer userId) {

@@ -1,5 +1,6 @@
 package com.example.server.controller;
 
+import com.example.server.exception.ProfanityException;
 import com.example.server.service.PostService;
 import com.example.server.service.CloudinaryService;
 import com.example.server.dto.*;
@@ -57,10 +58,20 @@ public class PostController {    private final PostService postService;
             
             PostDTO createdPost = postService.createPost(request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
+        } catch (ProfanityException e) {
+            // Handle profanity-specific errors with detailed information
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "PROFANITY_DETECTED",
+                "message", e.getMessage(),
+                "isProfanityError", true,
+                "confidence", e.getProfanityResult().getConfidence(),
+                "toxicSpans", e.getProfanityResult().getToxicSpans() != null ? 
+                    e.getProfanityResult().getToxicSpans() : java.util.List.of()
+            ));
         } catch (RuntimeException e) {
             String errorMessage = e.getMessage();
             
-            // Check if it's a profanity error
+            // Check if it's a profanity error (fallback for old style)
             if (errorMessage.contains("từ ngữ không phù hợp") || 
                 errorMessage.contains("chứa từ ngữ không phù hợp")) {
                 return ResponseEntity.badRequest().body(Map.of(

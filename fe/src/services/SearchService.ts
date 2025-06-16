@@ -2,6 +2,7 @@
 
 import UserService from './UserService';
 import PostService from './PostService';
+import { filterNonAdminUsers } from '@/utils/adminUtils';
 
 // Define interfaces locally since they're not exported
 interface UserData {
@@ -137,7 +138,11 @@ const searchUsers = (users: UserData[], query: string, currentUserId?: number): 
   if (!query.trim()) return [];
   
   const searchTerm = query.toLowerCase();
-  return users
+  
+  // First filter out admin users
+  const filteredUsers = filterNonAdminUsers(users);
+  
+  return filteredUsers
     .filter(user => 
       // Filter out current user from search results
       (currentUserId ? user.id !== currentUserId : true) &&
@@ -314,11 +319,14 @@ export const SearchService = {
           console.log('Could not get friend-of-friend suggestions, falling back to random users');
         }
       }
-      
-      // If we don't have enough suggestions from friends-of-friends, add random users
+        // If we don't have enough suggestions from friends-of-friends, add random users
       if (suggestedUsers.length < limit) {
         const existingUserIds = new Set(suggestedUsers.map(u => u.id));
-        const randomUsers = users
+        
+        // Filter out admin users first
+        const filteredUsers = filterNonAdminUsers(users);
+        
+        const randomUsers = filteredUsers
           .filter(user => {
             return (!currentUserId || user.id !== currentUserId) && !existingUserIds.has(user.id);
           })

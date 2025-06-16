@@ -7,4 +7,4 @@ services:
       - ./logs:/app/logs
     environment:
       - FLASK_ENV=production
-      - MODEL_PATH=/app/best_phobert_model.pth
+      - MODEL_PATH=/app/models/best_phobert_model.pth

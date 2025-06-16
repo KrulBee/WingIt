@@ -63,8 +63,9 @@ CREATE TABLE location (
 
 CREATE TABLE chat_room (
     id BIGSERIAL PRIMARY KEY,
-    room_name VARCHAR(50) NOT NULL,
+    room_name VARCHAR(50) NULL, -- NULL for auto-created friend chats
     is_group_chat BOOLEAN NOT NULL DEFAULT FALSE,
+    is_auto_created BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for friend-added chats
     created_date TIMESTAMP NOT NULL
 );
 

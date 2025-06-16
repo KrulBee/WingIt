@@ -4,8 +4,10 @@ import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -27,6 +29,15 @@ public class DatabaseInitController {
     
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private UserDataRepository userDataRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/database")
     public ResponseEntity<?> initializeDatabase() {
@@ -92,13 +103,19 @@ public class DatabaseInitController {
                 initializeAllLocations();
             }
             
+            // Initialize Admin Account
+            if (userRepository.findByUsername("Admin") == null) {
+                createAdminAccount();
+            }
+            
             return ResponseEntity.ok(Map.of(
                 "message", "Database initialized successfully",
                 "roles", roleRepository.count(),
                 "postTypes", postTypeRepository.count(),
                 "reactionTypes", reactionTypeRepository.count(),
                 "requestStatuses", requestStatusRepository.count(),
-                "locations", locationRepository.count()
+                "locations", locationRepository.count(),
+                "adminCreated", userRepository.findByUsername("Admin") != null
             ));
             
         } catch (Exception e) {
@@ -142,6 +159,35 @@ public class DatabaseInitController {
             location.setId(Integer.parseInt(loc[0]));
             location.setLocation(loc[1]);
             locationRepository.save(location);
+        }
+    }
+    
+    private void createAdminAccount() {
+        try {
+            // Create admin user
+            User adminUser = new User();
+            adminUser.setUsername("Admin");
+            adminUser.setPassword(passwordEncoder.encode("12345678"));
+            adminUser.setEmail("admin@wingit.com");
+            
+            // Set admin role (ID = 2)
+            Role adminRole = roleRepository.findById(2)
+                .orElseThrow(() -> new RuntimeException("Admin role not found"));
+            adminUser.setRole(adminRole);
+            
+            User savedUser = userRepository.save(adminUser);
+            
+            // Create admin user data
+            UserData adminUserData = new UserData();
+            adminUserData.setUser(savedUser);
+            adminUserData.setDisplayName("Administrator");
+            adminUserData.setBio("System Administrator Account");
+            adminUserData.setCreatedAt(LocalDate.now());
+            
+            userDataRepository.save(adminUserData);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create admin account: " + e.getMessage());
         }
     }
 }

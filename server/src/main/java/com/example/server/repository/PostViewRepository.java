@@ -94,4 +94,7 @@ public interface PostViewRepository extends JpaRepository<PostView, Long> {
            "AND pv.viewedAt >= :startDate")
     Long countViewsByLocationAndDateRange(@Param("locationId") Integer locationId, 
                                          @Param("startDate") LocalDateTime startDate);
+    
+    // Method for cascade deletion
+    void deleteByPostId(Long postId);
 }
