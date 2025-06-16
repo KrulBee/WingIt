@@ -22,9 +22,11 @@ public interface PostViewRepository extends JpaRepository<PostView, Long> {
     
     // Get views by post ID
     List<PostView> findByPostIdOrderByViewedAtDesc(Long postId);
-    
-    // Get views by user ID
+      // Get views by user ID
     List<PostView> findByUserIdOrderByViewedAtDesc(Integer userId);
+    
+    // Count total views for a user
+    long countByUserId(Integer userId);
     
     // Get views by post ID and user ID
     List<PostView> findByPostIdAndUserId(Long postId, Integer userId);

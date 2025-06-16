@@ -110,11 +110,9 @@ public class PostViewService {
         long viewsToday;
         long viewsThisWeek;
         List<Object[]> sourceCountData;
-        List<PostView> recentViewEntities;
-
-        if (userId != null) {
+        List<PostView> recentViewEntities;        if (userId != null) {
             // Get analytics for specific user
-            totalViews = postViewRepository.findByUserIdOrderByViewedAtDesc(userId).size();
+            totalViews = postViewRepository.countByUserId(userId);
             totalPosts = postViewRepository.countUniquePostsViewedByUser(userId);
             viewsToday = postViewRepository.countViewsTodayForUser(userId, startOfDay);
             viewsThisWeek = postViewRepository.countViewsThisWeekForUser(userId, startOfWeek);

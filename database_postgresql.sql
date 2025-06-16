@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS follows CASCADE;
 DROP TABLE IF EXISTS friends CASCADE;
 DROP TABLE IF EXISTS friend_requests CASCADE;
 DROP TABLE IF EXISTS request_status CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS user_settings CASCADE;
 DROP TABLE IF EXISTS user_data CASCADE;
 DROP TABLE IF EXISTS users CASCADE; -- Changed from "user" to "users"
@@ -104,6 +105,17 @@ CREATE TABLE user_settings (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT chk_privacy_level CHECK (privacy_level IN ('public', 'friends', 'private'))
+);
+
+-- Create password_reset_tokens table
+CREATE TABLE password_reset_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Create friends table
