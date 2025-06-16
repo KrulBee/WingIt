@@ -82,25 +82,16 @@ class PhoBERTForTokenClassification(nn.Module):
         return {'logits': logits}
 
 class ProfanityDetector:
-    """Vietnamese Profanity Detection using your trained PhoBERT model"""
+    """Vietnamese Profanity Detection using your trained PhoBERT model - Memory optimized"""
     
     def __init__(self):
         self.config = Config()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.tokenizer = None
-        self.model = None
-        self.model_loaded = False
         self.loading_error = None
-        self.loading_in_progress = False
         
         logger.info(f"Using device: {self.device}")
+        logger.info("🧠 Memory-optimized mode: Model loads per request to save RAM")
         
-        # Load model in background - but only once
-        if not self.loading_in_progress:
-            self.loading_in_progress = True
-            self.load_model_thread = threading.Thread(target=self._load_model_async)
-            self.load_model_thread.start()
-    
     def _find_model_file(self):
         """Find the model file in order of preference for Render deployment"""
         
@@ -289,27 +280,70 @@ class ProfanityDetector:
             self.loading_in_progress = False
     
     def is_ready(self):
-        return self.model_loaded
+        # Always ready since we load on-demand
+        return True
     
     def detect_profanity(self, text):
-        """Detect profanity using your trained PhoBERT model"""
-        if not self.is_ready():
-            if self.loading_error:
+        """Memory-optimized profanity detection: Load → Process → Unload"""
+        logger.info("🔄 Loading model for request...")
+        
+        try:
+            # Step 1: Find model file
+            model_path = self._find_model_file()
+            if not model_path:
                 return {
-                    'error': f'AI Model failed to load: {self.loading_error}',
+                    'error': 'Model file not found',
                     'is_profane': False,
                     'confidence': 0.0,
                     'toxic_spans': [],
                     'processed_text': text
                 }
-            else:
-                return {
-                    'error': 'AI Model is still loading. Please try again in a moment.',
-                    'is_profane': False,
-                    'confidence': 0.0,
-                    'toxic_spans': [],
-                    'processed_text': text
-                }
+            
+            # Step 2: Load tokenizer (lightweight)
+            from transformers import AutoTokenizer
+            tokenizer = AutoTokenizer.from_pretrained(self.config.MODEL_NAME)
+            
+            # Step 3: Load model temporarily
+            from transformers import AutoModel
+            model = PhoBERTForTokenClassification(
+                model_name=self.config.MODEL_NAME,
+                num_labels=self.config.NUM_LABELS,
+                dropout_rate=self.config.DROPOUT_RATE
+            )
+            
+            # Load trained weights
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            del checkpoint  # Free memory immediately
+            
+            model.to(self.device)
+            model.eval()
+            
+            # Step 4: Process the request
+            result = self._process_text_with_model(text, tokenizer, model)
+            
+            # Step 5: Immediately unload model to free memory
+            del model
+            del tokenizer
+            import gc
+            gc.collect()
+            
+            logger.info("✅ Request processed, model unloaded")
+            return result
+            
+        except Exception as e:
+            error_msg = f"Error during processing: {str(e)}"
+            logger.error(error_msg)
+            return {
+                'error': error_msg,
+                'is_profane': False,
+                'confidence': 0.0,
+                'toxic_spans': [],
+                'processed_text': text
+            }
+    
+    def _process_text_with_model(self, text, tokenizer, model):
+        """Process text with loaded model"""
         
         try:
             # Preprocess text
@@ -324,7 +358,7 @@ class ProfanityDetector:
                 }
             
             # Tokenize
-            encoding = self.tokenizer(
+            encoding = tokenizer(
                 processed_text,
                 truncation=True,
                 padding='max_length',
@@ -338,7 +372,7 @@ class ProfanityDetector:
             
             # Inference
             with torch.no_grad():
-                outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                 logits = outputs['logits']
                 
                 # Get probabilities
@@ -406,29 +440,20 @@ def get_detector():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Enhanced health check endpoint"""
+    """Enhanced health check endpoint - memory optimized"""
     detector = get_detector()
-    model_status = 'ready' if detector.is_ready() else 'loading'
-    
-    if detector.loading_error:
-        model_status = 'error'
     
     response = {
-        'status': 'healthy' if detector.is_ready() else 'initializing',
-        'model_loaded': detector.is_ready(),
-        'model_status': model_status,
+        'status': 'healthy',
+        'model_loaded': 'on-demand',
+        'model_status': 'ready',
         'model_type': 'phobert_trained',
         'device': str(detector.device),
+        'memory_mode': 'optimized',
         'timestamp': time.time()
     }
     
-    if detector.loading_error:
-        response['error'] = detector.loading_error
-    
-    # Return 503 if model is not ready (helps with load balancers)
-    status_code = 200 if detector.is_ready() else 503
-    
-    return jsonify(response), status_code
+    return jsonify(response), 200
 
 @app.route('/detect', methods=['POST'])
 def detect_profanity():
