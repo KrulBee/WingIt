@@ -10,7 +10,10 @@ import {
   Shield, 
   Settings,
   Activity,
-  TrendingUp
+  TrendingUp,
+  MessageSquare,
+  MessageCircle,
+  Hash
 } from 'react-feather';
 import Sidebar from '@/components/Sidebar';
 import AdminGuard from '@/components/AdminGuard';
@@ -20,6 +23,9 @@ import AdminUsers from '@/components/admin/AdminUsers';
 import AdminReports from '@/components/admin/AdminReports';
 import AdminAnalytics from '@/components/admin/AdminAnalytics';
 import AdminPosts from '@/components/admin/AdminPosts';
+import AdminComments from '@/components/admin/AdminComments';
+import AdminMessages from '@/components/admin/AdminMessages';
+import AdminChatRooms from '@/components/admin/AdminChatRooms';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -294,9 +300,7 @@ export default function AdminPage() {
                     <div className="p-6">
                       <AdminReports userRole={userRole} />
                     </div>
-                  </Tab>
-
-                  <Tab
+                  </Tab>                  <Tab
                     key="analytics"                    title={
                       <div className="flex items-center space-x-2">
                         <BarChart size={18} />
@@ -306,6 +310,48 @@ export default function AdminPage() {
                   >
                     <div className="p-6">
                       <AdminAnalytics userRole={userRole} />
+                    </div>
+                  </Tab>
+
+                  <Tab
+                    key="comments"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <MessageSquare size={18} />
+                        <span>Bình luận</span>
+                      </div>
+                    }
+                  >
+                    <div className="p-6">
+                      <AdminComments userRole={userRole} />
+                    </div>
+                  </Tab>
+
+                  <Tab
+                    key="messages"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <MessageCircle size={18} />
+                        <span>Tin nhắn</span>
+                      </div>
+                    }
+                  >
+                    <div className="p-6">
+                      <AdminMessages userRole={userRole} />
+                    </div>
+                  </Tab>
+
+                  <Tab
+                    key="chat-rooms"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <Hash size={18} />
+                        <span>Phòng chat</span>
+                      </div>
+                    }
+                  >
+                    <div className="p-6">
+                      <AdminChatRooms userRole={userRole} />
                     </div>
                   </Tab>
                 </Tabs>
