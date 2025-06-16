@@ -330,12 +330,13 @@ function SearchPageContent() {
                   setSelectedPostTypeId(selectedKey && selectedKey !== "" ? parseInt(selectedKey as string) : null);
                 }}
                 className="flex-1 max-w-xs"
-                size="sm"
-                items={[
+                size="sm"                items={[
                   { key: "", label: "Tất cả loại bài viết" },
                   ...postTypes.map(type => ({
                     key: type.id.toString(),
-                    label: type.typeName
+                    label: type.typeName === 'info' ? 'Thông tin' :
+                           type.typeName === 'scenic' ? 'Cảnh đẹp' :
+                           type.typeName === 'discussion' ? 'Thảo luận' : type.typeName
                   }))
                 ]}
               >

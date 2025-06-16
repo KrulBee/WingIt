@@ -84,7 +84,6 @@ const CommentService = {
       throw error;
     }
   },
-
   createComment: async (commentData: CreateCommentData): Promise<Comment> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/comments`, {
@@ -92,7 +91,22 @@ const CommentService = {
         headers: createAuthHeaders(),
         body: JSON.stringify(commentData),
       });
-      if (!response.ok) throw new Error('Failed to create comment');
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          errorData = { message: errorText || 'Failed to create comment' };
+        }
+        
+        const error = new Error(errorData.message || 'Failed to create comment');
+        (error as any).response = { data: errorData };
+        throw error;
+      }
+
       return await response.json();
     } catch (error) {
       console.error('Create comment error:', error);
@@ -158,11 +172,20 @@ const CommentService = {
       });
       
       console.log('Response status:', response.status, response.statusText);
-      
-      if (!response.ok) {
+        if (!response.ok) {
         const errorText = await response.text();
         console.error('Reply creation failed with response:', errorText);
-        throw new Error(`Failed to create reply: ${response.status} ${response.statusText}`);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          errorData = { message: errorText || `Failed to create reply: ${response.status} ${response.statusText}` };
+        }
+        
+        const error = new Error(errorData.message || `Failed to create reply: ${response.status} ${response.statusText}`);
+        (error as any).response = { data: errorData };
+        throw error;
       }
       
       const result = await response.json();

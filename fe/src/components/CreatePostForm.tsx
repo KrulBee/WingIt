@@ -113,27 +113,45 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       setContent("");
       setMediaUrls([]);
       setSelectedLocationId(null);
-      setShowMediaUpload(false);
-    } catch (error: any) {
+      setShowMediaUpload(false);    } catch (error: any) {
       console.error("Failed to create post:", error);
-        // Check if it's a profanity error from backend
-      const errorData = error?.response?.data;
       
+      // Try to parse the error message if it's a JSON string
+      let errorData: any = null;
+      let errorMessage = error?.message || '';
+      
+      // Check if error message is a JSON string (from backend)
+      try {
+        if (typeof errorMessage === 'string' && errorMessage.startsWith('{')) {
+          errorData = JSON.parse(errorMessage);
+        } else {
+          // Check if it's nested in response
+          errorData = error?.response?.data;
+        }
+      } catch (parseError) {
+        console.error("Error parsing error data:", parseError);
+        errorData = error?.response?.data;
+      }
+      
+      // Check if it's a profanity error
       if (errorData?.isProfanityError === true || 
           errorData?.error === 'PROFANITY_DETECTED' ||
-          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
-        // Show profanity warning modal for backend-detected profanity
+          ProfanityService.isProfanityError(errorData?.message || errorMessage)) {
+        
+        console.log("Profanity detected, showing modal with data:", errorData);
+        
+        // Show profanity warning modal with backend data
         setProfanityResult({
           is_profane: true,
-          confidence: errorData.confidence || 0.8, // Use actual confidence from backend
-          toxic_spans: errorData.toxicSpans || [],
+          confidence: errorData?.confidence || 0.8,
+          toxic_spans: errorData?.toxicSpans || [],
           processed_text: content
         });
         setShowProfanityWarning(true);
       } else {
         // Show appropriate error message
-        const errorMessage = errorData?.message || error?.message || 'Không thể tạo bài viết. Vui lòng thử lại.';
-        alert(errorMessage);
+        const displayMessage = errorData?.message || errorMessage || 'Không thể tạo bài viết. Vui lòng thử lại.';
+        alert(displayMessage);
       }
     } finally {
       setIsSubmitting(false);

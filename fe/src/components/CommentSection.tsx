@@ -162,20 +162,25 @@ export default function CommentSection({
       setComments(prev => [newCommentObj, ...prev]);
       setNewComment('');
       onCommentsCountChange?.(commentsCount + 1);
-        } catch (error: any) {
+    } catch (error: any) {
       console.error('Error submitting comment:', error);
       
       // Check if it's a profanity error from backend
       const errorData = error?.response?.data;
+      console.log('Comment error data:', errorData);
+      console.log('Error message:', error?.message);
+      console.log('Error response:', error?.response);
       
       if (errorData?.isProfanityError === true || 
           errorData?.error === 'PROFANITY_DETECTED' ||
-          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
+          ProfanityService.isProfanityError(errorData?.message || error?.message || '') ||
+          ProfanityService.isProfanityError(JSON.stringify(errorData || {}))) {
         // Show profanity warning modal for backend-detected profanity
+        console.log('Detected profanity error, showing modal');
         setProfanityResult({
           is_profane: true,
-          confidence: 0.8,
-          toxic_spans: [],
+          confidence: errorData?.confidence || 0.8,
+          toxic_spans: errorData?.toxicSpans || [],
           processed_text: newComment
         });
         setShowProfanityWarning(true);
@@ -250,15 +255,20 @@ export default function CommentSection({
       
       // Check if it's a profanity error from backend
       const errorData = error?.response?.data;
+      console.log('Reply error data:', errorData);
+      console.log('Reply error message:', error?.message);
+      console.log('Reply error response:', error?.response);
       
       if (errorData?.isProfanityError === true || 
           errorData?.error === 'PROFANITY_DETECTED' ||
-          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
+          ProfanityService.isProfanityError(errorData?.message || error?.message || '') ||
+          ProfanityService.isProfanityError(JSON.stringify(errorData || {}))) {
         // Show profanity warning modal for backend-detected profanity
+        console.log('Detected profanity error in reply, showing modal');
         setProfanityResult({
           is_profane: true,
-          confidence: 0.8,
-          toxic_spans: [],
+          confidence: errorData?.confidence || 0.8,
+          toxic_spans: errorData?.toxicSpans || [],
           processed_text: content
         });
         setShowProfanityWarning(true);

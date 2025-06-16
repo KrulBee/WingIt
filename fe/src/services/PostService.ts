@@ -153,7 +153,6 @@ const PostService = {
       throw error;
     }
   },
-
   createPost: async (postData: CreatePostRequest): Promise<PostData> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/posts`, {
@@ -163,8 +162,19 @@ const PostService = {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Failed to create post');
+        const errorText = await response.text();
+        
+        // Try to parse as JSON first for structured error responses
+        try {
+          const errorData = JSON.parse(errorText);
+          const error = new Error(errorData.message || errorText);
+          (error as any).data = errorData;
+          (error as any).response = { data: errorData };
+          throw error;
+        } catch (parseError) {
+          // If not JSON, throw as plain text
+          throw new Error(errorText || 'Failed to create post');
+        }
       }
 
       const createdPost: PostData = await response.json();
