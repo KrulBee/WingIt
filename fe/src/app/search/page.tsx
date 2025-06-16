@@ -8,6 +8,7 @@ import { Card, CardBody, Input, Avatar, Button, Chip, Tabs, Tab, Spinner, Select
 import { Search as SearchIcon, User, Users, Hash, Calendar, Image } from "react-feather";
 import { SearchService, UserSearchResult, PostSearchResult, TagSearchResult, SearchResults } from "@/services/SearchService";
 import FollowService from "@/services/FollowService";
+import PostTypeService, { PostType } from "@/services/PostTypeService";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
@@ -38,10 +39,11 @@ function SearchPageContent() {
   const [trendingTags, setTrendingTags] = useState<TagSearchResult[]>([]);  const [currentUser, setCurrentUser] = useState<any>(null);
   const [followingUsers, setFollowingUsers] = useState<Set<number>>(new Set());
   const [followLoading, setFollowLoading] = useState<Set<number>>(new Set());
-  
-  // Post filtering states (for post tab only)
+    // Post filtering states (for post tab only)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [selectedPostTypeId, setSelectedPostTypeId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'latest' | 'most_viewed' | 'most_loved' | 'most_commented'>('latest');
+  const [postTypes, setPostTypes] = useState<PostType[]>([]);
     // Posts you might want to see for "all" tab
   const [randomPosts, setRandomPosts] = useState<PostSearchResult[]>([]);
   
@@ -63,10 +65,11 @@ function SearchPageContent() {
       setSearchQuery(queryParam);
       setHasSearched(true);
     }
-  }, [searchParams]);// Load initial data when component mounts
+  }, [searchParams]);  // Load initial data when component mounts
   useEffect(() => {
     loadInitialData();
     getCurrentUser();
+    loadPostTypes();
   }, []);
 
   // Reload suggested users when current user changes
@@ -86,7 +89,6 @@ function SearchPageContent() {
       console.error('Error getting current user:', error);
     }
   };
-
   const loadFollowingStatus = async () => {
     try {
       const following = await FollowService.getFollowing();
@@ -94,6 +96,15 @@ function SearchPageContent() {
       setFollowingUsers(followingIds);
     } catch (error) {
       console.error('Error loading following status:', error);
+    }
+  };
+
+  const loadPostTypes = async () => {
+    try {
+      const types = await PostTypeService.getAllPostTypes();
+      setPostTypes(types);
+    } catch (error) {
+      console.error('Error loading post types:', error);
     }
   };
 
@@ -168,6 +179,11 @@ function SearchPageContent() {
               posts = posts.filter(post => post.location?.id === selectedLocationId);
             }
             
+            // Apply post type filter if selected
+            if (selectedPostTypeId !== null) {
+              posts = posts.filter(post => post.postType?.id === selectedPostTypeId);
+            }
+            
             // Apply sorting
             posts = [...posts].sort((a, b) => {
               switch (sortBy) {
@@ -200,17 +216,17 @@ function SearchPageContent() {
       } finally {
         setLoading(false);
       }    }, 300),
-    [activeTab, selectedLocationId, sortBy, currentUser?.id]
+    [activeTab, selectedLocationId, selectedPostTypeId, sortBy, currentUser?.id]
   );
   // Effect to trigger search when query or tab changes
   useEffect(() => {
     debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);  // Effect to trigger search when location or sort filters change (for post tab only)
+  }, [searchQuery, debouncedSearch]);  // Effect to trigger search when location, post type, or sort filters change (for post tab only)
   useEffect(() => {
     if (activeTab === "post" && searchQuery.trim()) {
       debouncedSearch(searchQuery);
     }
-  }, [selectedLocationId, sortBy, activeTab, searchQuery, debouncedSearch]);
+  }, [selectedLocationId, selectedPostTypeId, sortBy, activeTab, searchQuery, debouncedSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,7 +321,26 @@ function SearchPageContent() {
                 selectedLocationId={selectedLocationId}
                 onLocationChange={setSelectedLocationId}
                 className="flex-1"
-              />
+              />              <Select
+                label="Loại bài viết"
+                placeholder="Tất cả loại bài viết"
+                selectedKeys={selectedPostTypeId !== null ? new Set([selectedPostTypeId.toString()]) : new Set()}
+                onSelectionChange={(keys) => {
+                  const selectedKey = Array.from(keys)[0];
+                  setSelectedPostTypeId(selectedKey && selectedKey !== "" ? parseInt(selectedKey as string) : null);
+                }}
+                className="flex-1 max-w-xs"
+                size="sm"
+                items={[
+                  { key: "", label: "Tất cả loại bài viết" },
+                  ...postTypes.map(type => ({
+                    key: type.id.toString(),
+                    label: type.typeName
+                  }))
+                ]}
+              >
+                {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
+              </Select>
               
               <Select
                 label="Sắp xếp theo"

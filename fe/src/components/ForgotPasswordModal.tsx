@@ -93,13 +93,14 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
             <Mail size={24} className="text-blue-600" />
             <span>Quên mật khẩu</span>
           </div>
-        </ModalHeader><ModalBody>
+        </ModalHeader>        <ModalBody className="py-6">
           {!success ? (
-            <div className="space-y-4">              <div>
-                <p className="text-sm text-gray-600 mb-4">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.
                 </p>
-                  <Input
+                <Input
                   type="email"
                   label="Địa chỉ email"
                   placeholder="Nhập email của bạn"
@@ -116,7 +117,9 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                     inputWrapper: "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
                   }}
                 />
-              </div>              {error && (
+              </div>
+
+              {error && (
                 <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-4 bg-red-500 rounded-full"></div>
@@ -124,27 +127,27 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                   </div>
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="text-center space-y-4">
+            </div>          ) : (
+            <div className="text-center space-y-6 py-4">
               <div className="flex justify-center">
                 <CheckCircle size={48} className="text-green-500" />
-              </div>              <div>
+              </div>
+              <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-green-600">Email đã được gửi!</h3>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   Nếu tài khoản với email đó tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu trong thời gian ngắn.
                   Vui lòng kiểm tra hộp thư đến và thư mục spam.
                 </p>
               </div>
             </div>
           )}
-        </ModalBody>
-
-        <ModalFooter>
+        </ModalBody>        <ModalFooter className="pt-4">
           {!success ? (
-            <>              <Button variant="light" onPress={handleClose} isDisabled={loading}>
+            <div className="flex gap-3 w-full justify-end">
+              <Button variant="light" onPress={handleClose} isDisabled={loading}>
                 Hủy
-              </Button>              <Button
+              </Button>
+              <Button
                 color="primary"
                 onPress={handleSubmit}
                 isLoading={loading}
@@ -154,9 +157,13 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
               >
                 {loading ? 'Đang gửi...' : 'Gửi liên kết đặt lại'}
               </Button>
-            </>          ) : (            <Button color="primary" onPress={handleClose}>
-              Đóng
-            </Button>
+            </div>
+          ) : (
+            <div className="flex justify-center w-full">
+              <Button color="primary" onPress={handleClose}>
+                Đóng
+              </Button>
+            </div>
           )}
         </ModalFooter>
       </ModalContent>

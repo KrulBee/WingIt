@@ -9,8 +9,7 @@ export interface ProfanityResult {
   error?: string;
 }
 
-class ProfanityService {
-  /**
+class ProfanityService {  /**
    * Handle profanity error from backend
    * @param error The error message
    * @returns boolean indicating if error is profanity-related
@@ -18,7 +17,9 @@ class ProfanityService {
   isProfanityError(error: string): boolean {
     return error.includes('từ ngữ không phù hợp') || 
            error.includes('chứa từ ngữ không phù hợp') ||
-           error.includes('inappropriate content');
+           error.includes('inappropriate content') ||
+           error.includes('PROFANITY_DETECTED') ||
+           error === 'PROFANITY_DETECTED';
   }
 
   /**

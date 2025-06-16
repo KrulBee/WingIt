@@ -162,14 +162,15 @@ export default function CommentSection({
       setComments(prev => [newCommentObj, ...prev]);
       setNewComment('');
       onCommentsCountChange?.(commentsCount + 1);
-      
-    } catch (error: any) {
+        } catch (error: any) {
       console.error('Error submitting comment:', error);
       
       // Check if it's a profanity error from backend
       const errorData = error?.response?.data;
       
-      if (errorData?.isProfanityError) {
+      if (errorData?.isProfanityError === true || 
+          errorData?.error === 'PROFANITY_DETECTED' ||
+          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
         // Show profanity warning modal for backend-detected profanity
         setProfanityResult({
           is_profane: true,
@@ -182,22 +183,6 @@ export default function CommentSection({
         // Show appropriate error message
         const errorMessage = errorData?.message || error?.message || 'Không thể tạo bình luận. Vui lòng thử lại.';
         alert(errorMessage);
-      }
-      
-      // Check if it's a profanity error
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-      
-      if (ProfanityService.isProfanityError(errorMessage)) {
-        // Show profanity warning modal
-        setProfanityResult({
-          is_profane: true,
-          confidence: 0.8, // Default confidence for backend detection
-          toxic_spans: [],
-          processed_text: newComment
-        });
-        setShowProfanityWarning(true);
-      } else {
-        alert('Không thể gửi bình luận. Vui lòng thử lại.');
       }
     } finally {
       setLoading(false);
@@ -260,14 +245,15 @@ export default function CommentSection({
           return comment;
         });
       };      setComments(prev => addReplyToComment(prev));
-      onCommentsCountChange?.(commentsCount + 1);
-    } catch (error: any) {
+      onCommentsCountChange?.(commentsCount + 1);    } catch (error: any) {
       console.error('Error submitting reply:', error);
       
       // Check if it's a profanity error from backend
       const errorData = error?.response?.data;
       
-      if (errorData?.isProfanityError) {
+      if (errorData?.isProfanityError === true || 
+          errorData?.error === 'PROFANITY_DETECTED' ||
+          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
         // Show profanity warning modal for backend-detected profanity
         setProfanityResult({
           is_profane: true,

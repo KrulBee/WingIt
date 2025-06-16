@@ -107,6 +107,10 @@ export interface PostSearchResult {
     id: number;
     location: string;
   };
+  postType?: {
+    id: number;
+    typeName: string;
+  };
   media?: Array<{
     id: number;
     mediaUrl: string;
@@ -169,8 +173,7 @@ const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
   return posts
     .filter(post => 
       post.content?.toLowerCase().includes(searchTerm)
-    )
-    .map((post: PostData) => ({
+    )    .map((post: PostData) => ({
       id: post.id,
       content: post.content,
       author: {
@@ -185,6 +188,10 @@ const searchPosts = (posts: any[], query: string): PostSearchResult[] => {
       location: post.location ? {
         id: post.location.id,
         location: post.location.location
+      } : undefined,
+      postType: post.type ? {
+        id: post.type.id,
+        typeName: post.type.typeName
       } : undefined,
       media: post.mediaUrls?.map((url, index) => ({
         id: index,
@@ -408,8 +415,7 @@ export const SearchService = {
       const posts = await PostService.getAllPosts();
         return posts
         .sort(() => Math.random() - 0.5) // Random shuffle
-        .slice(0, limit)
-        .map((post: PostData) => ({
+        .slice(0, limit)        .map((post: PostData) => ({
           id: post.id,
           content: post.content,
           author: {
@@ -426,6 +432,10 @@ export const SearchService = {
             mediaType: url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? 'IMAGE' : 'VIDEO'
           })) || post.media || [],
           location: post.location,
+          postType: post.type ? {
+            id: post.type.id,
+            typeName: post.type.typeName
+          } : undefined,
           viewCount: 0
         }));
     } catch (error) {

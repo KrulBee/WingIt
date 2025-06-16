@@ -102,9 +102,8 @@ public class EmailService {
                     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                     .header { background-color: #007bff; color: white; padding: 20px; text-align: center; }
-                    .content { padding: 20px; background-color: #f9f9f9; }
-                    .button { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-                    .button:hover { background-color: #218838; }
+                    .content { padding: 20px; background-color: #f9f9f9; }                    .button { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .button:hover { background-color: #218838; color: white !important; }
                     .link { color:rgb(255, 255, 255); text-decoration: underline; word-break: break-all; }
                     .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
                 </style>
@@ -179,7 +178,7 @@ public class EmailService {
                     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                     .header { background-color: #ffc107; color: black; padding: 20px; text-align: center; }
                     .content { padding: 20px; background-color: #f9f9f9; }
-                    .button { display: inline-block; padding: 12px 24px; background-color: #ffc107; color: black; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                    .button { display: inline-block; padding: 12px 24px; background-color: #ffc107; color: black !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
                     .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
                 </style>
             </head>

@@ -8,6 +8,7 @@ import { PostService } from "@/services";
 import LocationService, { Location } from "@/services/LocationService";
 import PostTypeService, { PostType } from "@/services/PostTypeService";
 import { AuthService } from "@/services";
+import ProfanityService from "@/services/ProfanityService";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 
 interface CreatePostFormProps {
@@ -115,11 +116,12 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       setShowMediaUpload(false);
     } catch (error: any) {
       console.error("Failed to create post:", error);
-      
-      // Check if it's a profanity error from backend
+        // Check if it's a profanity error from backend
       const errorData = error?.response?.data;
       
-      if (errorData?.isProfanityError) {
+      if (errorData?.isProfanityError === true || 
+          errorData?.error === 'PROFANITY_DETECTED' ||
+          ProfanityService.isProfanityError(errorData?.message || error?.message || '')) {
         // Show profanity warning modal for backend-detected profanity
         setProfanityResult({
           is_profane: true,
