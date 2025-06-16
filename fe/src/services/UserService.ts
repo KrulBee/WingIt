@@ -46,6 +46,7 @@ interface UserData {
   profilePicture?: string;
   coverPhoto?: string;
   dateOfBirth?: string; // ISO format: YYYY-MM-DD
+  createdDate?: string; // Join date - when user registered
   provider?: string; // OAuth2 provider (null for regular users)
 }
 

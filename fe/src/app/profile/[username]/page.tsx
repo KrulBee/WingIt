@@ -23,6 +23,7 @@ interface UserData {
   profilePicture?: string;
   coverPhoto?: string;
   dateOfBirth?: string;
+  createdDate?: string; // Join date
 }
 
 interface PostData {
@@ -557,10 +558,14 @@ export default function UserProfilePage() {
                             <div>
                               <span className="font-medium">Bio:</span> {userData.bio}
                             </div>
-                          )}
-                          {userData.dateOfBirth && (
+                          )}                          {userData.dateOfBirth && (
                             <div>
-                              <span className="font-medium">Date of Birth:</span> {userData.dateOfBirth}
+                              <span className="font-medium">Ngày sinh:</span> {new Date(userData.dateOfBirth).toLocaleDateString('vi-VN')}
+                            </div>
+                          )}
+                          {userData.createdDate && (
+                            <div>
+                              <span className="font-medium">Tham gia:</span> {new Date(userData.createdDate).toLocaleDateString('vi-VN')}
                             </div>
                           )}
                         </div>
