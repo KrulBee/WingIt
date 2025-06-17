@@ -118,29 +118,25 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
 
     try {
       setCreating(true);
-      setError(null);
-
-      const participantIds = Array.from(selectedFriends);
+      setError(null);      const participantIds = Array.from(selectedFriends);
       
-      let chatRoomData;
+      let newChatRoom;
       if (isGroupChat) {
         // Create group chat
-        chatRoomData = {
+        const chatRoomData = {
           roomName: groupName || `Group Chat`,
           isGroupChat: true,
           participantIds
         };
+        newChatRoom = await ChatService.createChatRoom(chatRoomData);
       } else {
-        // Create direct chat
-        const friend = friends.find(f => f.friend.id === participantIds[0]);
-        chatRoomData = {
-          roomName: friend?.friend.displayName || friend?.friend.username || "Direct Chat",
-          isGroupChat: false,
-          participantIds
-        };
+        // Create direct chat using the new endpoint that prevents duplicates
+        if (participantIds.length !== 1) {
+          throw new Error('Direct chat must have exactly one participant');
+        }
+        newChatRoom = await ChatService.findOrCreatePrivateChat(participantIds[0]);
       }
 
-      const newChatRoom = await ChatService.createChatRoom(chatRoomData);
       onChatCreated(newChatRoom);
       
       // Reset form

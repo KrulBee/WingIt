@@ -38,6 +38,7 @@ export interface ChatRoom {
   createdDate: string;
   updatedDate?: string;
   participants?: User[];
+  lastMessage?: Message;
 }
 
 export interface Message {
@@ -106,8 +107,7 @@ const ChatService = {
       console.error('Get chat room error:', error);
       throw error;
     }
-  },
-  createChatRoom: async (chatRoomData: CreateChatRoomData): Promise<ChatRoom> => {
+  },  createChatRoom: async (chatRoomData: CreateChatRoomData): Promise<ChatRoom> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/chatrooms/create`, {
         method: 'POST',
@@ -118,6 +118,20 @@ const ChatService = {
       return await response.json();
     } catch (error) {
       console.error('Create chat room error:', error);
+      throw error;
+    }
+  },
+
+  findOrCreatePrivateChat: async (otherUserId: number): Promise<ChatRoom> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/chatrooms/private/${otherUserId}`, {
+        method: 'POST',
+        headers: createAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to find or create private chat');
+      return await response.json();
+    } catch (error) {
+      console.error('Find or create private chat error:', error);
       throw error;
     }
   },

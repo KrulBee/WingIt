@@ -178,9 +178,7 @@ function MessagesContent() {
         setActiveChat(existingRoom.id);
         setPendingUserChat(null); // Clear pending state
         return;
-      }
-
-      // If no existing room, try to create a new private chat
+      }      // If no existing room, use the backend endpoint to find or create a private chat
       try {
         // Import UserService dynamically to avoid circular dependencies
         const { default: UserService } = await import('@/services/UserService');
@@ -188,16 +186,16 @@ function MessagesContent() {
         // Get the user by username to get their ID
         const user = await UserService.getUserByUsername(username);
         
-        // Create a private chat room with this user
-        const chatRoomData = {
-          roomName: user.displayName || user.username,
-          isGroupChat: false,
-          participantIds: [user.id]
-        };
-
-        const newRoom = await ChatService.createChatRoom(chatRoomData);
-        setChatRooms(prev => [newRoom, ...prev]);
-        setActiveChat(newRoom.id);
+        // Use the new backend endpoint that handles finding/creating private chats
+        const chatRoom = await ChatService.findOrCreatePrivateChat(user.id);
+        
+        // Check if this room is already in our list
+        const existingRoomInList = chatRooms.find(room => room.id === chatRoom.id);
+        if (!existingRoomInList) {
+          setChatRooms(prev => [chatRoom, ...prev]);
+        }
+        
+        setActiveChat(chatRoom.id);
         setPendingUserChat(null); // Clear pending state
       } catch (createError) {
         console.error('Error creating chat with user:', createError);
@@ -442,19 +440,18 @@ function MessagesContent() {
         unread: 0
       };
     }
-  };
-  const getLastMessageForRoom = (roomId: number): string => {
-    // Find the last message for this room from our messages state
+  };  const getLastMessageForRoom = (roomId: number): string => {
+    // First, try to get the last message from the room's lastMessage property
+    const room = chatRooms.find(room => room.id === roomId);
+    if (room?.lastMessage) {
+      return room.lastMessage.content;
+    }
+    
+    // Fallback: Find the last message for this room from our messages state
     const roomMessages = messages.filter(msg => msg.roomId === roomId);
     if (roomMessages.length > 0) {
       const lastMessage = roomMessages[roomMessages.length - 1];
       return lastMessage.content;
-    }
-    
-    // Check if the room has lastMessage in the room data
-    const room = chatRooms.find(r => r.id === roomId);
-    if (room && room.lastMessage) {
-      return room.lastMessage.content;
     }
     
     return "Chưa có tin nhắn nào";
