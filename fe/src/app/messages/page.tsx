@@ -275,14 +275,13 @@ function MessagesContent() {
   const fetchChatRooms = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const rooms = await ChatService.getUserChatRooms();
+      setError(null);      const rooms = await ChatService.getUserChatRooms();
       setChatRooms(rooms);
       
-      // Set first room as active if available
-      if (rooms.length > 0) {
+      // Only set first room as active if no room is currently active
+      if (rooms.length > 0 && !activeChat) {
         setActiveChat(rooms[0].id);
-      }    } catch (err) {
+      }} catch (err) {
       console.error('Error fetching chat rooms:', err);
       setError('Không thể tải phòng trò chuyện. Vui lòng thử lại.');
     } finally {
