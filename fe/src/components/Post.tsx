@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { MessageCircle, MoreHorizontal, Bookmark, Edit3, Trash2 } from "react-feather";
+import { MessageCircle, MoreHorizontal, Bookmark, Edit3, Trash2, Flag } from "react-feather";
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
 import PostDetailModal from './PostDetailModal';
@@ -431,11 +431,12 @@ export default function Post({
                 >
                   Xóa Bài Viết
                 </DropdownItem>
-              ]}
-
-              {/* Show report option for others */}
+              ]}              {/* Show report option for others */}
               {currentUser && currentUser.username !== authorUsername && (
-                <DropdownItem key="report">
+                <DropdownItem 
+                  key="report"
+                  startContent={<Flag size={16} />}
+                >
                   Báo Cáo
                 </DropdownItem>
               )}

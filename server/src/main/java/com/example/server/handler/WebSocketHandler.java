@@ -256,8 +256,27 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private void handlePing(WebSocketSession session) throws IOException {
         sendMessage(session, createMessage("pong", "success", "pong"));
     }    private void broadcastUserStatus(String username, String status) {
-        String statusMessage = createMessage("userStatus", status, username);
-        broadcastMessage(statusMessage, username);
+        try {
+            // Get user ID from username
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                logger.warn("User not found for status broadcast: {}", username);
+                return;
+            }
+            
+            // Create proper status data structure
+            Map<String, Object> statusData = Map.of(
+                "userId", user.getId(),
+                "username", username,
+                "isOnline", "online".equals(status),
+                "presence", status
+            );
+            
+            String statusMessage = createMessage("userStatus", status, statusData);
+            broadcastMessage(statusMessage, username);
+        } catch (Exception e) {
+            logger.error("Error broadcasting user status", e);
+        }
     }
 
     private void broadcastToRoom(String message, Long roomId, String excludeUser) {
@@ -313,9 +332,21 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private void sendErrorMessage(WebSocketSession session, String error) throws IOException {
         sendMessage(session, createMessage("error", "error", error));
+    }    private String createMessage(String type, String status, String data) {
+        try {
+            return objectMapper.writeValueAsString(Map.of(
+                "type", type,
+                "status", status,
+                "data", data,
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            logger.error("Error creating message", e);
+            return "{\"type\":\"error\",\"status\":\"error\",\"data\":\"Failed to create message\"}";
+        }
     }
 
-    private String createMessage(String type, String status, String data) {
+    private String createMessage(String type, String status, Object data) {
         try {
             return objectMapper.writeValueAsString(Map.of(
                 "type", type,

@@ -17,7 +17,8 @@ import {
   MoreHorizontal, 
   Bookmark, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  Flag 
 } from "react-feather";
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
@@ -320,13 +321,13 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                       </p>
                     </div>
                   </div>
-                  
-                  <Dropdown>
+                    <Dropdown>
                     <DropdownTrigger>
                       <Button isIconOnly variant="light" size="sm">
                         <MoreHorizontal size={20} />
                       </Button>
-                    </DropdownTrigger>                    <DropdownMenu aria-label="Hành động bài viết">
+                    </DropdownTrigger>
+                    <DropdownMenu aria-label="Hành động bài viết">
                       <DropdownItem
                         key="bookmark"
                         onClick={handleBookmark}
@@ -337,6 +338,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                       <DropdownItem
                         key="report"
                         onClick={handleReport}
+                        startContent={<Flag size={16} />}
                       >
                         Báo Cáo
                       </DropdownItem>

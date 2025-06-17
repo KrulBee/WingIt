@@ -37,40 +37,36 @@ public class User {
     private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserData userData;
-
-    @OneToMany(mappedBy = "user")
+    private UserData userData;    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "user1")
+    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friendsAsUser1;
 
-    @OneToMany(mappedBy = "user2")
-    private List<Friend> friendsAsUser2;
-
-    @OneToMany(mappedBy = "sender")  // Changed from "sender_id" to "sender"
+    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friend> friendsAsUser2;@OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)  // Changed from "sender_id" to "sender"
     private List<FriendRequest> sentFriendRequests;
 
-    @OneToMany(mappedBy = "receiver")  // Changed from "receiver_id" to "receiver"
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)  // Changed from "receiver_id" to "receiver"
     private List<FriendRequest> receivedFriendRequests;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Block> blockedUsers;
 
     @OneToMany(mappedBy = "blockedUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Block> blockedByUsers;
-
-    @OneToMany(mappedBy = "sender")  // Changed from "sender_id" to "sender"
+    private List<Block> blockedByUsers;    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)  // Changed from "sender_id" to "sender"
     private List<Message> sentMessages;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoomUser> roomUsers;    @OneToMany(mappedBy = "user")
+    private List<RoomUser> roomUsers;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostReaction> postReactions;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentReaction> commentReactions;
 
     // Helper methods to get data from relationships
