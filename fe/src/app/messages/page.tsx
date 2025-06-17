@@ -124,18 +124,21 @@ function MessagesContent() {
       });
     }
   }, [activeChat, currentUserId]);
-
   // Handle user status updates
   const handleUserStatusUpdate = useCallback((statusData: any) => {
+    console.log('🔴 User status update received:', statusData);
     const { userId, isOnline, presence } = statusData;
     
     setOnlineUsers(prev => {
       const newSet = new Set(prev);
       if (isOnline) {
+        console.log('🟢 Setting user', userId, 'as online');
         newSet.add(userId);
       } else {
+        console.log('⚫ Setting user', userId, 'as offline');
         newSet.delete(userId);
       }
+      console.log('📋 Online users now:', Array.from(newSet));
       return newSet;
     });
 

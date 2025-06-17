@@ -336,11 +336,10 @@ class WebSocketService {
       if (message.type === 'pong') {
         console.log('WebSocket pong received');
         return;
-      }
-
-      // Map backend message types to frontend expected types
+      }      // Map backend message types to frontend expected types
       let messageType = message.type;
       if (message.type === 'userStatus') {
+        console.log('🔴 Raw WebSocket userStatus message:', message);
         messageType = 'user_status';
       }
       
@@ -348,6 +347,9 @@ class WebSocketService {
       this.listeners
         .filter(listener => listener.type === messageType)
         .forEach(listener => {
+          if (messageType === 'user_status') {
+            console.log('🔴 Forwarding user_status to listener:', message.data || message);
+          }
           try {
             listener.callback(message.data || message);
           } catch (error) {
