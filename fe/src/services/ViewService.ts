@@ -421,18 +421,26 @@ class ViewService {
 
       console.log('📊 Analytics API response status:', response.status);
       console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      if (response.ok) {
+        if (response.ok) {
         const backendAnalytics = await response.json();
         console.log('✅ Backend analytics received:', backendAnalytics);
+        console.log('🔍 Backend data structure:', {
+          totalPosts: backendAnalytics.totalPosts,
+          totalViews: backendAnalytics.totalViews,
+          viewsToday: backendAnalytics.viewsToday,
+          viewsThisWeek: backendAnalytics.viewsThisWeek,
+          viewsBySource: backendAnalytics.viewsBySource
+        });
+        
         return {
           totalPosts: backendAnalytics.totalPosts ?? this.viewedPosts.size,
           totalViews: backendAnalytics.totalViews ?? this.postViews.length,
           averageViewsPerPost: backendAnalytics.averageViewsPerPost ?? 
             (this.viewedPosts.size > 0 ? this.postViews.length / this.viewedPosts.size : 0),
-          topSources: backendAnalytics.topSources ?? localTopSources,
+          topSources: this.convertBackendSourcesToFrontend(backendAnalytics.viewsBySource) ?? localTopSources,
           viewsToday: backendAnalytics.viewsToday ?? localViewsToday,
-          viewsThisWeek: backendAnalytics.viewsThisWeek ?? localViewsThisWeek        };
+          viewsThisWeek: backendAnalytics.viewsThisWeek ?? localViewsThisWeek
+        };
       } else {
         const errorText = await response.text();
         console.warn('❌ Analytics API failed with status:', response.status);
@@ -450,7 +458,37 @@ class ViewService {
       topSources: localTopSources,
       viewsToday: localViewsToday,
       viewsThisWeek: localViewsThisWeek
+    };  }
+
+  /**
+   * Convert backend viewsBySource format to frontend topSources format
+   */
+  private convertBackendSourcesToFrontend(viewsBySource: Record<string, number>): Array<{ source: string; count: number }> {
+    if (!viewsBySource) return [];
+    
+    return Object.entries(viewsBySource)
+      .map(([source, count]) => ({ 
+        source: this.mapBackendSourceToFrontend(source), 
+        count 
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  /**
+   * Map backend source names to frontend display names
+   */
+  private mapBackendSourceToFrontend(backendSource: string): string {
+    const sourceMap: Record<string, string> = {
+      'FEED': 'Bảng tin',
+      'MODAL': 'Chi tiết',
+      'PROFILE': 'Hồ sơ',
+      'SEARCH': 'Tìm kiếm',
+      'BOOKMARK': 'Đánh dấu',
+      'NOTIFICATION': 'Thông báo'
     };
+    
+    return sourceMap[backendSource] || backendSource;
   }
 
   /**
