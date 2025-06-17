@@ -99,11 +99,11 @@ public class PostViewService {
         stats.setRecentViews(recentViews);
 
         return stats;
-    }
-
-    public ViewAnalyticsSummaryDTO getAnalyticsSummary(Integer userId) {
+    }    public ViewAnalyticsSummaryDTO getAnalyticsSummary(Integer userId) {
         LocalDateTime startOfDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime startOfWeek = LocalDateTime.now().minus(7, ChronoUnit.DAYS);
+        // Calculate start of this week (Monday)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfWeek = now.with(java.time.DayOfWeek.MONDAY).truncatedTo(ChronoUnit.DAYS);
 
         long totalViews;
         long totalPosts;
@@ -118,6 +118,13 @@ public class PostViewService {
             viewsThisWeek = postViewRepository.countViewsThisWeekForUser(userId, startOfWeek);
             sourceCountData = postViewRepository.getViewCountBySourceForUser(userId);
             recentViewEntities = postViewRepository.findRecentViewsForUser(userId, 10);
+            
+            // Debug logging
+            System.out.println("🔍 DEBUG - User " + userId + " analytics:");
+            System.out.println("  Total views by countByUserId: " + totalViews);
+            long sourceTotal = sourceCountData.stream().mapToLong(row -> (Long) row[1]).sum();
+            System.out.println("  Total views by source count: " + sourceTotal);
+            System.out.println("  Source breakdown: " + sourceCountData);
         } else {
             // Get global analytics
             totalViews = postViewRepository.count();

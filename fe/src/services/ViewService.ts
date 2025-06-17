@@ -411,12 +411,18 @@ class ViewService {
       .slice(0, 5);    // Try to get enhanced analytics from backend
     try {
       console.log('🔍 ViewService: Calling analytics API...');
+      console.log('🔍 API URL:', `${this.API_BASE_URL}/api/v1/post-views/analytics`);
+      console.log('🔍 Auth token exists:', !!this.getAuthToken());
+      
       const response = await fetch(`${this.API_BASE_URL}/api/v1/post-views/analytics`, {
         method: 'GET',
         headers: this.createAuthHeaders()
       });
 
-      console.log('📊 Analytics API response status:', response.status);      if (response.ok) {
+      console.log('📊 Analytics API response status:', response.status);
+      console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (response.ok) {
         const backendAnalytics = await response.json();
         console.log('✅ Backend analytics received:', backendAnalytics);
         return {
@@ -428,7 +434,9 @@ class ViewService {
           viewsToday: backendAnalytics.viewsToday ?? localViewsToday,
           viewsThisWeek: backendAnalytics.viewsThisWeek ?? localViewsThisWeek        };
       } else {
+        const errorText = await response.text();
         console.warn('❌ Analytics API failed with status:', response.status);
+        console.warn('❌ Error response:', errorText);
       }
     } catch (error) {
       console.warn('❌ Failed to fetch backend analytics, using local only:', error);
