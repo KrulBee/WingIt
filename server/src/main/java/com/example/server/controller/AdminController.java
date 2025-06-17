@@ -115,9 +115,8 @@ public class AdminController {
                 String currentUsername = currentAuth.getName();
                 User currentUser = userRepository.findByUsername(currentUsername);
                 System.out.println("DEBUG: Current user: " + (currentUser != null ? currentUser.getUsername() + " (ID: " + currentUser.getId() + ")" : "null"));
-                
-                // Let's try to find user by ID 1 (Admin)
-                User userById = userRepository.findById(1).orElse(null);
+                  // Let's try to find user by ID 1 (Admin)
+                User userById = userRepository.findById(Integer.valueOf(1)).orElse(null);
                 System.out.println("DEBUG: User by ID 1: " + (userById != null ? userById.getUsername() : "null"));
                 
                 // Use the actual count from findAll()
