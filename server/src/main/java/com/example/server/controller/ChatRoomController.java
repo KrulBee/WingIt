@@ -45,9 +45,7 @@ public class ChatRoomController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @PostMapping("/create")
+    }    @PostMapping("/create")
     public ResponseEntity<ChatRoomDTO> createChatRoom(@RequestBody CreateChatRoomRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,6 +53,19 @@ public class ChatRoomController {
             
             ChatRoomDTO chatRoom = chatRoomService.createChatRoom(request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(chatRoom);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/private/{otherUserId}")
+    public ResponseEntity<ChatRoomDTO> findOrCreatePrivateChat(@PathVariable Integer otherUserId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer currentUserId = getUserIdFromAuth(auth);
+            
+            ChatRoomDTO chatRoom = chatRoomService.findOrCreatePrivateChat(currentUserId, otherUserId);
+            return ResponseEntity.ok(chatRoom);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

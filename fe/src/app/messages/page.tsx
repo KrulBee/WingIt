@@ -399,11 +399,27 @@ function MessagesContent() {
     // Use the default avatar as fallback
     return avatarBase64;
   };
-  
-  // Transform ChatRoom to ChatUser for UI compatibility
+    // Transform ChatRoom to ChatUser for UI compatibility
   const transformRoomToUser = (room: ChatRoom): ChatUser => {
     if (!room.isGroupChat && room.participants && room.participants.length > 0) {
-      const otherUser = room.participants[0];
+      // For private chats, find the OTHER participant (not the current user)
+      const otherUser = room.participants.find(participant => participant.id !== currentUserId);
+      
+      if (!otherUser) {
+        // Fallback if we can't find the other user (shouldn't happen in normal cases)
+        console.warn(`Could not find other participant in room ${room.id}`);
+        const fallbackUser = room.participants[0];
+        return {
+          id: room.id.toString(),
+          name: fallbackUser.displayName || fallbackUser.username,
+          avatar: getAvatarSrc(fallbackUser.profilePicture, fallbackUser.username),
+          lastMessage: getLastMessageForRoom(room.id),
+          timestamp: formatTimestamp(room.updatedDate || room.createdDate),
+          online: false,
+          unread: 0
+        };
+      }
+      
       const isOnline = onlineUsers.has(otherUser.id);
       return {
         id: room.id.toString(),

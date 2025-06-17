@@ -37,9 +37,7 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));
         return convertToDTO(chatRoom);
-    }
-
-    public ChatRoomDTO createChatRoom(CreateChatRoomRequest request, Integer creatorId) {
+    }    public ChatRoomDTO createChatRoom(CreateChatRoomRequest request, Integer creatorId) {
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("Creator not found"));
 
@@ -73,7 +71,50 @@ public class ChatRoomService {
         }
 
         return convertToDTO(savedChatRoom);
-    }    public void joinChatRoom(Long chatRoomId, Integer userId) {
+    }
+
+    /**
+     * Find or create a private chat between two users
+     */
+    public ChatRoomDTO findOrCreatePrivateChat(Integer userId1, Integer userId2) {
+        // Check if a private chat already exists between these two users
+        ChatRoom existingChat = chatRoomRepository.findPrivateChatBetweenUsers(userId1, userId2);
+        
+        if (existingChat != null) {
+            System.out.println("Found existing private chat: " + existingChat.getId());
+            return convertToDTO(existingChat);
+        }
+        
+        // Create new private chat
+        System.out.println("Creating new private chat between users " + userId1 + " and " + userId2);
+        
+        User user1 = userRepository.findById(userId1)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId1));
+        User user2 = userRepository.findById(userId2)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId2));
+
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setRoomName("Private Chat"); // Generic name for private chats
+        chatRoom.setIsGroupChat(false);
+        chatRoom.setCreatedDate(LocalDateTime.now());
+
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        // Add both users to the room
+        RoomUser roomUser1 = new RoomUser();
+        roomUser1.setChatRoom(savedChatRoom);
+        roomUser1.setUser(user1);
+        roomUser1.setJoinedAt(LocalDateTime.now());
+        roomUserRepository.save(roomUser1);
+
+        RoomUser roomUser2 = new RoomUser();
+        roomUser2.setChatRoom(savedChatRoom);
+        roomUser2.setUser(user2);
+        roomUser2.setJoinedAt(LocalDateTime.now());
+        roomUserRepository.save(roomUser2);
+
+        return convertToDTO(savedChatRoom);
+    }public void joinChatRoom(Long chatRoomId, Integer userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));
         
