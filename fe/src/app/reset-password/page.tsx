@@ -183,13 +183,12 @@ function ResetPasswordPageContent() {
   }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-        <CardHeader className="text-center pb-6 pt-8">
-          <div className="flex flex-col items-center gap-4">
+      <Card className="max-w-md w-full shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">        <CardHeader className="flex flex-col items-center text-center pb-6 pt-8">
+          <div className="flex flex-col items-center gap-4 w-full">
             <div className="p-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 shadow-lg">
               <Lock size={28} className="text-blue-600 dark:text-blue-400" />
             </div>
-            <div>
+            <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 Đặt lại mật khẩu
               </h2>
