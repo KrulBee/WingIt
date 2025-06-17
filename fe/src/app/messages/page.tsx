@@ -254,10 +254,10 @@ function MessagesContent() {
       findOrCreateChatWithUser(username);
     }
   }, [chatRooms, searchParams, pendingUserChat, findOrCreateChatWithUser]);
-  
-  // Fetch messages when active chat changes
+    // Fetch messages when active chat changes
   useEffect(() => {
     if (activeChat) {
+      console.log('Loading messages for chat room:', activeChat);
       fetchMessages(activeChat);      // Join the chat room for real-time messages
       const wsService = webSocketService;
       if (wsService.isConnected()) {
@@ -290,10 +290,11 @@ function MessagesContent() {
     } finally {
       setLoading(false);
     }
-  };
-  const fetchMessages = async (roomId: number) => {
+  };  const fetchMessages = async (roomId: number) => {
     try {
+      console.log('Fetching messages for room ID:', roomId);
       const roomMessages = await ChatService.getMessagesByRoomId(roomId);
+      console.log('Received messages:', roomMessages);
       setMessages(roomMessages);    } catch (err) {
       console.error('Error fetching messages:', err);
       setError('Không thể tải tin nhắn.');
@@ -442,9 +443,20 @@ function MessagesContent() {
       };
     }
   };
-
   const getLastMessageForRoom = (roomId: number): string => {
-    // In a real app, this would come from the API
+    // Find the last message for this room from our messages state
+    const roomMessages = messages.filter(msg => msg.roomId === roomId);
+    if (roomMessages.length > 0) {
+      const lastMessage = roomMessages[roomMessages.length - 1];
+      return lastMessage.content;
+    }
+    
+    // Check if the room has lastMessage in the room data
+    const room = chatRooms.find(r => r.id === roomId);
+    if (room && room.lastMessage) {
+      return room.lastMessage.content;
+    }
+    
     return "Chưa có tin nhắn nào";
   };
   const formatTimestamp = (timestamp: string): string => {
