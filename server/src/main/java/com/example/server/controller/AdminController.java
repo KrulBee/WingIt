@@ -100,14 +100,31 @@ public class AdminController {
             }
             
             System.out.println("DEBUG: User has admin access, fetching stats...");
-            Map<String, Object> stats = new HashMap<>();
-            
-            try {
+            Map<String, Object> stats = new HashMap<>();            try {
                 // User statistics
                 System.out.println("DEBUG: Fetching user statistics...");
                 long totalUsers = userRepository.count();
+                System.out.println("DEBUG: Total users from repository.count(): " + totalUsers);
+                
+                // Alternative way to count users
+                List<User> allUsers = userRepository.findAll();
+                System.out.println("DEBUG: Total users from findAll().size(): " + allUsers.size());
+                
+                // Let's also check if we can find the current user
+                Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+                String currentUsername = currentAuth.getName();
+                User currentUser = userRepository.findByUsername(currentUsername);
+                System.out.println("DEBUG: Current user: " + (currentUser != null ? currentUser.getUsername() + " (ID: " + currentUser.getId() + ")" : "null"));
+                
+                // Let's try to find user by ID 1 (Admin)
+                User userById = userRepository.findById(1).orElse(null);
+                System.out.println("DEBUG: User by ID 1: " + (userById != null ? userById.getUsername() : "null"));
+                
+                // Use the actual count from findAll()
+                totalUsers = allUsers.size();
+                
                 long newUsersThisMonth = userRepository.countByCreatedDateAfter(
-                    java.time.LocalDateTime.now().minusMonths(1)
+                    java.time.LocalDate.now().minusMonths(1)
                 );
                 stats.put("totalUsers", totalUsers);
                 stats.put("newUsersThisMonth", newUsersThisMonth);
