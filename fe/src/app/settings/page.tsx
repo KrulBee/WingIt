@@ -510,22 +510,11 @@ export default function SettingsPage() {
                             Phát âm thanh khi nhận thông báo mới
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="light"
-                          onPress={() => notificationSoundService.testNotification()}
-                          isDisabled={saving}
-                        >
-                          Test
-                        </Button>
-                        <Switch
-                          isSelected={settings.allowSearchEngines}
-                          onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
-                          color="primary"
-                        />
-                      </div>
+                      </div>                      <Switch
+                        isSelected={settings.allowSearchEngines}
+                        onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
+                        color="primary"
+                      />
                     </div>
                   </CardBody>
                 </Card>

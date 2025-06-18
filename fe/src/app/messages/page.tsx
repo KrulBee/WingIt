@@ -75,9 +75,9 @@ function MessagesContent() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
-  // Real-time message handler
+  }, [messages]);  // Real-time message handler
   const handleNewMessage = useCallback((messageData: any) => {
+    console.log('📨 Message page received message:', messageData);
     try {
       // Transform the WebSocket message to our Message format
       const newMessage: Message = {
@@ -90,14 +90,19 @@ function MessagesContent() {
         sender: messageData.sender
       };
       
+      console.log('📝 Transformed message for active chat:', activeChat, 'Message room:', newMessage.roomId);
+      
       // Only add message if it's for the active chat
       if (newMessage.roomId === activeChat) {
+        console.log('✅ Adding message to active chat');
         setMessages(prev => [...prev, newMessage]);
+      } else {
+        console.log('ℹ️ Message not for active chat, skipping display');
       }
     } catch (err) {
       console.error('Error processing new message:', err);
     }
-  }, [activeChat]);  // Handle typing indicators
+  }, [activeChat]);// Handle typing indicators
   const handleTypingUpdate = useCallback((typingData: any) => {
     const { userId, roomId, isTyping, userName } = typingData;
     
@@ -181,7 +186,6 @@ function MessagesContent() {
       setError(`Không thể tạo cuộc trò chuyện với @${username}`);
       setPendingUserChat(null); // Clear pending state
     }  }, [chatRooms]);
-
   // Setup WebSocket subscriptions for messages page specific functionality
   useEffect(() => {
     fetchChatRooms();
@@ -191,14 +195,29 @@ function MessagesContent() {
     const wsService = webSocketService;
     
     if (wsConnected) {
+      console.log('📡 Setting up WebSocket subscriptions for messages page');
+      
       // Subscribe to real-time messages
-      wsService.subscribeToMessages(handleNewMessage);
+      const messageSubId = wsService.subscribeToMessages(handleNewMessage);
+      console.log('📨 Subscribed to messages with ID:', messageSubId);
       
       // Subscribe to typing indicators
-      wsService.subscribeToTyping(handleTypingUpdate);
+      const typingSubId = wsService.subscribeToTyping(handleTypingUpdate);
+      console.log('⌨️ Subscribed to typing with ID:', typingSubId);
 
       // Subscribe to message status updates
-      wsService.subscribeToMessageStatus(handleMessageStatusUpdate);
+      const statusSubId = wsService.subscribeToMessageStatus(handleMessageStatusUpdate);
+      console.log('📊 Subscribed to message status with ID:', statusSubId);
+      
+      // Cleanup function to unsubscribe
+      return () => {
+        wsService.unsubscribe(messageSubId);
+        wsService.unsubscribe(typingSubId);
+        wsService.unsubscribe(statusSubId);
+        console.log('🧹 Cleaned up message page subscriptions');
+      };
+    } else {
+      console.log('🔌 WebSocket not connected, skipping subscriptions');
     }
   }, [wsConnected, handleNewMessage, handleTypingUpdate, handleMessageStatusUpdate]);
   // Handle URL parameter to start chat with specific user

@@ -68,18 +68,21 @@ class NotificationSoundService {
   isNotificationEnabled(): boolean {
     return this.isEnabled;
   }
-
   /**
    * Play notification sound
    */
   playNotification(): void {
+    console.log('🔊 Attempting to play notification sound. Enabled:', this.isEnabled);
+    
     if (!this.isEnabled || !this.audioContext || !this.notificationBuffer) {
+      console.log('🔇 Cannot play notification - disabled or not initialized');
       return;
     }
 
     try {
       // Resume audio context if it's suspended (required by browser policies)
       if (this.audioContext.state === 'suspended') {
+        console.log('📢 Resuming audio context...');
         this.audioContext.resume();
       }
 
@@ -95,22 +98,23 @@ class NotificationSoundService {
       gainNode.gain.value = 0.3;
       
       source.start();
+      console.log('✅ Notification sound played successfully');
     } catch (error) {
-      console.warn('Failed to play notification sound:', error);
+      console.warn('❌ Failed to play notification sound:', error);
     }
   }
-
   /**
    * Play notification for new message
    */
   playMessageNotification(): void {
+    console.log('📬 Playing message notification...');
     this.playNotification();
   }
-
   /**
    * Test notification sound (for settings page)
    */
   testNotification(): void {
+    console.log('🧪 Testing notification sound...');
     // Temporarily enable sound for testing
     const wasEnabled = this.isEnabled;
     this.isEnabled = true;

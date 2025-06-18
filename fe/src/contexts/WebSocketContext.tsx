@@ -74,12 +74,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             console.log('✅ Global online users set:', userIds);
           }
         });        // Subscribe to messages globally for notification sounds
+        // Note: Only subscribe for notifications, let pages handle their own message display
         webSocketService.subscribeToMessages((messageData: any) => {
           console.log('📨 Global message received for notification:', messageData);
           
           // Only play notification sound if the message is not from the current user
           if (currentUserId && messageData.senderId && messageData.senderId !== currentUserId) {
+            console.log('🔊 Playing notification sound for message from user:', messageData.senderId);
             notificationSoundService.playMessageNotification();
+          } else {
+            console.log('🔇 Skipping notification - message from current user or invalid data');
           }
         });
         
