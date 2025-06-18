@@ -1,11 +1,14 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { webSocketService } from '@/services/WebSocketService';
+import { notificationSoundService } from '@/services/NotificationSoundService';
 
 interface WebSocketContextType {
   isConnected: boolean;
   onlineUsers: Set<number>;
   requestOnlineUsers: () => void;
+  updateNotificationSettings: (enabled: boolean) => void;
+  setCurrentUserId: (userId: number | null) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -25,13 +28,25 @@ interface WebSocketProviderProps {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);  useEffect(() => {
     // Connect to WebSocket when provider mounts
     webSocketService.connect()
       .then(() => {
         console.log('🌐 Global WebSocket connected');
         setIsConnected(true);
+        
+        // Initialize current user ID for notifications
+        const initCurrentUser = async () => {
+          try {
+            const { AuthService } = await import('@/services');
+            const user = await AuthService.getCurrentUser();
+            setCurrentUserId(user.id);
+            console.log('👤 Current user ID set for notifications:', user.id);
+          } catch (error) {
+            console.log('ℹ️ User not logged in, notifications will be disabled');
+          }
+        };
+        initCurrentUser();
         
         // Subscribe to user status updates globally
         webSocketService.subscribeToUserStatus((statusData: any) => {
@@ -58,6 +73,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             setOnlineUsers(new Set(userIds));
             console.log('✅ Global online users set:', userIds);
           }
+        });        // Subscribe to messages globally for notification sounds
+        webSocketService.subscribeToMessages((messageData: any) => {
+          console.log('📨 Global message received for notification:', messageData);
+          
+          // Only play notification sound if the message is not from the current user
+          if (currentUserId && messageData.senderId && messageData.senderId !== currentUserId) {
+            notificationSoundService.playMessageNotification();
+          }
         });
         
         // Request initial online users after connection
@@ -78,17 +101,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       }
     };
   }, []);
-
   const requestOnlineUsers = () => {
     if (isConnected) {
       webSocketService.requestOnlineUsers();
     }
   };
 
+  const updateNotificationSettings = (enabled: boolean) => {
+    notificationSoundService.setEnabled(enabled);
+    console.log('🔊 Notification sounds', enabled ? 'enabled' : 'disabled');
+  };
+  const setCurrentUserIdForNotifications = (userId: number | null) => {
+    setCurrentUserId(userId);
+  };
+
   const value: WebSocketContextType = {
     isConnected,
     onlineUsers,
-    requestOnlineUsers
+    requestOnlineUsers,
+    updateNotificationSettings,
+    setCurrentUserId: setCurrentUserIdForNotifications
   };
 
   return (

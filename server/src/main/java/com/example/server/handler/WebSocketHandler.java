@@ -3,8 +3,10 @@ package com.example.server.handler;
 import com.example.server.config.JwtService;
 import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.RoomUser;
+import com.example.server.model.Entity.UserSettings;
 import com.example.server.repository.UserRepository;
 import com.example.server.repository.RoomUserRepository;
+import com.example.server.repository.UserSettingsRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -37,6 +39,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     @Autowired
     private RoomUserRepository roomUserRepository;
+    
+    @Autowired
+    private UserSettingsRepository userSettingsRepository;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -267,6 +272,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 logger.warn("User not found for status broadcast: {}", username);
                 return;
             }
+              // Check user's privacy setting - only broadcast if they allow showing online status
+            UserSettings userSettings = userSettingsRepository.findByUserId(user.getId()).orElse(null);
+            if (userSettings != null && userSettings.getShowOnlineStatus() != null && !userSettings.getShowOnlineStatus()) {
+                logger.debug("User {} has disabled online status visibility, skipping broadcast", username);
+                return;
+            }
             
             // Create proper status data structure
             Map<String, Object> statusData = Map.of(
@@ -433,12 +444,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
             for (Map.Entry<String, WebSocketSession> entry : userSessions.entrySet()) {
                 String onlineUsername = entry.getKey();
                 WebSocketSession onlineSession = entry.getValue();
-                
-                // Only include if session is open and not the requesting user
+                  // Only include if session is open and not the requesting user
                 if (onlineSession.isOpen() && !onlineUsername.equals(username)) {
                     try {
                         User user = userRepository.findByUsername(onlineUsername);
-                        if (user != null) {
+                        if (user != null) {                            // Check user's privacy setting - only include if they allow showing online status
+                            UserSettings userSettings = userSettingsRepository.findByUserId(user.getId()).orElse(null);
+                            if (userSettings != null && userSettings.getShowOnlineStatus() != null && !userSettings.getShowOnlineStatus()) {
+                                continue; // Skip this user if they've disabled online status visibility
+                            }
+                            
                             Map<String, Object> userStatus = Map.of(
                                 "userId", user.getId(),
                                 "username", onlineUsername,

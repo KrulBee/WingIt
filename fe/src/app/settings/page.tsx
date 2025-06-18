@@ -26,6 +26,8 @@ import {
 } from "@nextui-org/react";
 import { UserService } from "@/services";
 import settingsService, { UserSettings as DbUserSettings, UpdateSettingsRequest } from "@/services/settingsService";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { notificationSoundService } from "@/services/NotificationSoundService";
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -64,7 +66,8 @@ interface CombinedSettings extends UserProfile {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();  const [settings, setSettings] = useState<CombinedSettings>({
+  const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();
+  const { updateNotificationSettings } = useWebSocket();const [settings, setSettings] = useState<CombinedSettings>({
     displayName: '',
     email: '',
     bio: '',
@@ -109,34 +112,43 @@ export default function SettingsPage() {
       // Fetch database-backed settings
       let dbSettings: DbUserSettings;
       try {
-        dbSettings = await settingsService.getUserSettings(userData.id);
-      } catch (settingsError) {
+        dbSettings = await settingsService.getUserSettings(userData.id);      } catch (settingsError) {
         // If settings don't exist, they will be created with defaults
         console.log('Creating default settings for user');
         dbSettings = await settingsService.getUserSettings(userData.id);
-      }        // Combine profile and settings data
-        setSettings({
-          id: userData.id,
-          displayName: userData.displayName || '',
-          email: userData.username || '', // Assuming username is email
-          bio: userData.bio || '',
-          profilePicture: userData.profilePicture || '',
-          provider: userData.provider,
-          privacyLevel: dbSettings.privacyLevel,
-          showOnlineStatus: dbSettings.showOnlineStatus,          allowSearchEngines: dbSettings.allowSearchEngines,
-        });
+      }
+
+      // Combine profile and settings data
+      setSettings({
+        id: userData.id,
+        displayName: userData.displayName || '',
+        email: userData.username || '', // Assuming username is email
+        bio: userData.bio || '',
+        profilePicture: userData.profilePicture || '',
+        provider: userData.provider,
+        privacyLevel: dbSettings.privacyLevel,
+        showOnlineStatus: dbSettings.showOnlineStatus,
+        allowSearchEngines: dbSettings.allowSearchEngines,
+      });
+      
+      // Initialize notification settings
+      updateNotificationSettings(dbSettings.allowSearchEngines);
     } catch (err) {
       console.error('Error fetching user settings:', err);
       setError('Không thể tải cài đặt');
     } finally {
       setLoading(false);
     }
-  };
-  const handleSettingChange = (key: keyof CombinedSettings, value: any) => {
+  };  const handleSettingChange = (key: keyof CombinedSettings, value: any) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
+    
+    // Update notification settings immediately when the toggle changes
+    if (key === 'allowSearchEngines') {
+      updateNotificationSettings(value);
+    }
   };
   const handleSaveSettings = async () => {
     if (!currentUserId) {
@@ -499,11 +511,21 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>
-                      <Switch
-                        isSelected={settings.allowSearchEngines}
-                        onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
-                        color="primary"
-                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="light"
+                          onPress={() => notificationSoundService.testNotification()}
+                          isDisabled={saving}
+                        >
+                          Test
+                        </Button>
+                        <Switch
+                          isSelected={settings.allowSearchEngines}
+                          onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
+                          color="primary"
+                        />
+                      </div>
                     </div>
                   </CardBody>
                 </Card>

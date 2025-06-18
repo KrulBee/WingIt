@@ -65,9 +65,8 @@ function MessagesContent() {
   const [messageDeliveryStatus, setMessageDeliveryStatus] = useState<Map<number, 'sending' | 'delivered' | 'read'>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToProfile } = useProfileNavigation();
-  
   // Use global WebSocket context
-  const { isConnected: wsConnected, onlineUsers } = useWebSocket();
+  const { isConnected: wsConnected, onlineUsers, setCurrentUserId: setWSCurrentUserId } = useWebSocket();
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -219,12 +218,12 @@ function MessagesContent() {
       if (wsService.isConnected()) {
         wsService.joinRoom(activeChat);
       }
-    }  }, [activeChat]);
-  const getCurrentUser = async () => {
+    }  }, [activeChat]);  const getCurrentUser = async () => {
     try {
       const user = await AuthService.getCurrentUser();
       setCurrentUser(user);
       setCurrentUserId(user.id); // Set the actual user ID from auth
+      setWSCurrentUserId(user.id); // Set user ID for notifications
     } catch (error) {
       console.error('Error getting current user:', error);
     }
