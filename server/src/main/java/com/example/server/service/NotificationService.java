@@ -81,14 +81,12 @@ public class NotificationService {    private final NotificationRepository notif
                 .map(recipientId -> {
                     User recipient = userRepository.findById(recipientId)
                             .orElse(null);
-                    if (recipient == null) return null;
-                    
-                    Notification notification = new Notification();
+                    if (recipient == null) return null;                    Notification notification = new Notification();
                     notification.setRecipientUser(recipient);
                     notification.setActorUser(postAuthor);
                     notification.setType("FRIEND_POST");
                     notification.setPost(post);
-                    notification.setContent(postAuthor.getUsername() + " đã đăng bài viết mới");
+                    notification.setContent("đã đăng bài viết mới");
                     notification.setReadStatus(false);
                     
                     return notificationRepository.save(notification);
@@ -121,15 +119,13 @@ public class NotificationService {    private final NotificationRepository notif
         
         if (!areFriends && !isFollowing) {
             return null;
-        }
-
-        Notification notification = new Notification();
+        }        Notification notification = new Notification();
         notification.setRecipientUser(post.getUser());
         notification.setActorUser(commentAuthor);
         notification.setType("COMMENT");
         notification.setPost(post);
         notification.setComment(comment);
-        notification.setContent(commentAuthor.getUsername() + " đã bình luận bài viết của bạn");
+        notification.setContent("đã bình luận bài viết của bạn");
         notification.setReadStatus(false);
 
         Notification savedNotification = notificationRepository.save(notification);
@@ -152,14 +148,12 @@ public class NotificationService {    private final NotificationRepository notif
         
         if (!areFriends && !isFollowing) {
             return null;
-        }
-
-        Notification notification = new Notification();
+        }        Notification notification = new Notification();
         notification.setRecipientUser(post.getUser());
         notification.setActorUser(liker);
         notification.setType("LIKE");
         notification.setPost(post);
-        notification.setContent(liker.getUsername() + " đã thích bài viết của bạn");
+        notification.setContent("đã thích bài viết của bạn");
         notification.setReadStatus(false);
 
         Notification savedNotification = notificationRepository.save(notification);
