@@ -38,27 +38,20 @@ public class ChatRoomService {
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));
         return convertToDTO(chatRoom);
     }    public ChatRoomDTO createChatRoom(CreateChatRoomRequest request, Integer creatorId) {
-        System.out.println("🔍 Creating chat room - Enhanced Request data:");
+        System.out.println("🔍 Creating chat room - Request data:");
         System.out.println("  Room name: " + request.getRoomName());
         System.out.println("  Is group chat: " + request.isGroupChat());
-        System.out.println("  Is group chat (raw boolean): " + request.isGroupChat());
         System.out.println("  Participant count: " + (request.getParticipantIds() != null ? request.getParticipantIds().size() : 0));
-        System.out.println("  Participant IDs: " + request.getParticipantIds());
-        System.out.println("  Creator ID: " + creatorId);
         
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("Creator not found"));
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
-        chatRoom.setIsGroupChat(request.isGroupChat()); // Fix: Set group chat flag properly
+        chatRoom.setIsGroupChat(request.isGroupChat());
         chatRoom.setCreatedDate(LocalDateTime.now());
 
-        System.out.println("🏗️ Created ChatRoom object - isGroupChat: " + chatRoom.getIsGroupChat());
-
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        
-        System.out.println("💾 Saved ChatRoom - ID: " + savedChatRoom.getId() + ", isGroupChat: " + savedChatRoom.getIsGroupChat());
 
         // Add creator to the room
         RoomUser creatorRoomUser = new RoomUser();
@@ -223,8 +216,14 @@ public class ChatRoomService {
                 })
                 .collect(Collectors.toList());        dto.setParticipants(participants);
         
+        // Debug: Check the actual value from database
+        System.out.println("🔍 ChatRoom ID: " + chatRoom.getId() + " - isGroupChat field value: " + chatRoom.getIsGroupChat());
+        
         // Use the actual isGroupChat value from the database, not a calculation
-        dto.setGroupChat(chatRoom.getIsGroupChat() != null ? chatRoom.getIsGroupChat() : false);// Get last message
+        Boolean groupChatValue = chatRoom.getIsGroupChat();
+        dto.setGroupChat(groupChatValue != null ? groupChatValue : false);
+        
+        System.out.println("🔍 DTO after setting isGroupChat: " + dto.isGroupChat());// Get last message
         List<Message> messages = messageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoom.getId());
 
         if (!messages.isEmpty()) {
