@@ -48,8 +48,13 @@ public class ChatRoomService {
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
-        chatRoom.setIsGroupChat(request.isGroupChat());
+        
+        // For user-created chat rooms, force isGroupChat to true regardless of frontend value
+        // This ensures all user-created rooms are group chats as required
+        chatRoom.setIsGroupChat(true);
         chatRoom.setCreatedDate(LocalDateTime.now());
+        
+        System.out.println("🔧 Setting isGroupChat to true for user-created chat room");
 
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 
@@ -194,13 +199,13 @@ public class ChatRoomService {
 
         Message savedMessage = messageRepository.save(message);
         return convertMessageToDTO(savedMessage);
-    }
-
-    private ChatRoomDTO convertToDTO(ChatRoom chatRoom) {
+    }    private ChatRoomDTO convertToDTO(ChatRoom chatRoom) {
         ChatRoomDTO dto = new ChatRoomDTO();
         dto.setId(chatRoom.getId());
         dto.setRoomName(chatRoom.getRoomName());
-        dto.setCreatedDate(chatRoom.getCreatedDate());        // Get participants
+        dto.setCreatedDate(chatRoom.getCreatedDate());        
+        
+        // Get participants
         List<RoomUser> roomUsers = roomUserRepository.findByChatRoomId(chatRoom.getId());
 
         List<UserDTO> participants = roomUsers.stream()
@@ -214,14 +219,18 @@ public class ChatRoomService {
                     }
                     return userDTO;
                 })
-                .collect(Collectors.toList());        dto.setParticipants(participants);        // Debug: Check the actual value from database
-        System.out.println("🔍 ChatRoom ID: " + chatRoom.getId() + " - isGroupChat field value: " + chatRoom.getIsGroupChat());
-        
-        // Use the actual isGroupChat value from the database, not a calculation
+                .collect(Collectors.toList());        
+
+        dto.setParticipants(participants);        // Properly handle isGroupChat field - ensure it's never null
         Boolean groupChatValue = chatRoom.getIsGroupChat();
-        dto.setGroupChat(groupChatValue != null ? groupChatValue : false);
+        boolean isGroupChatFinal = groupChatValue != null ? groupChatValue : false;
+        dto.setGroupChat(isGroupChatFinal);
         
-        System.out.println("🔍 DTO after setting isGroupChat: " + dto.isGroupChat());// Get last message
+        System.out.println("🔍 ChatRoom ID: " + chatRoom.getId() + 
+                          " - Database isGroupChat: " + groupChatValue + 
+                          " - Final DTO value: " + isGroupChatFinal);
+
+        // Get last message
         List<Message> messages = messageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoom.getId());
 
         if (!messages.isEmpty()) {
@@ -229,7 +238,7 @@ public class ChatRoomService {
         }
 
         return dto;
-    }    private MessageDTO convertMessageToDTO(Message message) {
+    }private MessageDTO convertMessageToDTO(Message message) {
         MessageDTO dto = new MessageDTO();
         dto.setId(message.getId());
         dto.setChatRoomId(message.getChatRoom().getId());

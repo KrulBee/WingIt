@@ -247,11 +247,20 @@ function MessagesContent() {
       console.error('Error getting current user:', error);
     }
   };
-
   const fetchChatRooms = async () => {
     try {
       setLoading(true);
       setError(null);      const rooms = await ChatService.getUserChatRooms();
+      console.log('🔍 Fetched chat rooms:', rooms);
+      console.log('🔍 Chat rooms detail:');
+      rooms.forEach((room, index) => {
+        console.log(`  Room ${index + 1}:`, {
+          id: room.id,
+          roomName: room.roomName,
+          isGroupChat: room.isGroupChat,
+          participants: room.participants?.length || 0
+        });
+      });
       setChatRooms(rooms);
       
       // Only set first room as active if no room is currently active
@@ -341,9 +350,15 @@ function MessagesContent() {
       wsService.sendTypingIndicator(activeChat, isTyping);
     }
   };
-
   // Handle chat creation from FriendChatModal
   const handleChatCreated = (chatRoom: ChatRoom) => {
+    console.log('🆕 Chat room created:', chatRoom);
+    console.log('🆕 Chat room details:', {
+      id: chatRoom.id,
+      roomName: chatRoom.roomName,
+      isGroupChat: chatRoom.isGroupChat,
+      participants: chatRoom.participants?.length || 0
+    });
     setChatRooms(prev => [chatRoom, ...prev]);
     setActiveChat(chatRoom.id);
     setShowFriendChatModal(false);
@@ -403,11 +418,11 @@ function MessagesContent() {
         timestamp: formatTimestamp(room.updatedDate || room.createdDate),
         online: isOnline,
         unread: 0 // Could be implemented with unread message API
-      };} else {
+      };    } else {
       // Group chat - don't show online status for groups
       return {
         id: room.id.toString(),
-        name: room.roomName,
+        name: room.roomName || 'Nhóm trò chuyện',
         avatar: getAvatarSrc(undefined, `group${room.id}`),
         lastMessage: getLastMessageForRoom(room.id),
         timestamp: formatTimestamp(room.updatedDate || room.createdDate),
@@ -497,14 +512,22 @@ function MessagesContent() {
       timestamp: shortTimestamp,
       fullTimestamp: fullTimestamp
     };  };
-
   const filteredRooms = chatRooms.filter(room => {
     const searchLower = searchTerm.toLowerCase();
+    
     if (!room.isGroupChat && room.participants && room.participants.length > 0) {
-      const otherUser = room.participants[0];
-      return (otherUser.displayName || otherUser.username).toLowerCase().includes(searchLower);
+      // For private chats, search by other participant's name
+      const otherUser = room.participants.find(participant => participant.id !== currentUserId);
+      if (otherUser) {
+        const displayName = otherUser.displayName || otherUser.username || '';
+        return displayName.toLowerCase().includes(searchLower);
+      }
+      return false;
+    } else {
+      // For group chats, search by room name
+      const roomName = room.roomName || 'Nhóm trò chuyện';
+      return roomName.toLowerCase().includes(searchLower);
     }
-    return room.roomName.toLowerCase().includes(searchLower);
   });
   
   const activeChatRoom = chatRooms.find(room => room.id === activeChat);
