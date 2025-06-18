@@ -34,19 +34,43 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       .then(() => {
         console.log('🌐 Global WebSocket connected');
         setIsConnected(true);
-        
-        // Initialize current user ID for notifications
+          // Initialize current user ID for notifications
         const initCurrentUser = async () => {
           try {
+            console.log('🔍 Attempting to get current user for notifications...');
             const { AuthService } = await import('@/services');
             const user = await AuthService.getCurrentUser();
+            console.log('👤 Retrieved user data:', user);
             setCurrentUserId(user.id);
             console.log('👤 Current user ID set for notifications:', user.id);
           } catch (error) {
+            console.error('❌ Failed to get current user for notifications:', error);
             console.log('ℹ️ User not logged in, notifications will be disabled');
+            
+            // Try alternative method - get from localStorage or other source
+            try {
+              console.log('🔍 Trying alternative user ID source...');
+              const { UserService } = await import('@/services');
+              const profile = await UserService.getCurrentUserProfile();
+              console.log('👤 Retrieved profile data:', profile);
+              if (profile && profile.id) {
+                setCurrentUserId(profile.id);
+                console.log('👤 Current user ID set from profile:', profile.id);
+              }
+            } catch (altError) {
+              console.error('❌ Alternative user ID retrieval also failed:', altError);
+            }
           }
         };
         initCurrentUser();
+        
+        // Retry getting user ID after a delay if it failed initially
+        setTimeout(() => {
+          if (!currentUserId) {
+            console.log('🔄 Retrying to get current user ID...');
+            initCurrentUser();
+          }
+        }, 2000);
         
         // Subscribe to user status updates globally
         webSocketService.subscribeToUserStatus((statusData: any) => {
@@ -75,21 +99,45 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           }
         });        // Subscribe to messages globally for notification sounds
         // Note: Only subscribe for notifications, let pages handle their own message display
-        webSocketService.subscribeToMessages((messageData: any) => {
+        webSocketService.subscribeToMessages(async (messageData: any) => {
           console.log('📨 Global message received for notification:', messageData);
-          console.log('🔍 Notification check - Current user ID:', currentUserId, 'Message sender ID:', messageData.senderId, 'Type check:', typeof currentUserId, typeof messageData.senderId);
+          
+          // If currentUserId is still null, try to get it now
+          let effectiveCurrentUserId = currentUserId;
+          if (!effectiveCurrentUserId) {
+            console.log('🔄 Current user ID is null, attempting to retrieve it...');
+            try {
+              const { AuthService } = await import('@/services');
+              const user = await AuthService.getCurrentUser();
+              effectiveCurrentUserId = user.id;
+              setCurrentUserId(user.id);
+              console.log('👤 Retrieved current user ID just-in-time:', user.id);
+            } catch (error) {
+              try {
+                const { UserService } = await import('@/services');
+                const profile = await UserService.getCurrentUserProfile();
+                effectiveCurrentUserId = profile.id;
+                setCurrentUserId(profile.id);
+                console.log('👤 Retrieved current user ID from profile just-in-time:', profile.id);
+              } catch (profileError) {
+                console.error('❌ Still unable to get current user ID:', profileError);
+              }
+            }
+          }
+          
+          console.log('🔍 Notification check - Current user ID:', effectiveCurrentUserId, 'Message sender ID:', messageData.senderId, 'Type check:', typeof effectiveCurrentUserId, typeof messageData.senderId);
           
           // Only play notification sound if the message is not from the current user
           // Convert both to numbers for comparison to handle type mismatches
-          const currentUserIdNum = currentUserId ? Number(currentUserId) : null;
+          const currentUserIdNum = effectiveCurrentUserId ? Number(effectiveCurrentUserId) : null;
           const senderIdNum = messageData.senderId ? Number(messageData.senderId) : null;
           
           if (currentUserIdNum && senderIdNum && senderIdNum !== currentUserIdNum) {
-            console.log('🔊 Playing notification sound for message from user:', messageData.senderId, '(current user:', currentUserId, ')');
+            console.log('🔊 Playing notification sound for message from user:', messageData.senderId, '(current user:', effectiveCurrentUserId, ')');
             notificationSoundService.playMessageNotification();
           } else {
             console.log('🔇 Skipping notification - message from current user or invalid data');
-            console.log('🔍 Skip reason - currentUserId:', currentUserId, '(' + typeof currentUserId + ')', 'senderId:', messageData.senderId, '(' + typeof messageData.senderId + ')', 'Numbers equal:', currentUserIdNum === senderIdNum);
+            console.log('🔍 Skip reason - currentUserId:', effectiveCurrentUserId, '(' + typeof effectiveCurrentUserId + ')', 'senderId:', messageData.senderId, '(' + typeof messageData.senderId + ')', 'Numbers equal:', currentUserIdNum === senderIdNum);
           }
         });
         
