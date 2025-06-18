@@ -228,7 +228,8 @@ public class ChatRoomService {
         
         System.out.println("🔍 ChatRoom ID: " + chatRoom.getId() + 
                           " - Database isGroupChat: " + groupChatValue + 
-                          " - Final DTO value: " + isGroupChatFinal);
+                          " - Final DTO value: " + isGroupChatFinal + 
+                          " - JSON will serialize as: isGroupChat");
 
         // Get last message
         List<Message> messages = messageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoom.getId());

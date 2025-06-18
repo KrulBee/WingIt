@@ -3,6 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,5 +16,7 @@ public class ChatRoomDTO {
     private List<UserDTO> participants;
     private MessageDTO lastMessage;
     private LocalDateTime createdDate;
-    private boolean isGroupChat;
+    
+    @JsonProperty("isGroupChat")
+    private boolean groupChat;
 }
