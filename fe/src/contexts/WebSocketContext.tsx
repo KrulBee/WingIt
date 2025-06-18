@@ -62,19 +62,46 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
                 console.log('⚠️ UserService.getCurrentUserProfile() failed:', userError);
               }
             }
-            
-            if (user && user.id) {
+              if (user && user.id) {
               setCurrentUserId(user.id);
               console.log('👤 Current user ID set for notifications:', user.id);
+              
+              // Also initialize notification settings for this user
+              await initNotificationSettings(user.id);
             } else {
               console.log('❌ No user ID found in user data:', user);
             }
             
           } catch (error) {
             console.error('❌ Failed to get current user for notifications:', error);
-            console.log('ℹ️ User not logged in, notifications will be disabled');
+            console.log('ℹ️ User not logged in, notifications will be disabled');          }
+        };
+
+        // Initialize notification settings from user preferences
+        const initNotificationSettings = async (userId: number) => {
+          try {
+            console.log('🔊 Loading notification settings for user:', userId);
+            // Import settings service
+            const settingsService = (await import('@/services/settingsService')).default;
+            const userSettings = await settingsService.getUserSettings(userId);
+            
+            // The notification sound setting is stored in allowSearchEngines
+            // (This was a naming issue from before, but it works)
+            const notificationEnabled = userSettings.allowSearchEngines;
+            console.log('🔊 User notification setting loaded:', notificationEnabled);
+            
+            // Apply the setting
+            notificationSoundService.setEnabled(notificationEnabled);
+            console.log('🔊 Notification sound service updated:', notificationEnabled ? 'enabled' : 'disabled');
+            
+          } catch (error) {
+            console.error('❌ Failed to load notification settings:', error);
+            // Default to enabled if we can't load settings
+            console.log('🔊 Defaulting to notification sounds enabled');
+            notificationSoundService.setEnabled(true);
           }
         };
+        
         initCurrentUser();
         
         // Retry getting user ID after a delay if it failed initially
