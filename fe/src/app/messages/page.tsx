@@ -10,8 +10,8 @@ import { webSocketService } from "@/services/WebSocketService";
 import FriendChatModal from "@/components/FriendChatModal";
 import ChatManagementModal from "@/components/ChatManagementModal";
 import RealTimeNotification, { NotificationData } from "@/components/RealTimeNotification";
-import TypingIndicator from "@/components/TypingIndicator";
 import OnlineStatusIndicator from "@/components/OnlineStatusIndicator";
+import TypingIndicator from "@/components/TypingIndicator";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
@@ -667,30 +667,31 @@ function MessagesContent() {
         <div className="flex-1 flex flex-col h-screen">
           {activeChatRoom ? (
             <>              {/* Chat header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar 
-                    src={transformRoomToUser(activeChatRoom).avatar} 
-                    className="cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => {
-                      const chatUser = transformRoomToUser(activeChatRoom);
-                      // Don't navigate if it's a group chat or own profile
-                      if (activeChatRoom.isGroupChat || (currentUser && currentUser.username === chatUser.name.toLowerCase())) {
-                        return;
-                      }
-                      const username = chatUser.name.toLowerCase().replace(/\s+/g, '');
-                      navigateToProfile(username);
-                    }}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-medium">{transformRoomToUser(activeChatRoom).name}</h2>
-                      {wsConnected && (
-                        <div className="flex items-center gap-1 text-green-600 text-xs">
-                          <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></div>
-                        </div>
-                      )}
-                    </div>                    <p className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Avatar 
+                      src={transformRoomToUser(activeChatRoom).avatar} 
+                      className="cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => {
+                        const chatUser = transformRoomToUser(activeChatRoom);
+                        // Don't navigate if it's a group chat or own profile
+                        if (activeChatRoom.isGroupChat || (currentUser && currentUser.username === chatUser.name.toLowerCase())) {
+                          return;
+                        }
+                        const username = chatUser.name.toLowerCase().replace(/\s+/g, '');
+                        navigateToProfile(username);
+                      }}
+                    />
+                    {!activeChatRoom.isGroupChat && (
+                      <div className="absolute bottom-0 right-0">
+                        <OnlineStatusIndicator 
+                          status={transformRoomToUser(activeChatRoom).online ? 'online' : 'offline'} 
+                          size="sm"
+                        />
+                      </div>
+                    )}
+                  </div>                  <div>
+                    <h2 className="font-medium">{transformRoomToUser(activeChatRoom).name}</h2><p className="text-xs text-gray-500 dark:text-gray-400">
                       {activeChatRoom.isGroupChat ? `${activeChatRoom.participants?.length || 0} thành viên` : 'Trò chuyện riêng'}
                     </p>
                     {typingUserNames.length > 0 && (
