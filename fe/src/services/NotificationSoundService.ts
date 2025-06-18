@@ -2,118 +2,9 @@
  * Service for handling notification sounds
  */
 class NotificationSoundService {
-  private audio: HTMLAudioElement | null = null;
   private isEnabled: boolean = false;
 
-  constructor() {
-    this.initializeAudio();
-  }
-
-  /**
-   * Initialize audio element with a simple beep sound
-   */
-  private initializeAudio(): void {
-    try {
-      // Create a simple data URL for a notification beep
-      // This creates a short beep sound that should work across browsers
-      this.audio = new Audio();
-      
-      // Use a simple beep sound data URL (short sine wave)
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      
-      // Alternative: use a simple notification sound URL or create one
-      // For now, we'll use the HTML5 Audio with a programmatically generated tone
-      this.generateNotificationSound();
-      
-    } catch (error) {
-      console.warn('Failed to initialize notification audio:', error);
-    }
-  }
-
-  /**
-   * Generate a simple notification sound
-   */
-  private generateNotificationSound(): void {
-    try {
-      // Create a simple notification beep using data URL
-      // This is a fallback that should work on most browsers
-      this.audio = new Audio();
-      this.audio.volume = 0.3;
-      this.audio.preload = 'auto';
-      
-      // Simple beep sound as data URL (very basic but reliable)
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      // We'll use a different approach - create multiple audio elements for reliability
-      this.createFallbackAudio();
-      
-    } catch (error) {
-      console.warn('Failed to generate notification sound:', error);
-    }
-  }
-  /**
-   * Create fallback audio using multiple methods
-   */
-  private createFallbackAudio(): void {
-    // Method 1: Create a simple beep using data URL
-    try {
-      this.audio = new Audio();
-      this.audio.volume = 0.3;
-      this.audio.preload = 'auto';
-      
-      // Simple notification beep as data URL
-      // This creates a 0.5 second 800Hz sine wave
-      const sampleRate = 8000;
-      const duration = 0.5;
-      const samples = sampleRate * duration;
-      const buffer = new ArrayBuffer(44 + samples * 2);
-      const view = new DataView(buffer);
-      
-      // WAV header
-      const writeString = (offset: number, string: string) => {
-        for (let i = 0; i < string.length; i++) {
-          view.setUint8(offset + i, string.charCodeAt(i));
-        }
-      };
-      
-      writeString(0, 'RIFF');
-      view.setUint32(4, 36 + samples * 2, true);
-      writeString(8, 'WAVE');
-      writeString(12, 'fmt ');
-      view.setUint32(16, 16, true);
-      view.setUint16(20, 1, true);
-      view.setUint16(22, 1, true);
-      view.setUint32(24, sampleRate, true);
-      view.setUint32(28, sampleRate * 2, true);
-      view.setUint16(32, 2, true);
-      view.setUint16(34, 16, true);
-      writeString(36, 'data');
-      view.setUint32(40, samples * 2, true);
-      
-      // Generate sine wave data
-      let offset = 44;
-      for (let i = 0; i < samples; i++) {
-        const sample = Math.sin(2 * Math.PI * 800 * i / sampleRate) * 0.3 * (1 - i / samples);
-        view.setInt16(offset, sample * 32767, true);
-        offset += 2;
-      }
-      
-      // Create blob and object URL
-      const blob = new Blob([buffer], { type: 'audio/wav' });
-      const url = URL.createObjectURL(blob);
-      this.audio.src = url;
-      
-      console.log('✅ Created notification audio with data URL');
-      
-    } catch (error) {
-      console.warn('Data URL audio creation failed, using simple approach:', error);
-      // Simple fallback
-      this.audio = new Audio();
-      this.audio.volume = 0.3;
-      // Use a very simple approach - just set up the audio element for Web Audio API
-    }
+  constructor() {    // No initialization needed - we'll use Web Audio API directly
   }
 
   /**
@@ -131,7 +22,7 @@ class NotificationSoundService {
   }  /**
    * Play notification sound
    */
-  playNotification(): void {
+   playNotification(): void {
     console.log('🔊 Attempting to play notification sound. Enabled:', this.isEnabled);
     
     if (!this.isEnabled) {
@@ -140,69 +31,65 @@ class NotificationSoundService {
     }
 
     try {
-      // Method 1: Try HTML5 Audio if available
-      if (this.audio) {
-        console.log('📢 Playing notification with HTML5 Audio...');
-        this.audio.currentTime = 0; // Reset to beginning
-        const playPromise = this.audio.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('✅ Notification sound played successfully with HTML5 Audio');
-            })
-            .catch(error => {
-              console.warn('❌ HTML5 Audio play failed:', error);
-              this.fallbackNotification();
-            });
-        }
-        return;
-      }
-
-      // Method 2: Fallback to Web Audio API
-      this.fallbackNotification();
+      // Use Web Audio API directly (more reliable than HTML5 Audio for generated sounds)
+      console.log('📢 Playing notification with Web Audio API...');
+      this.playWithWebAudio();
       
     } catch (error) {
       console.warn('❌ Failed to play notification sound:', error);
-      this.fallbackNotification();
+      this.systemNotification();
     }
   }
 
   /**
-   * Fallback notification using Web Audio API
+   * Play notification using Web Audio API
    */
-  private fallbackNotification(): void {
+  private playWithWebAudio(): void {
     try {
-      console.log('📢 Using Web Audio API fallback...');
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // Resume audio context if suspended
+      // Resume audio context if suspended (required by browser policies)
       if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        audioContext.resume().then(() => {
+          this.generateAndPlayTone(audioContext);
+        });
+      } else {
+        this.generateAndPlayTone(audioContext);
       }
+      
+    } catch (error) {
+      console.warn('❌ Web Audio API failed:', error);
+      this.systemNotification();
+    }
+  }
 
+  /**
+   * Generate and play notification tone
+   */
+  private generateAndPlayTone(audioContext: AudioContext): void {
+    try {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      // Create a pleasant notification sound
+      // Create a pleasant notification sound (two-tone beep)
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
       
+      // Envelope for smooth sound
       gainNode.gain.setValueAtTime(0, audioContext.currentTime);
       gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.15);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
 
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
+      oscillator.stop(audioContext.currentTime + 0.4);
 
       console.log('✅ Notification sound played with Web Audio API');
     } catch (error) {
-      console.warn('❌ Web Audio API fallback failed:', error);
-      // Method 3: System notification (if available)
-      this.systemNotification();
+      console.warn('❌ Tone generation failed:', error);
     }
   }
 
