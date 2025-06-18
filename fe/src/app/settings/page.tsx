@@ -6,14 +6,11 @@ import {
   CardBody, 
   CardHeader, 
   Button, 
-  Switch, 
-  Input, 
+  Switch,   Input, 
   Select, 
   SelectItem, 
   Divider, 
   Spinner,
-  Avatar,
-  Badge,
   Tabs,
   Tab,
   Modal,
@@ -29,14 +26,12 @@ import settingsService, { UserSettings as DbUserSettings, UpdateSettingsRequest 
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { notificationSoundService } from "@/services/NotificationSoundService";
 import {
-  UserIcon,
   ShieldCheckIcon,
   BellIcon,
   EyeIcon,
   EyeSlashIcon,
   KeyIcon,
   ExclamationTriangleIcon,
-  PhotoIcon,
   GlobeAltIcon,
   UserGroupIcon,
   LockClosedIcon,
@@ -266,17 +261,6 @@ export default function SettingsPage() {
       default: return <UserGroupIcon className="w-4 h-4" />;
     }
   };
-
-  const handleProfilePictureChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Here you would typically upload the file to your server
-      // For now, we'll just create a preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setSettings(prev => ({ ...prev, profilePicture: previewUrl }));
-    }
-  };
-
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'XÓA TÀI KHOẢN') {
       setError('Vui lòng nhập chính xác "XÓA TÀI KHOẢN" để xác nhận');
@@ -371,75 +355,7 @@ export default function SettingsPage() {
               tab: "max-w-fit px-0 h-12",
               tabContent: "group-data-[selected=true]:text-primary"
             }}
-          >
-            <Tab
-              key="profile"
-              title={
-                <div className="flex items-center space-x-2">
-                  <UserIcon className="w-5 h-5" />
-                  <span>Hồ Sơ</span>
-                </div>
-              }
-            >
-              {/* Profile Tab Content */}
-              <div className="py-6">
-                <Card className="mb-6">
-                  <CardBody className="p-6">
-                    <div className="flex flex-col items-center text-center mb-6">
-                      <div className="relative mb-4">
-                        <Avatar
-                          src={settings.profilePicture}
-                          alt={settings.displayName}
-                          className="w-24 h-24 text-large"
-                          isBordered
-                          color="primary"
-                        />                        <Badge
-                          color="primary"
-                          shape="circle"
-                          placement="bottom-right"
-                          className="cursor-pointer"
-                          onClick={() => document.getElementById('profile-picture-input')?.click()}
-                        >
-                          <PhotoIcon className="w-3 h-3" />
-                        </Badge>
-                        <input
-                          id="profile-picture-input"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleProfilePictureChange}
-                          className="hidden"
-                        />
-                      </div>
-                      <h2 className="text-xl font-semibold">{settings.displayName || 'Chưa có tên'}</h2>
-                      <p className="text-gray-500 dark:text-gray-400">{settings.email}</p>
-                    </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        label="Tên hiển thị"
-                        placeholder="Nhập tên hiển thị của bạn"
-                        value={settings.displayName}
-                        onChange={(e) => handleSettingChange('displayName', e.target.value)}
-                        startContent={<UserIcon className="w-4 h-4 text-gray-400" />}
-                        variant="bordered"
-                      />
-                      
-                      <Input
-                        label="Email"
-                        placeholder="email@example.com"
-                        type="email"
-                        value={settings.email}
-                        onChange={(e) => handleSettingChange('email', e.target.value)}
-                        isDisabled
-                        variant="bordered"
-                        description="Email không thể thay đổi"
-                      />
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            </Tab>
-
-            <Tab
+          >            <Tab
               key="privacy"
               title={
                 <div className="flex items-center space-x-2">
