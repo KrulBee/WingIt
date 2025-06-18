@@ -420,8 +420,9 @@ function MessagesContent() {
           unread: 0
         };
       }
+        const isOnline = onlineUsers.has(otherUser.id);
+      console.log(`💡 User ${otherUser.username} (ID: ${otherUser.id}) online status:`, isOnline, 'Online users:', Array.from(onlineUsers));
       
-      const isOnline = onlineUsers.has(otherUser.id);
       return {
         id: room.id.toString(),
         name: otherUser.displayName || otherUser.username,
@@ -430,15 +431,15 @@ function MessagesContent() {
         timestamp: formatTimestamp(room.updatedDate || room.createdDate),
         online: isOnline,
         unread: 0 // Could be implemented with unread message API
-      };
-    } else {
+      };} else {
+      // Group chat - don't show online status for groups
       return {
         id: room.id.toString(),
         name: room.roomName,
         avatar: getAvatarSrc(undefined, `group${room.id}`),
         lastMessage: getLastMessageForRoom(room.id),
         timestamp: formatTimestamp(room.updatedDate || room.createdDate),
-        online: true,
+        online: false, // Groups don't have online status
         unread: 0
       };
     }

@@ -285,7 +285,7 @@ export default function SettingsPage() {
       alert('Tài khoản đã được xóa thành công. Bạn sẽ được chuyển hướng đến trang đăng nhập.');
 
       // Redirect to login page
-      window.location.href = '/login';
+      window.location.href = '/auth';
 
     } catch (err: any) {
       console.error('Error deleting account:', err);
