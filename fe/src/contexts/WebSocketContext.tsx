@@ -6,6 +6,7 @@ import { notificationSoundService } from '@/services/NotificationSoundService';
 interface WebSocketContextType {
   isConnected: boolean;
   onlineUsers: Set<number>;
+  currentUserId: number | null;
   requestOnlineUsers: () => void;
   updateNotificationSettings: (enabled: boolean) => void;
   setCurrentUserId: (userId: number | null) => void;
@@ -33,33 +34,45 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     webSocketService.connect()
       .then(() => {
         console.log('🌐 Global WebSocket connected');
-        setIsConnected(true);
-          // Initialize current user ID for notifications
+        setIsConnected(true);        // Initialize current user ID for notifications
         const initCurrentUser = async () => {
           try {
             console.log('🔍 Attempting to get current user for notifications...');
-            const { AuthService } = await import('@/services');
-            const user = await AuthService.getCurrentUser();
-            console.log('👤 Retrieved user data:', user);
-            setCurrentUserId(user.id);
-            console.log('👤 Current user ID set for notifications:', user.id);
+            
+            // Try multiple approaches to get the current user
+            let user = null;
+            
+            // Method 1: AuthService.getCurrentUser()
+            try {
+              const { AuthService } = await import('@/services');
+              user = await AuthService.getCurrentUser();
+              console.log('👤 Retrieved user data from AuthService:', user);
+            } catch (authError) {
+              console.log('⚠️ AuthService.getCurrentUser() failed:', authError);
+            }
+            
+            // Method 2: UserService.getCurrentUserProfile() if AuthService failed
+            if (!user) {
+              try {
+                console.log('🔍 Trying UserService.getCurrentUserProfile()...');
+                const { UserService } = await import('@/services');
+                user = await UserService.getCurrentUserProfile();
+                console.log('👤 Retrieved user data from UserService:', user);
+              } catch (userError) {
+                console.log('⚠️ UserService.getCurrentUserProfile() failed:', userError);
+              }
+            }
+            
+            if (user && user.id) {
+              setCurrentUserId(user.id);
+              console.log('👤 Current user ID set for notifications:', user.id);
+            } else {
+              console.log('❌ No user ID found in user data:', user);
+            }
+            
           } catch (error) {
             console.error('❌ Failed to get current user for notifications:', error);
             console.log('ℹ️ User not logged in, notifications will be disabled');
-            
-            // Try alternative method - get from localStorage or other source
-            try {
-              console.log('🔍 Trying alternative user ID source...');
-              const { UserService } = await import('@/services');
-              const profile = await UserService.getCurrentUserProfile();
-              console.log('👤 Retrieved profile data:', profile);
-              if (profile && profile.id) {
-                setCurrentUserId(profile.id);
-                console.log('👤 Current user ID set from profile:', profile.id);
-              }
-            } catch (altError) {
-              console.error('❌ Alternative user ID retrieval also failed:', altError);
-            }
           }
         };
         initCurrentUser();
@@ -168,14 +181,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const updateNotificationSettings = (enabled: boolean) => {
     notificationSoundService.setEnabled(enabled);
     console.log('🔊 Notification sounds', enabled ? 'enabled' : 'disabled');
-  };
-  const setCurrentUserIdForNotifications = (userId: number | null) => {
+  };  const setCurrentUserIdForNotifications = (userId: number | null) => {
+    console.log('🆔 Setting current user ID for notifications:', userId);
     setCurrentUserId(userId);
+    console.log('✅ Current user ID updated to:', userId);
   };
-
   const value: WebSocketContextType = {
     isConnected,
     onlineUsers,
+    currentUserId,
     requestOnlineUsers,
     updateNotificationSettings,
     setCurrentUserId: setCurrentUserIdForNotifications
