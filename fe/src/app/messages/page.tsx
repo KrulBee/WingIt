@@ -373,8 +373,17 @@ function MessagesContent() {
     // Use the default avatar as fallback
     return avatarBase64;
   };
-    // Transform ChatRoom to ChatUser for UI compatibility
+  // Transform ChatRoom to ChatUser for UI compatibility
   const transformRoomToUser = (room: ChatRoom): ChatUser => {
+    // Debug logging for group chat detection
+    console.log('🔍 Transform room debug:', {
+      roomId: room.id,
+      roomName: room.roomName,
+      isGroupChat: room.isGroupChat,
+      participantCount: room.participants?.length,
+      participants: room.participants?.map(p => ({ id: p.id, username: p.username }))
+    });
+    
     if (!room.isGroupChat && room.participants && room.participants.length > 0) {
       // For private chats, find the OTHER participant (not the current user)
       const otherUser = room.participants.find(participant => participant.id !== currentUserId);

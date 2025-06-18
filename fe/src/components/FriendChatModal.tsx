@@ -112,22 +112,33 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
     }
     setSelectedFriends(newSelected);
   };
-
   const handleCreateChat = async () => {
     if (selectedFriends.size === 0) return;
 
     try {
       setCreating(true);
       setError(null);      const participantIds = Array.from(selectedFriends);
+        let newChatRoom;
       
-      let newChatRoom;
+      // Enhanced debugging
+      console.log('🔍 Enhanced Chat creation debug:', {
+        selectedFriendsCount: selectedFriends.size,
+        selectedFriendsArray: participantIds,
+        isGroupChat,
+        shouldBeGroupChat: selectedFriends.size > 1,
+        groupName: groupName
+      });
+      
       if (isGroupChat) {        // Create group chat
         const chatRoomData = {
           roomName: groupName || `Nhóm ${Array.from(selectedFriends).length + 1} người`,
           isGroupChat: true,
           participantIds
         };
+        console.log('📤 Sending group chat data to backend:', chatRoomData);
+        console.log('📤 JSON payload:', JSON.stringify(chatRoomData, null, 2));
         newChatRoom = await ChatService.createChatRoom(chatRoomData);
+        console.log('📥 Received group chat response:', newChatRoom);
       } else {
         // Create direct chat using the new endpoint that prevents duplicates
         if (participantIds.length !== 1) {

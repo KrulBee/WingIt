@@ -38,13 +38,27 @@ public class ChatRoomService {
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));
         return convertToDTO(chatRoom);
     }    public ChatRoomDTO createChatRoom(CreateChatRoomRequest request, Integer creatorId) {
+        System.out.println("🔍 Creating chat room - Enhanced Request data:");
+        System.out.println("  Room name: " + request.getRoomName());
+        System.out.println("  Is group chat: " + request.isGroupChat());
+        System.out.println("  Is group chat (raw boolean): " + request.isGroupChat());
+        System.out.println("  Participant count: " + (request.getParticipantIds() != null ? request.getParticipantIds().size() : 0));
+        System.out.println("  Participant IDs: " + request.getParticipantIds());
+        System.out.println("  Creator ID: " + creatorId);
+        
         User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Creator not found"));        ChatRoom chatRoom = new ChatRoom();
+                .orElseThrow(() -> new RuntimeException("Creator not found"));
+
+        ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
         chatRoom.setIsGroupChat(request.isGroupChat()); // Fix: Set group chat flag properly
         chatRoom.setCreatedDate(LocalDateTime.now());
 
+        System.out.println("🏗️ Created ChatRoom object - isGroupChat: " + chatRoom.getIsGroupChat());
+
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        
+        System.out.println("💾 Saved ChatRoom - ID: " + savedChatRoom.getId() + ", isGroupChat: " + savedChatRoom.getIsGroupChat());
 
         // Add creator to the room
         RoomUser creatorRoomUser = new RoomUser();
@@ -66,10 +80,11 @@ public class ChatRoomService {
                     roomUser.setJoinedAt(LocalDateTime.now());
                     roomUserRepository.save(roomUser);
                 }
-            }
-        }
+            }        }
 
-        return convertToDTO(savedChatRoom);
+        ChatRoomDTO result = convertToDTO(savedChatRoom);
+        System.out.println("📋 Final DTO result - isGroupChat: " + result.isGroupChat());
+        return result;
     }
 
     /**
