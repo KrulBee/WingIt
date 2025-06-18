@@ -474,13 +474,12 @@ export default function AdminReports({ userRole }: AdminReportsProps) {
                         ) : null}
                       </div>
                     ) : report.reportType === 'POST' && report.targetPost ? (
-                      <div className="flex gap-1">
-                        <Button
+                      <div className="flex gap-1">                        <Button
                           size="sm"
                           variant="flat"
                           color="warning"
                           startContent={<Eye className="h-3 w-3" />}
-                          onPress={() => window.open(`/post/${report.targetPost?.id}`, '_blank')}
+                          onPress={() => window.open(`/home?postId=${report.targetPost?.id}&highlight=true`, '_blank')}
                         >
                           Xem bài viết
                         </Button>
@@ -632,12 +631,11 @@ export default function AdminReports({ userRole }: AdminReportsProps) {
                   <div>
                     <label className="font-medium">Bài viết bị báo cáo:</label>
                     <div className="mt-1 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-700 mb-2">{selectedReport.targetPost.content}</p>
-                      <Button
+                      <p className="text-sm text-gray-700 mb-2">{selectedReport.targetPost.content}</p>                      <Button
                         size="sm"
                         color="primary"
                         variant="flat"
-                        onPress={() => window.open(`/post/${selectedReport.targetPost?.id}`, '_blank')}
+                        onPress={() => window.open(`/home?postId=${selectedReport.targetPost?.id}&highlight=true`, '_blank')}
                       >
                         Xem bài viết
                       </Button>
