@@ -3,96 +3,58 @@
  */
 class NotificationSoundService {
   private isEnabled: boolean = false;
-  private audioContext: AudioContext | null = null;
-  private isAudioContextReady: boolean = false;
+  private audio: HTMLAudioElement | null = null;
+  private audioReady: boolean = false;
 
   constructor() {
-    // Initialize user interaction listener
-    this.setupUserInteractionListener();
+    this.initializeAudio();
   }
+
   /**
-   * Setup listener for user interaction to initialize AudioContext
+   * Initialize audio with real audio file and proper preloading
    */
-  private setupUserInteractionListener(): void {
-    // Only run in browser environment
-    if (typeof window === 'undefined' || typeof document === 'undefined') {
-      return;
-    }
-
-    const initAudioContext = () => {
-      if (!this.audioContext) {
-        try {
-          this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          console.log('🎵 AudioContext created on user interaction');
-        } catch (error) {
-          console.warn('Failed to create AudioContext:', error);
-          return;
-        }
-      }
-
-      if (this.audioContext.state === 'suspended') {
-        this.audioContext.resume().then(() => {
-          this.isAudioContextReady = true;
-          console.log('🎵 AudioContext resumed and ready for notifications');
-        }).catch(error => {
-          console.warn('Failed to resume AudioContext:', error);
-        });
-      } else {
-        this.isAudioContextReady = true;
-        console.log('🎵 AudioContext ready for notifications');
-      }
-
-      // Remove listeners after first successful initialization
-      document.removeEventListener('click', initAudioContext);
-      document.removeEventListener('keydown', initAudioContext);
-      document.removeEventListener('touchstart', initAudioContext);
-    };
-
-    // Listen for various user interactions
-    document.addEventListener('click', initAudioContext, { once: true });
-    document.addEventListener('keydown', initAudioContext, { once: true });
-    document.addEventListener('touchstart', initAudioContext, { once: true });
-  }
-  /**
-   * Set whether notification sounds are enabled
-   */
-  setEnabled(enabled: boolean): void {
-    this.isEnabled = enabled;
-    
-    // If enabling notifications and AudioContext isn't ready, try to initialize it
-    if (enabled && !this.isAudioContextReady) {
-      this.tryInitializeAudioContext();
-    }
-  }
-  /**
-   * Try to initialize AudioContext manually
-   */
-  private tryInitializeAudioContext(): void {
+  private initializeAudio(): void {
     // Only run in browser environment
     if (typeof window === 'undefined') {
       return;
     }
 
     try {
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        console.log('🎵 AudioContext created manually');
-      }
+      // Use the actual audio file from public/sounds/
+      this.audio = new Audio('/sounds/notification.mp3');
+      this.audio.volume = 0.5;
+      this.audio.preload = 'auto';
+      
+      // Set up event listeners to ensure audio is fully loaded
+      this.audio.addEventListener('canplaythrough', () => {
+        this.audioReady = true;
+        console.log('🔊 Notification audio is ready to play (canplaythrough)');
+      });
 
-      if (this.audioContext.state === 'suspended') {
-        this.audioContext.resume().then(() => {
-          this.isAudioContextReady = true;
-          console.log('🎵 AudioContext manually resumed and ready');
-        }).catch(error => {
-          console.log('ℹ️ AudioContext resume requires user interaction');
-        });
-      } else {
-        this.isAudioContextReady = true;
-        console.log('🎵 AudioContext manually initialized and ready');
-      }
+      this.audio.addEventListener('loadeddata', () => {
+        console.log('🔊 Notification audio data loaded');
+      });
+
+      this.audio.addEventListener('error', (e) => {
+        console.warn('🔊 Audio load error:', e);
+        this.audioReady = false;
+      });
+      
+      // Try to preload the audio to bypass some autoplay restrictions
+      this.audio.load();
+      
+      console.log('🔊 Notification audio file loading from /sounds/notification.mp3');
     } catch (error) {
-      console.log('ℹ️ AudioContext initialization requires user interaction');
+      console.warn('Failed to load notification audio file:', error);
+      this.audioReady = false;
     }
+  }
+
+  /**
+   * Set whether notification sounds are enabled
+   */
+  setEnabled(enabled: boolean): void {
+    this.isEnabled = enabled;
   }
 
   /**
@@ -101,68 +63,79 @@ class NotificationSoundService {
   isNotificationEnabled(): boolean {
     return this.isEnabled;
   }  /**
-   * Play notification sound
+   * Play notification sound using HTML5 Audio with proper readiness check
    */
-   playNotification(): void {
-    console.log('🔊 Attempting to play notification sound. Enabled:', this.isEnabled);
+  playNotification(): void {
+    console.log('🔊 Attempting to play notification sound. Enabled:', this.isEnabled, 'Ready:', this.audioReady);
     
     if (!this.isEnabled) {
       console.log('🔇 Cannot play notification - disabled');
       return;
     }
 
-    if (!this.audioContext || !this.isAudioContextReady) {
-      console.log('🔇 AudioContext not ready - user interaction required first');
-      this.showAudioContextNotice();
+    if (!this.audio) {
+      console.log('🔇 Audio file not loaded');
+      this.systemNotification();
       return;
     }
 
-    try {
-      console.log('📢 Playing notification with pre-initialized AudioContext...');
-      this.generateAndPlayTone(this.audioContext);
+    // Check if audio is ready before playing
+    if (!this.audioReady) {
+      console.log('🔇 Audio not ready yet, waiting for canplaythrough...');
       
+      // Try to wait for audio to be ready, but don't wait too long
+      const waitForReady = () => {
+        if (this.audioReady) {
+          this.playAudioNow();
+        } else if (this.audio && this.audio.readyState >= 3) {
+          // readyState 3 = HAVE_FUTURE_DATA (enough to start playing)
+          console.log('🔊 Audio ready via readyState check');
+          this.audioReady = true;
+          this.playAudioNow();
+        } else {
+          console.log('🔇 Audio still not ready, using fallback notification');
+          this.systemNotification();
+        }
+      };
+
+      // Wait a bit for audio to load, then try anyway
+      setTimeout(waitForReady, 100);
+      return;
+    }
+
+    this.playAudioNow();
+  }
+
+  /**
+   * Actually play the audio (assumes audio is ready)
+   */
+  private playAudioNow(): void {
+    if (!this.audio) return;
+
+    try {
+      // Reset audio to beginning to ensure full playback
+      this.audio.currentTime = 0;
+      
+      console.log('📢 Playing notification with HTML5 Audio file...');
+      const playPromise = this.audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ Notification sound played successfully');
+          })
+          .catch(error => {
+            console.warn('❌ HTML5 Audio play failed:', error);
+            this.systemNotification();
+          });
+      }
     } catch (error) {
-      console.warn('❌ Failed to play notification sound:', error);
+      console.warn('❌ Error playing notification sound:', error);
       this.systemNotification();
     }
   }
 
   /**
-   * Show notice about audio context requirement
-   */
-  private showAudioContextNotice(): void {
-    console.log('ℹ️ Notification sound requires user interaction first. Click anywhere on the page to enable audio.');
-  }
-
-  /**
-   * Generate and play notification tone
-   */
-  private generateAndPlayTone(audioContext: AudioContext): void {
-    try {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Create a pleasant notification sound (two-tone beep)
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-      
-      // Envelope for smooth sound
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
-      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.15);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-
-      console.log('✅ Notification sound played with Web Audio API');
-    } catch (error) {
-      console.warn('❌ Tone generation failed:', error);
-    }
-  }  /**
    * System notification fallback
    */
   private systemNotification(): void {
@@ -205,13 +178,16 @@ class NotificationSoundService {
       console.warn('❌ System notification failed:', error);
     }
   }
+
   /**
    * Play notification for new message
    */
   playMessageNotification(): void {
     console.log('📬 Playing message notification...');
     this.playNotification();
-  }  /**
+  }
+
+  /**
    * Test notification sound (for settings page)
    */
   testNotification(): void {
@@ -220,37 +196,6 @@ class NotificationSoundService {
     const wasEnabled = this.isEnabled;
     this.isEnabled = true;
     this.playNotification();
-    this.isEnabled = wasEnabled;
-  }
-
-  /**
-   * Force play notification for debugging (always plays regardless of settings)
-   */
-  debugPlayNotification(): void {
-    console.log('🐛 Debug: Force playing notification...');
-    const wasEnabled = this.isEnabled;
-    this.isEnabled = true;
-    
-    // Try the simplest possible approach first
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = 800;
-      gainNode.gain.value = 0.3;
-
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.3);
-      
-      console.log('🔊 Debug notification played with basic Web Audio');
-    } catch (error) {
-      console.error('❌ Debug notification failed:', error);
-    }
-    
     this.isEnabled = wasEnabled;
   }
 
@@ -267,7 +212,7 @@ export const notificationSoundService = new NotificationSoundService();
 
 // Add to window for debugging (only in development)
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).testNotificationSound = () => notificationSoundService.debugPlayNotification();
+  (window as any).testNotificationSound = () => notificationSoundService.testNotification();
   (window as any).notificationSoundService = notificationSoundService;
 }
 
