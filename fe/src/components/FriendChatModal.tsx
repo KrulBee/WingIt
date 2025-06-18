@@ -78,10 +78,9 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
     
     setFilteredFriends(filteredNonAdmins);
   }, [friends, searchTerm]);
-
   useEffect(() => {
-    // Auto-enable group chat if more than one friend is selected
-    setIsGroupChat(selectedFriends.size > 1);
+    // ALL user-created chats are group chats, regardless of participant count
+    setIsGroupChat(true);
   }, [selectedFriends]);
   const fetchFriends = async () => {
     try {

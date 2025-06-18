@@ -24,13 +24,6 @@ public class AsyncSearchService {
             // Simulate complex search operation
             Thread.sleep(150); // Simulated search time
             
-            // In real implementation, this would:
-            // 1. Parse and sanitize search query
-            // 2. Search across post content, hashtags, mentions
-            // 3. Apply privacy filters based on user relationships
-            // 4. Rank results by relevance and recency
-            // 5. Apply pagination
-            
             List<Object> searchResults = List.of(
                 Map.of("type", "post", "id", 1, "content", "Search result 1"),
                 Map.of("type", "post", "id", 2, "content", "Search result 2")
