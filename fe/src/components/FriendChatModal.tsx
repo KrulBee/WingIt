@@ -121,10 +121,9 @@ export default function FriendChatModal({ isOpen, onClose, onChatCreated }: Frie
       setError(null);      const participantIds = Array.from(selectedFriends);
       
       let newChatRoom;
-      if (isGroupChat) {
-        // Create group chat
+      if (isGroupChat) {        // Create group chat
         const chatRoomData = {
-          roomName: groupName || `Group Chat`,
+          roomName: groupName || `Nhóm ${Array.from(selectedFriends).length + 1} người`,
           isGroupChat: true,
           participantIds
         };

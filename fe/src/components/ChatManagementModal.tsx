@@ -226,6 +226,39 @@ export default function ChatManagementModal({
 
   if (!chatRoom) return null;
 
+  // 🚫 Block access to private chat settings
+  if (!chatRoom.isGroupChat) {
+    return (
+      <Modal 
+        isOpen={isOpen} 
+        onClose={onClose}
+        size="sm"
+      >
+        <ModalContent>
+          <ModalHeader>
+            <h2 className="text-xl font-semibold">Không khả dụng</h2>
+          </ModalHeader>
+          <ModalBody>
+            <div className="text-center py-6">
+              <Shield className="mx-auto mb-4 text-gray-400" size={48} />
+              <p className="text-gray-600 mb-2">
+                Không thể thay đổi cài đặt cho tin nhắn riêng
+              </p>
+              <p className="text-sm text-gray-500">
+                Chỉ nhóm trò chuyện mới có thể quản lý cài đặt
+              </p>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button onPress={onClose} color="primary">
+              Đóng
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
   return (
     <Modal 
       isOpen={isOpen} 

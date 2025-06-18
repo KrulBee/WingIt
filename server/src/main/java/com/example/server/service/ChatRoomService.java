@@ -39,10 +39,9 @@ public class ChatRoomService {
         return convertToDTO(chatRoom);
     }    public ChatRoomDTO createChatRoom(CreateChatRoomRequest request, Integer creatorId) {
         User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Creator not found"));
-
-        ChatRoom chatRoom = new ChatRoom();
+                .orElseThrow(() -> new RuntimeException("Creator not found"));        ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
+        chatRoom.setIsGroupChat(request.isGroupChat()); // Fix: Set group chat flag properly
         chatRoom.setCreatedDate(LocalDateTime.now());
 
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);

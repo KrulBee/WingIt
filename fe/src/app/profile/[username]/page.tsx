@@ -329,9 +329,9 @@ export default function UserProfilePage() {
         </div>
       </AuthGuard>
     );
-  }
-  if (error) {
+  }  if (error) {
     const isPrivacyError = error.includes('riêng tư');
+    const isNotFound = error.includes('Không tìm thấy');
     
     return (
       <AuthGuard>
@@ -340,42 +340,123 @@ export default function UserProfilePage() {
           <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
             <div className="max-w-2xl mx-auto">
               <Card className="p-8 text-center">
-                <CardBody className="space-y-4">
+                <CardBody className="space-y-6">
                   {isPrivacyError ? (
                     <>
-                      <div className="text-6xl mb-4">🔒</div>
-                      <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                        Hồ sơ riêng tư
-                      </h2>
-                      <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                        Hồ sơ này được đặt ở chế độ riêng tư. Chỉ bạn bè mới có thể xem thông tin và bài viết.
-                      </p>
+                      {/* Privacy Protection Icon */}
+                      <div className="flex justify-center">
+                        <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                          <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2zm10-12V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                          Hồ sơ được bảo vệ
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
+                          Người dùng này đã đặt hồ sơ ở chế độ riêng tư. Chỉ bạn bè của họ mới có thể xem thông tin cá nhân.
+                        </p>
+                      </div>
+                      {userData && (
+                        <div className="flex items-center justify-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                            <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                              {userData.displayName?.[0] || userData.username[0]}
+                            </span>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-gray-800 dark:text-gray-200">
+                              {userData.displayName || userData.username}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              @{userData.username}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-center space-x-3">
+                        <Button 
+                          color="primary" 
+                          variant="solid"
+                          onPress={() => router.push('/friends')}
+                          startContent={
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-2.239" />
+                            </svg>
+                          }
+                        >
+                          Tìm bạn bè
+                        </Button>
+                        <Button 
+                          color="default" 
+                          variant="bordered"
+                          onPress={() => router.back()}
+                        >
+                          Quay lại
+                        </Button>
+                      </div>
+                    </>
+                  ) : isNotFound ? (
+                    <>
+                      {/* User Not Found Icon */}
+                      <div className="flex justify-center">
+                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                          <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                          Không tìm thấy người dùng
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                          Người dùng này có thể đã thay đổi tên người dùng hoặc tài khoản không còn tồn tại.
+                        </p>
+                      </div>
                       <Button 
-                        color="primary"
-                        onClick={() => router.push('/home')}
-                        className="mt-4"
+                        color="primary" 
+                        onPress={() => router.back()}
                       >
-                        Quay về trang chủ
+                        Quay lại
                       </Button>
                     </>
                   ) : (
                     <>
-                      <div className="text-6xl mb-4">❌</div>
-                      <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                        Không thể tải hồ sơ
-                      </h2>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {error}
-                      </p>
-                      <Button 
-                        onClick={() => fetchUserData()}
-                        color="primary"
-                        className="mt-4"
-                      >
-                        Thử lại
-                      </Button>
-                    </>
-                  )}
+                      {/* General Error Icon */}
+                      <div className="flex justify-center">
+                        <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                          <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                          Không thể tải hồ sơ
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                          {error}
+                        </p>
+                      </div>
+                      <div className="flex justify-center space-x-3">
+                        <Button 
+                          color="primary" 
+                          onPress={() => window.location.reload()}
+                        >
+                          Thử lại
+                        </Button>
+                        <Button 
+                          color="default" 
+                          variant="bordered"
+                          onPress={() => router.back()}
+                        >
+                          Quay lại
+                        </Button>
+                      </div>
+                    </>                  )}
                 </CardBody>
               </Card>
             </div>
