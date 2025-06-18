@@ -4,11 +4,15 @@ import com.example.server.dto.NotificationDTO;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class NotificationService {    private final NotificationRepository notificationRepository;
@@ -217,5 +221,88 @@ public class NotificationService {    private final NotificationRepository notif
         }
         
         return dto;
+    }
+
+    // === ASYNC NOTIFICATION METHODS FOR SOCIAL MEDIA PERFORMANCE ===
+    
+    /**
+     * Async method to create comment notifications without blocking the main thread
+     * Essential for social media real-time performance
+     */
+    @Async("notificationExecutor")
+    public CompletableFuture<NotificationDTO> createCommentNotificationAsync(Integer commentAuthorId, Long postId, Long commentId) {
+        try {
+            NotificationDTO result = createCommentNotification(commentAuthorId, postId, commentId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            System.err.println("Async comment notification failed: " + e.getMessage());
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * Async method to create like notifications for better user experience
+     */
+    @Async("notificationExecutor")
+    public CompletableFuture<NotificationDTO> createLikeNotificationAsync(Integer likerId, Long postId) {
+        try {
+            NotificationDTO result = createLikeNotification(likerId, postId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            System.err.println("Async like notification failed: " + e.getMessage());
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * Async method to create friend post notifications for multiple users
+     * Handles bulk notifications efficiently in background
+     */
+    @Async("notificationExecutor")
+    public CompletableFuture<NotificationDTO> createFriendPostNotificationAsync(Integer postAuthorId, Long postId) {
+        try {
+            NotificationDTO result = createFriendPostNotification(postAuthorId, postId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            System.err.println("Async friend post notification failed: " + e.getMessage());
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * Async bulk notification processing for high-volume social media operations
+     * Process multiple notifications concurrently
+     */
+    @Async("notificationExecutor")
+    public CompletableFuture<Void> processBulkNotificationsAsync(List<Notification> notifications) {
+        try {
+            // Process notifications in parallel streams for maximum efficiency
+            notifications.parallelStream().forEach(notification -> {
+                try {
+                    notificationRepository.save(notification);
+                } catch (Exception e) {
+                    System.err.println("Failed to save notification: " + e.getMessage());
+                }
+            });
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            System.err.println("Bulk notification processing failed: " + e.getMessage());
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * Async method to mark all notifications as read without blocking
+     * Important for social media user experience
+     */
+    @Async("taskExecutor")
+    public CompletableFuture<Void> markAllAsReadAsync(Integer userId) {
+        try {
+            markAllAsRead(userId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            System.err.println("Async mark all as read failed: " + e.getMessage());
+            return CompletableFuture.completedFuture(null);
+        }
     }
 }

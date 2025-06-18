@@ -74,11 +74,11 @@ public class CommentService {    private final CommentRepository commentReposito
         comment.setCreatedDate(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
 
-        Comment savedComment = commentRepository.save(comment);
-          // Trigger comment notification if commenter is not the post author
+        Comment savedComment = commentRepository.save(comment);        // Trigger async comment notification if commenter is not the post author
         try {
             if (!post.getUser().getId().equals(userId)) {
-                notificationService.createCommentNotification(
+                // Use async notification for better performance in social media
+                notificationService.createCommentNotificationAsync(
                     savedComment.getUser().getId(), 
                     savedComment.getPost().getId(), 
                     savedComment.getId()
@@ -86,7 +86,7 @@ public class CommentService {    private final CommentRepository commentReposito
             }
         } catch (Exception e) {
             // Log error but don't fail comment creation
-            System.err.println("Failed to create comment notification: " + e.getMessage());
+            System.err.println("Failed to create async comment notification: " + e.getMessage());
         }
         
         return convertToDTO(savedComment);    }
@@ -160,11 +160,11 @@ public class CommentService {    private final CommentRepository commentReposito
         relationship.setReply(savedReply);
         relationship.setCreatedDate(LocalDateTime.now());
         
-        commentReplyRepository.save(relationship);
-          // Trigger comment notification if replier is not the original commenter
+        commentReplyRepository.save(relationship);        // Trigger async comment notification if replier is not the original commenter
         try {
             if (!rootComment.getUser().getId().equals(userId)) {
-                notificationService.createCommentNotification(
+                // Use async notification for better social media performance
+                notificationService.createCommentNotificationAsync(
                     savedReply.getUser().getId(), 
                     savedReply.getPost().getId(), 
                     savedReply.getId()
@@ -172,7 +172,7 @@ public class CommentService {    private final CommentRepository commentReposito
             }
         } catch (Exception e) {
             // Log error but don't fail reply creation
-            System.err.println("Failed to create reply notification: " + e.getMessage());
+            System.err.println("Failed to create async reply notification: " + e.getMessage());
         }
         
         return convertToDTO(savedReply);

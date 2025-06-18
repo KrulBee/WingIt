@@ -128,14 +128,13 @@ public class PostService {
                 media.setUploadedAt(LocalDateTime.now());
                 postMediaRepository.save(media);
             }
-        }
-
-        // Create notifications for friends when a new post is created
+        }        // Create async notifications for friends when a new post is created
+        // This is crucial for social media performance - don't block post creation
         try {
-            notificationService.createFriendPostNotification(userId, savedPost.getId());
+            notificationService.createFriendPostNotificationAsync(userId, savedPost.getId());
         } catch (Exception e) {
             // Log the error but don't fail the post creation
-            System.err.println("Failed to create friend post notifications: " + e.getMessage());
+            System.err.println("Failed to create async friend post notifications: " + e.getMessage());
         }
 
         return convertToDTO(savedPost);

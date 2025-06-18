@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Async;
+import java.util.concurrent.CompletableFuture;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -218,5 +220,50 @@ public class PostViewService {
         dto.setIpAddress(postView.getIpAddress());
         dto.setUserAgent(postView.getUserAgent());
         return dto;
+    }
+
+    /**
+     * Async method for tracking post views - improves response time for users
+     * Views are tracked in background without blocking the main request
+     */
+    @Async("analyticsExecutor")
+    public CompletableFuture<PostViewDTO> trackViewAsync(Long postId, Integer userId, CreatePostViewRequest request, String ipAddress, String userAgent) {
+        try {
+            PostViewDTO result = trackView(postId, userId, request, ipAddress, userAgent);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Async method for updating view duration - analytics processing in background
+     */
+    @Async("analyticsExecutor")
+    public CompletableFuture<PostViewDTO> updateViewDurationAsync(Long viewId, Long durationMs) {
+        try {
+            PostViewDTO result = updateViewDuration(viewId, durationMs);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Async method for batch processing view analytics
+     * Useful for heavy analytics operations that shouldn't block user requests
+     */
+    @Async("analyticsExecutor")
+    public CompletableFuture<Void> processViewAnalyticsBatch(List<Long> postIds) {
+        try {
+            // Process analytics for multiple posts in background
+            for (Long postId : postIds) {
+                getPostViewStats(postId);
+                // Could add more complex analytics processing here
+            }
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 }

@@ -62,18 +62,18 @@ public class PostReactionService {
             isNewReaction = true;
         }
 
-        PostReaction savedReaction = postReactionRepository.save(reaction);
-          // Trigger like notification if it's a "like" reaction and user is not the post author
+        PostReaction savedReaction = postReactionRepository.save(reaction);        // Trigger async like notification if it's a "like" reaction and user is not the post author
+        // Async processing ensures likes don't block user interaction in social media
         try {
             if (isNewReaction && reactionTypeId == 1L && !post.getUser().getId().equals(userId)) { // 1 = "like"
-                notificationService.createLikeNotification(
+                notificationService.createLikeNotificationAsync(
                     savedReaction.getUser().getId(), 
                     savedReaction.getPost().getId()
                 );
             }
         } catch (Exception e) {
             // Log error but don't fail reaction creation
-            System.err.println("Failed to create like notification: " + e.getMessage());
+            System.err.println("Failed to create async like notification: " + e.getMessage());
         }
         
         return convertToDTO(savedReaction);
