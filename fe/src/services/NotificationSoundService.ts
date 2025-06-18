@@ -33,11 +33,11 @@ class NotificationSoundService {
 
       this.audio.addEventListener('loadeddata', () => {
         console.log('🔊 Notification audio data loaded');
-      });
-
-      this.audio.addEventListener('error', (e) => {
+      });      this.audio.addEventListener('error', (e) => {
         console.warn('🔊 Audio load error:', e);
+        console.warn('🔊 Notification sound file not found - sound notifications disabled');
         this.audioReady = false;
+        this.audio = null; // Prevent further attempts
       });
       
       // Try to preload the audio to bypass some autoplay restrictions
@@ -71,11 +71,8 @@ class NotificationSoundService {
     if (!this.isEnabled) {
       console.log('🔇 Cannot play notification - disabled');
       return;
-    }
-
-    if (!this.audio) {
-      console.log('🔇 Audio file not loaded');
-      this.systemNotification();
+    }    if (!this.audio) {
+      console.log('🔇 Audio file not available - notification sound disabled');
       return;
     }
 

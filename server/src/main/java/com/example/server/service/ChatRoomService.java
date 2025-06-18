@@ -221,10 +221,10 @@ public class ChatRoomService {
                     }
                     return userDTO;
                 })
-                .collect(Collectors.toList());
-
-        dto.setParticipants(participants);
-        dto.setGroupChat(participants.size() > 2);        // Get last message
+                .collect(Collectors.toList());        dto.setParticipants(participants);
+        
+        // Use the actual isGroupChat value from the database, not a calculation
+        dto.setGroupChat(chatRoom.getIsGroupChat() != null ? chatRoom.getIsGroupChat() : false);// Get last message
         List<Message> messages = messageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoom.getId());
 
         if (!messages.isEmpty()) {

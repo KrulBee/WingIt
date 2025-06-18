@@ -103,9 +103,7 @@ export interface UpdateReportStatusRequest {
 }
 
 class AdminService {
-  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin`;
-
-  // Check admin access
+  private baseURL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin`;  // Check admin access
   async checkAdminAccess(): Promise<AdminAccess> {
     try {
       const response = await fetch(`${this.baseURL}/check-access`, {
@@ -117,13 +115,21 @@ class AdminService {
       });
 
       if (!response.ok) {
+        // Silently fail for 401/403 errors to avoid spamming console
+        if (response.status === 401 || response.status === 403) {
+          return { hasAdminAccess: false, hasFullAdminAccess: false };
+        }
         throw new Error('Failed to check admin access');
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Error checking admin access:', error);
-      throw error;
+      // Only log non-auth errors
+      if (error instanceof Error && !error.message.includes('401') && !error.message.includes('403')) {
+        console.error('Error checking admin access:', error);
+      }
+      // Return no access for any error
+      return { hasAdminAccess: false, hasFullAdminAccess: false };
     }
   }
   // Get dashboard statistics
