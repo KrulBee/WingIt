@@ -77,13 +77,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         // Note: Only subscribe for notifications, let pages handle their own message display
         webSocketService.subscribeToMessages((messageData: any) => {
           console.log('📨 Global message received for notification:', messageData);
+          console.log('🔍 Notification check - Current user ID:', currentUserId, 'Message sender ID:', messageData.senderId, 'Type check:', typeof currentUserId, typeof messageData.senderId);
           
           // Only play notification sound if the message is not from the current user
-          if (currentUserId && messageData.senderId && messageData.senderId !== currentUserId) {
-            console.log('🔊 Playing notification sound for message from user:', messageData.senderId);
+          // Convert both to numbers for comparison to handle type mismatches
+          const currentUserIdNum = currentUserId ? Number(currentUserId) : null;
+          const senderIdNum = messageData.senderId ? Number(messageData.senderId) : null;
+          
+          if (currentUserIdNum && senderIdNum && senderIdNum !== currentUserIdNum) {
+            console.log('🔊 Playing notification sound for message from user:', messageData.senderId, '(current user:', currentUserId, ')');
             notificationSoundService.playMessageNotification();
           } else {
             console.log('🔇 Skipping notification - message from current user or invalid data');
+            console.log('🔍 Skip reason - currentUserId:', currentUserId, '(' + typeof currentUserId + ')', 'senderId:', messageData.senderId, '(' + typeof messageData.senderId + ')', 'Numbers equal:', currentUserIdNum === senderIdNum);
           }
         });
         

@@ -16,7 +16,6 @@ import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import { notificationSoundService } from "@/services/NotificationSoundService";
 
 // Interface for the UI component
 interface ChatUser {
@@ -637,30 +636,15 @@ function MessagesContent() {
         <div className="w-80 border-r border-gray-200 dark:border-gray-700 h-screen hidden sm:block">
           <div className="p-4">            <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Tin nhắn</h2>
-              <div className="flex gap-2">
-                {/* Temporary test button - remove in production */}
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="warning"
-                  onClick={() => {
-                    console.log('🧪 Testing notification sound manually...');
-                    notificationSoundService.debugPlayNotification();
-                  }}
-                  className="text-xs"
-                >
-                  🔊 Test
-                </Button>
-                <Button
-                  isIconOnly
-                  color="primary"
-                  variant="light"
-                  onClick={() => setShowFriendChatModal(true)}
-                  className="hover:bg-blue-50 dark:hover:bg-blue-900"
-                >
-                  <Plus size={18} />
-                </Button>
-              </div>
+              <Button
+                isIconOnly
+                color="primary"
+                variant="light"
+                onClick={() => setShowFriendChatModal(true)}
+                className="hover:bg-blue-50 dark:hover:bg-blue-900"
+              >
+                <Plus size={18} />
+              </Button>
             </div>
             
             <div className="relative mb-4">
