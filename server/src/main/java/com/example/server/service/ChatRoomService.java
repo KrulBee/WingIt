@@ -214,9 +214,7 @@ public class ChatRoomService {
                     }
                     return userDTO;
                 })
-                .collect(Collectors.toList());        dto.setParticipants(participants);
-        
-        // Debug: Check the actual value from database
+                .collect(Collectors.toList());        dto.setParticipants(participants);        // Debug: Check the actual value from database
         System.out.println("🔍 ChatRoom ID: " + chatRoom.getId() + " - isGroupChat field value: " + chatRoom.getIsGroupChat());
         
         // Use the actual isGroupChat value from the database, not a calculation
