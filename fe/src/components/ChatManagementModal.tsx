@@ -44,7 +44,6 @@ import avatarBase64 from "@/static/images/avatarDefault";
 interface ChatRoom {
   id: number;
   roomName: string;
-  description?: string;
   isGroupChat: boolean;
   createdDate: string;
   participants?: User[];
@@ -82,20 +81,17 @@ export default function ChatManagementModal({
   currentUserId,
   onChatUpdated,
   onChatDeleted 
-}: ChatManagementModalProps) {
-  const [activeTab, setActiveTab] = useState("info");
+}: ChatManagementModalProps) {  const [activeTab, setActiveTab] = useState("info");
   const [loading, setLoading] = useState(false);
   const [participants, setParticipants] = useState<RoomUser[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
   const [roomName, setRoomName] = useState("");
-  const [roomDescription, setRoomDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && chatRoom) {
       setRoomName(chatRoom.roomName);
-      setRoomDescription(chatRoom.description || "");
       fetchParticipants();
       if (chatRoom.isGroupChat) {
         fetchFriends();
@@ -109,28 +105,39 @@ export default function ChatManagementModal({
       console.log('🔍 Fetching participants for room:', chatRoom.id);
       // Fetch actual participants from the API
       const roomUserService = (await import('../services/RoomUserService')).default;
-      const response = await roomUserService.getRoomUsers(chatRoom.id);
+      const response = await roomUserService.getRoomUsers(chatRoom.id);      console.log('📥 Participants response:', response);
+      console.log('📥 Response is array:', Array.isArray(response));
       
-      console.log('📥 Participants response:', response);
-      
-      if (!response || !response.roomUsers) {
-        console.warn('No roomUsers in response');
+      if (!response) {
+        console.warn('No response from getRoomUsers');
         setParticipants([]);
         return;
       }
       
-      const participants: RoomUser[] = response.roomUsers.map(roomUser => ({
-        id: roomUser.id,
-        user: {
-          id: roomUser.user?.id || 0,
-          username: roomUser.user?.username || 'unknown',
-          displayName: roomUser.user?.username,
-          profilePicture: roomUser.user?.profilePicture
-        },
-        role: roomUser.role,
-        joinedAt: roomUser.joinedAt,
-        isMuted: roomUser.isMuted
-      }));
+      // Backend returns array directly
+      const roomUsersData = Array.isArray(response) ? response : [];
+      console.log('📥 Actual roomUsers data:', roomUsersData);
+      
+      if (!Array.isArray(roomUsersData) || roomUsersData.length === 0) {
+        console.warn('No roomUsers array found in response or empty array');
+        setParticipants([]);
+        return;
+      }      
+      const participants: RoomUser[] = roomUsersData.map((roomUser: any) => {
+        console.log('Processing roomUser:', roomUser);
+        return {
+          id: roomUser.id,
+          user: {
+            id: roomUser.userId || 0,
+            username: roomUser.username || 'unknown',
+            displayName: roomUser.displayName || roomUser.username,
+            profilePicture: roomUser.profileImageUrl
+          },
+          role: 'MEMBER', // Default role since it's not in the DTO
+          joinedAt: roomUser.joinedAt,
+          isMuted: false // Default value since it's not in the DTO
+        };
+      });
       
       console.log('✅ Processed participants:', participants);
       setParticipants(participants);
@@ -158,10 +165,8 @@ export default function ChatManagementModal({
     try {
       setLoading(true);
       setError(null);
-      
-      const updateData = {
-        roomName: roomName.trim(),
-        description: roomDescription.trim()
+        const updateData = {
+        roomName: roomName.trim()
       };
 
       const updatedChat = await ChatService.updateChatRoom(chatRoom.id, updateData);
@@ -326,23 +331,11 @@ export default function ChatManagementModal({
                     onChange={(e) => setRoomName(e.target.value)}
                     placeholder="Nhập tên cuộc trò chuyện"
                     variant="bordered"
-                    isDisabled={!canManageChat()}
-                  />
+                    isDisabled={!canManageChat()}                  />
                 </div>
 
-                {chatRoom.isGroupChat && (
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Mô tả</label>
-                    <Textarea
-                      value={roomDescription}
-                      onChange={(e) => setRoomDescription(e.target.value)}
-                      placeholder="Nhập mô tả cuộc trò chuyện"
-                      variant="bordered"
-                      isDisabled={!canManageChat()}
-                    />
-                  </div>
-                )}                <div className="space-y-2">
-                  <p className="text-sm font-medium">Được tạo</p>                  <p className="text-sm text-gray-500">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Được tạo</p><p className="text-sm text-gray-500">
                     {new Date(chatRoom.createdDate).toLocaleDateString('vi-VN', { 
                       year: 'numeric', 
                       month: 'long', 

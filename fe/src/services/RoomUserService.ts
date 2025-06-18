@@ -20,11 +20,9 @@ export interface RoomUser {
     email: string;
     profilePicture?: string;
     isOnline?: boolean;
-  };
-  room?: {
+  };  room?: {
     id: number;
     name: string;
-    description?: string;
     roomType: 'PUBLIC' | 'PRIVATE' | 'GROUP';
   };
 }
@@ -114,8 +112,7 @@ class RoomUserService {
 
   /**
    * Get users in a room
-   */
-  async getRoomUsers(roomId: number, page: number = 0, size: number = 20): Promise<RoomUserListResponse> {
+   */  async getRoomUsers(roomId: number, page: number = 0, size: number = 20): Promise<RoomUser[]> {
     try {
       const response = await fetch(`${this.baseURL}/room/${roomId}?page=${page}&size=${size}`, {
         method: 'GET',

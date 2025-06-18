@@ -33,7 +33,6 @@ export interface User {
 export interface ChatRoom {
   id: number;
   roomName: string;
-  description?: string;
   isGroupChat: boolean;
   createdDate: string;
   participants?: User[];
@@ -51,7 +50,6 @@ export interface Message {
 
 interface CreateChatRoomData {
   roomName: string;
-  description?: string;
   isGroupChat: boolean;
   participantIds?: number[];
 }
@@ -132,7 +130,7 @@ const ChatService = {
     }
   },
 
-  updateChatRoom: async (roomId: number, updateData: { roomName?: string; description?: string }): Promise<ChatRoom> => {
+  updateChatRoom: async (roomId: number, updateData: { roomName?: string }): Promise<ChatRoom> => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/chat-rooms/${roomId}`, {
         method: 'PUT',
