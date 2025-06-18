@@ -3,15 +3,88 @@
  */
 class NotificationSoundService {
   private isEnabled: boolean = false;
+  private audioContext: AudioContext | null = null;
+  private isAudioContextReady: boolean = false;
 
-  constructor() {    // No initialization needed - we'll use Web Audio API directly
+  constructor() {
+    // Initialize user interaction listener
+    this.setupUserInteractionListener();
   }
 
+  /**
+   * Setup listener for user interaction to initialize AudioContext
+   */
+  private setupUserInteractionListener(): void {
+    const initAudioContext = () => {
+      if (!this.audioContext) {
+        try {
+          this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          console.log('🎵 AudioContext created on user interaction');
+        } catch (error) {
+          console.warn('Failed to create AudioContext:', error);
+          return;
+        }
+      }
+
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume().then(() => {
+          this.isAudioContextReady = true;
+          console.log('🎵 AudioContext resumed and ready for notifications');
+        }).catch(error => {
+          console.warn('Failed to resume AudioContext:', error);
+        });
+      } else {
+        this.isAudioContextReady = true;
+        console.log('🎵 AudioContext ready for notifications');
+      }
+
+      // Remove listeners after first successful initialization
+      document.removeEventListener('click', initAudioContext);
+      document.removeEventListener('keydown', initAudioContext);
+      document.removeEventListener('touchstart', initAudioContext);
+    };
+
+    // Listen for various user interactions
+    document.addEventListener('click', initAudioContext, { once: true });
+    document.addEventListener('keydown', initAudioContext, { once: true });
+    document.addEventListener('touchstart', initAudioContext, { once: true });
+  }
   /**
    * Set whether notification sounds are enabled
    */
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
+    
+    // If enabling notifications and AudioContext isn't ready, try to initialize it
+    if (enabled && !this.isAudioContextReady) {
+      this.tryInitializeAudioContext();
+    }
+  }
+
+  /**
+   * Try to initialize AudioContext manually
+   */
+  private tryInitializeAudioContext(): void {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        console.log('🎵 AudioContext created manually');
+      }
+
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume().then(() => {
+          this.isAudioContextReady = true;
+          console.log('🎵 AudioContext manually resumed and ready');
+        }).catch(error => {
+          console.log('ℹ️ AudioContext resume requires user interaction');
+        });
+      } else {
+        this.isAudioContextReady = true;
+        console.log('🎵 AudioContext manually initialized and ready');
+      }
+    } catch (error) {
+      console.log('ℹ️ AudioContext initialization requires user interaction');
+    }
   }
 
   /**
@@ -30,10 +103,15 @@ class NotificationSoundService {
       return;
     }
 
+    if (!this.audioContext || !this.isAudioContextReady) {
+      console.log('🔇 AudioContext not ready - user interaction required first');
+      this.showAudioContextNotice();
+      return;
+    }
+
     try {
-      // Use Web Audio API directly (more reliable than HTML5 Audio for generated sounds)
-      console.log('📢 Playing notification with Web Audio API...');
-      this.playWithWebAudio();
+      console.log('📢 Playing notification with pre-initialized AudioContext...');
+      this.generateAndPlayTone(this.audioContext);
       
     } catch (error) {
       console.warn('❌ Failed to play notification sound:', error);
@@ -42,25 +120,10 @@ class NotificationSoundService {
   }
 
   /**
-   * Play notification using Web Audio API
+   * Show notice about audio context requirement
    */
-  private playWithWebAudio(): void {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Resume audio context if suspended (required by browser policies)
-      if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-          this.generateAndPlayTone(audioContext);
-        });
-      } else {
-        this.generateAndPlayTone(audioContext);
-      }
-      
-    } catch (error) {
-      console.warn('❌ Web Audio API failed:', error);
-      this.systemNotification();
-    }
+  private showAudioContextNotice(): void {
+    console.log('ℹ️ Notification sound requires user interaction first. Click anywhere on the page to enable audio.');
   }
 
   /**
@@ -92,24 +155,40 @@ class NotificationSoundService {
       console.warn('❌ Tone generation failed:', error);
     }
   }
-
   /**
    * System notification fallback
    */
   private systemNotification(): void {
     try {
-      // Try to use the browser's notification API for sound
-      if ('Notification' in window && Notification.permission === 'granted') {
-        console.log('📢 Using system notification sound...');
-        // This might play a system sound on some browsers
-        new Notification('New message', { 
-          silent: false,
-          tag: 'wingit-message',
-          icon: '/logo.svg'
-        });
-      } else {
-        console.log('🔇 No notification methods available');
+      // Option 1: Try browser notification with sound
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          console.log('📢 Using system notification with sound...');
+          new Notification('New message', { 
+            silent: false,
+            tag: 'wingit-message',
+            icon: '/logo.svg',
+            body: 'You have a new message'
+          });
+          return;
+        } else if (Notification.permission === 'default') {
+          // Request permission for future notifications
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              console.log('✅ Notification permission granted for future use');
+            }
+          });
+        }
       }
+
+      // Option 2: Vibration API (mobile devices)
+      if ('vibrate' in navigator) {
+        console.log('📳 Using vibration as notification fallback...');
+        navigator.vibrate([200, 100, 200]);
+        return;
+      }
+
+      console.log('🔇 No notification methods available');
     } catch (error) {
       console.warn('❌ System notification failed:', error);
     }
