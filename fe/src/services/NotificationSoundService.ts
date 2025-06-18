@@ -10,11 +10,15 @@ class NotificationSoundService {
     // Initialize user interaction listener
     this.setupUserInteractionListener();
   }
-
   /**
    * Setup listener for user interaction to initialize AudioContext
    */
   private setupUserInteractionListener(): void {
+    // Only run in browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
     const initAudioContext = () => {
       if (!this.audioContext) {
         try {
@@ -60,11 +64,15 @@ class NotificationSoundService {
       this.tryInitializeAudioContext();
     }
   }
-
   /**
    * Try to initialize AudioContext manually
    */
   private tryInitializeAudioContext(): void {
+    // Only run in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       if (!this.audioContext) {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -154,11 +162,15 @@ class NotificationSoundService {
     } catch (error) {
       console.warn('❌ Tone generation failed:', error);
     }
-  }
-  /**
+  }  /**
    * System notification fallback
    */
   private systemNotification(): void {
+    // Only run in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       // Option 1: Try browser notification with sound
       if ('Notification' in window) {
