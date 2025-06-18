@@ -78,14 +78,12 @@ function MessagesContent() {
   }, [messages]);  // Real-time message handler
   const handleNewMessage = useCallback((messageData: any) => {
     console.log('📨 Message page received message:', messageData);
-    try {
-      // Transform the WebSocket message to our Message format
+    try {      // Transform the WebSocket message to our Message format
       const newMessage: Message = {
         id: messageData.id,
         roomId: messageData.roomId,
         senderId: messageData.senderId,
         content: messageData.content,
-        messageType: messageData.messageType || 'TEXT',
         timestamp: messageData.timestamp || new Date().toISOString(),
         sender: messageData.sender
       };
@@ -295,11 +293,9 @@ function MessagesContent() {
         newMap.set(tempMessageId, 'sending');
         return newMap;
       });
-      
-      const message = await ChatService.sendMessage({
+        const message = await ChatService.sendMessage({
         roomId: activeChat,
-        content: newMessage.trim(),
-        messageType: 'TEXT'
+        content: newMessage.trim()
       });
       
       // Update status to delivered once sent successfully
@@ -371,23 +367,30 @@ function MessagesContent() {
     ));
     setShowChatManagementModal(false);
   };
-
   // Handle chat deletion from ChatManagementModal
   const handleChatDeleted = (roomId: number) => {
     setChatRooms(prev => prev.filter(room => room.id !== roomId));
     if (activeChat === roomId) {
       setActiveChat(null);
-    }    setShowChatManagementModal(false);
+    }
+    setShowChatManagementModal(false);
   };
-  
+
   // Generate a consistent avatar src with fallback
-  const getAvatarSrc = (avatar?: string, username?: string) => {
+  const getAvatarSrc = (avatar?: string, username?: string, isGroupChat?: boolean) => {
+    if (isGroupChat) {
+      // For group chats, return a data URL for cyan-blue to purple gradient background
+      return "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3clinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3e%3cstop offset='0%25' style='stop-color:%2300ffff;stop-opacity:1' /%3e%3cstop offset='100%25' style='stop-color:%23a855f7;stop-opacity:1' /%3e%3c/linearGradient%3e%3c/defs%3e%3ccircle cx='50' cy='50' r='50' fill='url(%23grad)' /%3e%3c/svg%3e";
+    }
+    
     if (avatar && avatar.trim() !== '') {
       return avatar;
     }
     // Use the default avatar as fallback
     return avatarBase64;
-  };  // Transform ChatRoom to ChatUser for UI compatibility
+  };
+
+  // Transform ChatRoom to ChatUser for UI compatibility
   const transformRoomToUser = (room: ChatRoom): ChatUser => {
     if (!room.isGroupChat && room.participants && room.participants.length > 0) {
       // For private chats, find the OTHER participant (not the current user)
@@ -396,36 +399,32 @@ function MessagesContent() {
       if (!otherUser) {
         // Fallback if we can't find the other user (shouldn't happen in normal cases)
         console.warn(`Could not find other participant in room ${room.id}`);
-        const fallbackUser = room.participants[0];
-        return {
+        const fallbackUser = room.participants[0];        return {
           id: room.id.toString(),
           name: fallbackUser.displayName || fallbackUser.username,
-          avatar: getAvatarSrc(fallbackUser.profilePicture, fallbackUser.username),
+          avatar: getAvatarSrc(fallbackUser.profilePicture, fallbackUser.username, false),
           lastMessage: getLastMessageForRoom(room.id),
-          timestamp: formatTimestamp(room.updatedDate || room.createdDate),
+          timestamp: formatTimestamp(room.createdDate),
           online: false,
           unread: 0
         };
       }
         const isOnline = onlineUsers.has(otherUser.id);
       console.log(`💡 User ${otherUser.username} (ID: ${otherUser.id}) online status:`, isOnline, 'Online users:', Array.from(onlineUsers));
-      
-      return {
+        return {
         id: room.id.toString(),
-        name: otherUser.displayName || otherUser.username,
-        avatar: getAvatarSrc(otherUser.profilePicture, otherUser.username),
+        name: otherUser.displayName || otherUser.username,        avatar: getAvatarSrc(otherUser.profilePicture, otherUser.username, false),
         lastMessage: getLastMessageForRoom(room.id),
-        timestamp: formatTimestamp(room.updatedDate || room.createdDate),
+        timestamp: formatTimestamp(room.createdDate),
         online: isOnline,
         unread: 0 // Could be implemented with unread message API
       };    } else {
       // Group chat - don't show online status for groups
       return {
         id: room.id.toString(),
-        name: room.roomName || 'Nhóm trò chuyện',
-        avatar: getAvatarSrc(undefined, `group${room.id}`),
+        name: room.roomName || 'Nhóm trò chuyện',        avatar: getAvatarSrc(undefined, undefined, true),
         lastMessage: getLastMessageForRoom(room.id),
-        timestamp: formatTimestamp(room.updatedDate || room.createdDate),
+        timestamp: formatTimestamp(room.createdDate),
         online: false, // Groups don't have online status
         unread: 0
       };

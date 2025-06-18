@@ -217,11 +217,11 @@ public class ChatRoomService {
                         userDTO.setDisplayName(roomUser.getUser().getUserData().getDisplayName());
                         userDTO.setProfilePicture(roomUser.getUser().getUserData().getProfilePicture());
                     }
-                    return userDTO;
-                })
+                    return userDTO;                })
                 .collect(Collectors.toList());        
 
-        dto.setParticipants(participants);        // Properly handle isGroupChat field - ensure it's never null
+        // Ensure participants is never null
+        dto.setParticipants(participants != null ? participants : new java.util.ArrayList<>());// Properly handle isGroupChat field - ensure it's never null
         Boolean groupChatValue = chatRoom.getIsGroupChat();
         boolean isGroupChatFinal = groupChatValue != null ? groupChatValue : false;
         dto.setGroupChat(isGroupChatFinal);

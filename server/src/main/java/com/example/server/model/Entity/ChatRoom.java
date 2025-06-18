@@ -26,6 +26,9 @@ public class ChatRoom {
     private Boolean isGroupChat = false;
 
     @Column(nullable = false)
+    private Boolean isAutoCreated = false;
+
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -106,9 +106,18 @@ export default function ChatManagementModal({
     
     try {
       setLoading(true);
+      console.log('🔍 Fetching participants for room:', chatRoom.id);
       // Fetch actual participants from the API
       const roomUserService = (await import('../services/RoomUserService')).default;
       const response = await roomUserService.getRoomUsers(chatRoom.id);
+      
+      console.log('📥 Participants response:', response);
+      
+      if (!response || !response.roomUsers) {
+        console.warn('No roomUsers in response');
+        setParticipants([]);
+        return;
+      }
       
       const participants: RoomUser[] = response.roomUsers.map(roomUser => ({
         id: roomUser.id,
@@ -123,10 +132,12 @@ export default function ChatManagementModal({
         isMuted: roomUser.isMuted
       }));
       
+      console.log('✅ Processed participants:', participants);
       setParticipants(participants);
     } catch (err) {
       console.error('Error fetching participants:', err);
       setError('Không thể tải danh sách thành viên');
+      setParticipants([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -398,11 +409,9 @@ export default function ChatManagementModal({
                       </div>
                     </CardBody>
                   </Card>
-                )}
-
-                {/* Members list */}
+                )}                {/* Members list */}
                 <div className="space-y-2">
-                  {participants.map(participant => (
+                  {participants && participants.length > 0 ? participants.map(participant => (
                     <div
                       key={participant.user.id}
                       className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
@@ -458,10 +467,13 @@ export default function ChatManagementModal({
                               Gỡ khỏi nhóm
                             </DropdownItem>
                           </DropdownMenu>
-                        </Dropdown>
-                      )}
+                        </Dropdown>                      )}
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">Không có thành viên nào</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </Tab>            <Tab key="danger" title={

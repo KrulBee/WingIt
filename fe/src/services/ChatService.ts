@@ -36,7 +36,6 @@ export interface ChatRoom {
   description?: string;
   isGroupChat: boolean;
   createdDate: string;
-  updatedDate?: string;
   participants?: User[];
   lastMessage?: Message;
 }
@@ -47,9 +46,7 @@ export interface Message {
   senderId: number;
   sender?: User;
   content: string;
-  messageType: string;
   timestamp: string;
-  updatedDate?: string;
 }
 
 interface CreateChatRoomData {
@@ -62,7 +59,6 @@ interface CreateChatRoomData {
 interface CreateMessageData {
   roomId: number;
   content: string;
-  messageType?: string;
 }
 
 const ChatService = {
@@ -181,10 +177,8 @@ const ChatService = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/messages/${messageData.roomId}`, {
         method: 'POST',
-        headers: createAuthHeaders(),
-        body: JSON.stringify({
-          content: messageData.content,
-          messageType: messageData.messageType || 'TEXT'
+        headers: createAuthHeaders(),        body: JSON.stringify({
+          content: messageData.content
         }),
       });
       if (!response.ok) throw new Error('Failed to send message');
