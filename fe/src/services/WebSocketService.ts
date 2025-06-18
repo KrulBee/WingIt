@@ -6,7 +6,7 @@
  */
 
 interface WebSocketMessage {
-  type: 'notification' | 'message' | 'user_status' | 'post_update' | 'reaction' | 'comment';
+  type: 'notification' | 'message' | 'user_status' | 'post_update' | 'reaction' | 'comment' | 'status_request' | 'status_response';
   data: any;
   timestamp: string;
 }
@@ -268,19 +268,21 @@ class WebSocketService {
       timestamp: new Date().toISOString()
     });
   }
+  /**
+   * Request current online users status via WebSocket
+   */
+  requestOnlineUsers(): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({
+        type: 'status_request'
+      }));
+    }  }
 
   /**
-   * Request online users for a specific room
+   * Subscribe to status response (list of currently online users)
    */
-  requestOnlineUsers(roomId: number): void {
-    this.send({
-      type: 'user_status',
-      data: {
-        action: 'get_online_users',
-        roomId
-      },
-      timestamp: new Date().toISOString()
-    });
+  subscribeToStatusResponse(callback: (onlineUsers: any[]) => void): string {
+    return this.subscribe('status_response', callback);
   }
 
   /**

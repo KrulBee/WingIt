@@ -15,9 +15,11 @@ import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -56,8 +58,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             switch (type) {
                 case "authenticate":
                     handleAuthentication(session, jsonNode);
-                    break;
-                case "message":
+                    break;                case "message":
                     handleChatMessage(session, jsonNode);
                     break;
                 case "typing":
@@ -65,6 +66,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     break;
                 case "notification":
                     handleNotification(session, jsonNode);
+                    break;
+                case "status_request":
+                    handleStatusRequest(session);
                     break;
                 case "ping":
                     handlePing(session);
@@ -413,5 +417,57 @@ public class WebSocketHandler extends TextWebSocketHandler {
         return (int) userSessions.values().stream()
                 .filter(WebSocketSession::isOpen)
                 .count();
+    }
+
+    private void handleStatusRequest(WebSocketSession session) throws IOException {
+        try {
+            String username = getUsernameFromSession(session);
+            if (username == null) {
+                sendErrorMessage(session, "User not authenticated");
+                return;
+            }
+
+            // Get list of currently online users
+            List<Map<String, Object>> onlineUsers = new ArrayList<>();
+            
+            for (Map.Entry<String, WebSocketSession> entry : userSessions.entrySet()) {
+                String onlineUsername = entry.getKey();
+                WebSocketSession onlineSession = entry.getValue();
+                
+                // Only include if session is open and not the requesting user
+                if (onlineSession.isOpen() && !onlineUsername.equals(username)) {
+                    try {
+                        User user = userRepository.findByUsername(onlineUsername);
+                        if (user != null) {
+                            Map<String, Object> userStatus = Map.of(
+                                "userId", user.getId(),
+                                "username", onlineUsername,
+                                "isOnline", true,
+                                "presence", "online" // Default presence
+                            );
+                            onlineUsers.add(userStatus);
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Error getting user info for {}: {}", onlineUsername, e.getMessage());
+                    }
+                }
+            }            // Send status response back to requesting user
+            String responseMessage = objectMapper.writeValueAsString(Map.of(
+                "type", "status_response",
+                "data", onlineUsers,
+                "timestamp", new Date().toString()
+            ));
+            
+            session.sendMessage(new TextMessage(responseMessage));
+            logger.info("Sent online users list to {}: {} users online", username, onlineUsers.size());
+
+        } catch (Exception e) {
+            logger.error("Error handling status request", e);
+            sendErrorMessage(session, "Error getting online users");
+        }
+    }
+
+    private String getUsernameFromSession(WebSocketSession session) {
+        return sessionToUser.get(session.getId());
     }
 }

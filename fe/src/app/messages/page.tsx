@@ -11,10 +11,11 @@ import FriendChatModal from "@/components/FriendChatModal";
 import ChatManagementModal from "@/components/ChatManagementModal";
 import RealTimeNotification, { NotificationData } from "@/components/RealTimeNotification";
 import TypingIndicator from "@/components/TypingIndicator";
-import OnlineStatusIndicator, { OnlineStatus } from "@/components/OnlineStatusIndicator";
+import OnlineStatusIndicator from "@/components/OnlineStatusIndicator";
 import { useProfileNavigation } from "@/utils/profileNavigation";
 import { AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 // Interface for the UI component
 interface ChatUser {
@@ -57,17 +58,16 @@ function MessagesContent() {
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number>(0); // Will be set from auth context
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [wsConnected, setWsConnected] = useState(false);
-  const [pendingUserChat, setPendingUserChat] = useState<string | null>(null);
-  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
+  const [pendingUserChat, setPendingUserChat] = useState<string | null>(null);  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
   const [typingUserNames, setTypingUserNames] = useState<string[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<Set<number>>(new Set());
-  const [userPresence, setUserPresence] = useState<Map<number, OnlineStatus>>(new Map());
   const [showFriendChatModal, setShowFriendChatModal] = useState(false);
   const [showChatManagementModal, setShowChatManagementModal] = useState(false);
   const [messageDeliveryStatus, setMessageDeliveryStatus] = useState<Map<number, 'sending' | 'delivered' | 'read'>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { navigateToProfile } = useProfileNavigation();
+  
+  // Use global WebSocket context
+  const { isConnected: wsConnected, onlineUsers } = useWebSocket();
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -98,9 +98,7 @@ function MessagesContent() {
     } catch (err) {
       console.error('Error processing new message:', err);
     }
-  }, [activeChat]);
-
-    // Handle typing indicators
+  }, [activeChat]);  // Handle typing indicators
   const handleTypingUpdate = useCallback((typingData: any) => {
     const { userId, roomId, isTyping, userName } = typingData;
     
@@ -124,32 +122,6 @@ function MessagesContent() {
       });
     }
   }, [activeChat, currentUserId]);
-  // Handle user status updates
-  const handleUserStatusUpdate = useCallback((statusData: any) => {
-    console.log('🔴 User status update received:', statusData);
-    const { userId, isOnline, presence } = statusData;
-    
-    setOnlineUsers(prev => {
-      const newSet = new Set(prev);
-      if (isOnline) {
-        console.log('🟢 Setting user', userId, 'as online');
-        newSet.add(userId);
-      } else {
-        console.log('⚫ Setting user', userId, 'as offline');
-        newSet.delete(userId);
-      }
-      console.log('📋 Online users now:', Array.from(newSet));
-      return newSet;
-    });
-
-    if (presence) {
-      setUserPresence(prev => {
-        const newMap = new Map(prev);
-        newMap.set(userId, presence as OnlineStatus);
-        return newMap;
-      });
-    }
-  }, []);
 
   // Handle message status updates
   const handleMessageStatusUpdate = useCallback((statusData: any) => {
@@ -209,44 +181,27 @@ function MessagesContent() {
       console.error('Error finding or creating chat with user:', error);
       setError(`Không thể tạo cuộc trò chuyện với @${username}`);
       setPendingUserChat(null); // Clear pending state
-    }
-  }, [chatRooms]);// Fetch chat rooms on component mount
+    }  }, [chatRooms]);
+
+  // Setup WebSocket subscriptions for messages page specific functionality
   useEffect(() => {
     fetchChatRooms();
     getCurrentUser();
     
-    // Initialize WebSocket connection for real-time chat
+    // Subscribe to message-specific WebSocket events
     const wsService = webSocketService;
     
-    wsService.connect()
-      .then(() => {
-        console.log('WebSocket connected for chat');
-        setWsConnected(true);
-        
-        // Subscribe to real-time messages
-        wsService.subscribeToMessages(handleNewMessage);
-        
-        // Subscribe to typing indicators
-        wsService.subscribeToTyping(handleTypingUpdate);
-        
-        // Subscribe to user status updates
-        wsService.subscribeToUserStatus(handleUserStatusUpdate);
+    if (wsConnected) {
+      // Subscribe to real-time messages
+      wsService.subscribeToMessages(handleNewMessage);
+      
+      // Subscribe to typing indicators
+      wsService.subscribeToTyping(handleTypingUpdate);
 
-        // Subscribe to message status updates
-        wsService.subscribeToMessageStatus(handleMessageStatusUpdate);
-      })
-      .catch((err: any) => {
-        console.error('WebSocket connection failed:', err);
-        setWsConnected(false);
-      });
-
-    // Cleanup WebSocket on unmount
-    return () => {
-      if (wsService.isConnected()) {
-        wsService.disconnect();
-      }
-    };
-  }, [handleNewMessage, handleTypingUpdate, handleUserStatusUpdate, handleMessageStatusUpdate]);
+      // Subscribe to message status updates
+      wsService.subscribeToMessageStatus(handleMessageStatusUpdate);
+    }
+  }, [wsConnected, handleNewMessage, handleTypingUpdate, handleMessageStatusUpdate]);
   // Handle URL parameter to start chat with specific user
   useEffect(() => {
     const username = searchParams.get('user');
@@ -643,8 +598,7 @@ function MessagesContent() {
             </div>
           )}
         </div>
-      </div>
-    );
+      </div>    );
   };
 
   return (

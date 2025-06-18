@@ -139,9 +139,10 @@ function SearchPageContent() {
   };  const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [suggested, trending, randomPostsData] = await Promise.all([        SearchService.getSuggestedUsers(5, currentUser?.id), // Get 5 friend-of-friend suggestions
+      const [suggested, trending, randomPostsData] = await Promise.all([
+        SearchService.getSuggestedUsers(5, currentUser?.id), // Get 5 friend-of-friend suggestions
         SearchService.getTrendingTags(8),
-        SearchService.getRandomPosts(5) // Get 5 posts you might want to see for "all" tab
+        SearchService.getRandomPosts(20) // Get 20 posts for better filtering experience
       ]);
       setSuggestedUsers(suggested);
       setTrendingTags(trending);
@@ -228,6 +229,14 @@ function SearchPageContent() {
     }
   }, [selectedLocationId, selectedPostTypeId, sortBy, activeTab, searchQuery, debouncedSearch]);
 
+  // Effect to trigger re-render when filters change in post tab without search
+  useEffect(() => {
+    if (activeTab === "post" && !searchQuery.trim()) {
+      // Force re-render by updating a state that doesn't affect the search
+      setHasSearched(false);
+    }
+  }, [selectedLocationId, selectedPostTypeId, sortBy, activeTab]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     debouncedSearch(searchQuery);
@@ -244,28 +253,63 @@ function SearchPageContent() {
   const handleTagClick = (tagName: string) => {
     setSearchQuery(`#${tagName}`);
     setActiveTab('posts');
-  };
-  // Get display data based on current state
+  };  // Get display data based on current state
   const getDisplayData = () => {
     if (hasSearched) {
       return searchResults;
     }
     
     // Show initial data when no search has been performed
-    if (activeTab === "all") {      return {
+    if (activeTab === "all") {
+      return {
         users: suggestedUsers,
         posts: randomPosts, // Show posts you might want to see in "all" tab
         tags: trendingTags,
         totalResults: suggestedUsers.length + randomPosts.length + trendingTags.length
       };
-    } else if (activeTab === "people") {      return {
+    } else if (activeTab === "people") {
+      return {
         users: suggestedUsers,
         posts: randomPosts, // Show some posts you might want to see in "people" tab too
         tags: [],
         totalResults: suggestedUsers.length + randomPosts.length
       };
+    } else if (activeTab === "post") {
+      // Post tab - show initial posts with filtering capability
+      let filteredPosts = [...randomPosts];
+      
+      // Apply location filter if selected
+      if (selectedLocationId !== null) {
+        filteredPosts = filteredPosts.filter(post => post.location?.id === selectedLocationId);
+      }
+      
+      // Apply post type filter if selected
+      if (selectedPostTypeId !== null) {
+        filteredPosts = filteredPosts.filter(post => post.postType?.id === selectedPostTypeId);
+      }
+      
+      // Apply sorting
+      filteredPosts = [...filteredPosts].sort((a, b) => {
+        switch (sortBy) {
+          case 'most_viewed':
+            return (b.viewCount ?? 0) - (a.viewCount ?? 0);
+          case 'most_loved':
+            return (b.likesCount ?? 0) - (a.likesCount ?? 0);
+          case 'most_commented':
+            return (b.commentsCount ?? 0) - (a.commentsCount ?? 0);
+          case 'latest':
+          default:
+            return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+        }
+      });
+      
+      return {
+        users: [],
+        posts: filteredPosts,
+        tags: [],
+        totalResults: filteredPosts.length
+      };
     } else {
-      // Post tab - no initial data, only show results when searching
       return {
         users: [],
         posts: [],
