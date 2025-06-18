@@ -3,7 +3,10 @@ package com.example.server.controller;
 import com.example.server.exception.ProfanityException;
 import com.example.server.service.PostService;
 import com.example.server.service.CloudinaryService;
+import com.example.server.service.UserSettingsService;
+import com.example.server.service.FriendService;
 import com.example.server.dto.*;
+import com.example.server.model.DTO.UserSettingsDTO;
 import com.example.server.repository.UserRepository;
 import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,12 @@ public class PostController {    private final PostService postService;
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private UserSettingsService userSettingsService;
+    
+    @Autowired
+    private FriendService friendService;
 
     public PostController(PostService postService, CloudinaryService cloudinaryService) {
         this.postService = postService;
@@ -114,12 +123,84 @@ public class PostController {    private final PostService postService;
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-    }
-
-    @GetMapping("/user/{userId}")
+    }    @GetMapping("/user/{userId}")
     public ResponseEntity<List<PostDTO>> getPostsByUserId(@PathVariable Integer userId) {
-        List<PostDTO> posts = postService.getPostsByUserId(userId);
-        return ResponseEntity.ok(posts);
+        try {
+            // Get current authenticated user
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer currentUserId = null;
+            try {
+                currentUserId = getUserIdFromAuth(auth);
+            } catch (Exception e) {
+                // User not authenticated - treat as public access
+            }
+            
+            // If it's the same user, always allow access
+            if (currentUserId != null && currentUserId.equals(userId)) {
+                List<PostDTO> posts = postService.getPostsByUserId(userId);
+                return ResponseEntity.ok(posts);
+            }
+            
+            // Check target user's privacy settings
+            try {
+                UserSettingsDTO settings = userSettingsService.getUserSettings(userId);
+                String privacyLevel = settings.getPrivacyLevel();
+                
+                switch (privacyLevel) {
+                    case "public":
+                        // Anyone can view posts
+                        List<PostDTO> publicPosts = postService.getPostsByUserId(userId);
+                        return ResponseEntity.ok(publicPosts);
+                        
+                    case "friends":
+                        // Only friends can view posts
+                        if (currentUserId == null) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        
+                        // Check if current user is friends with target user
+                        boolean areFriends = friendService.areFriends(currentUserId, userId);
+                        if (areFriends) {
+                            List<PostDTO> friendPosts = postService.getPostsByUserId(userId);
+                            return ResponseEntity.ok(friendPosts);
+                        } else {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        
+                    case "private":
+                        // Only the user themselves can view (already handled above)
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        
+                    default:
+                        // Default to friends-only for unknown privacy levels
+                        if (currentUserId == null) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        boolean areDefaultFriends = friendService.areFriends(currentUserId, userId);
+                        if (areDefaultFriends) {
+                            List<PostDTO> defaultPosts = postService.getPostsByUserId(userId);
+                            return ResponseEntity.ok(defaultPosts);
+                        } else {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                }
+            } catch (Exception e) {
+                // If settings can't be retrieved, default to friends-only
+                if (currentUserId == null) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                boolean areDefaultFriends = friendService.areFriends(currentUserId, userId);
+                if (areDefaultFriends) {
+                    List<PostDTO> defaultPosts = postService.getPostsByUserId(userId);
+                    return ResponseEntity.ok(defaultPosts);
+                } else {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+            }
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/location/{locationId}")

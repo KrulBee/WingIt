@@ -363,6 +363,20 @@ public class FriendService {    private final FriendRepository friendRepository;
         return suggestions;
     }
 
+    /**
+     * Check if two users are friends
+     * @param userId1 First user ID
+     * @param userId2 Second user ID
+     * @return true if users are friends, false otherwise
+     */
+    public boolean areFriends(Integer userId1, Integer userId2) {
+        return friendRepository.findAll().stream()
+                .anyMatch(friend -> 
+                    (friend.getUser1().getId().equals(userId1) && friend.getUser2().getId().equals(userId2)) ||
+                    (friend.getUser1().getId().equals(userId2) && friend.getUser2().getId().equals(userId1))
+                );
+    }
+
     private FriendDTO convertToDTO(Friend friend, Integer currentUserId) {
         FriendDTO dto = new FriendDTO();
         dto.setId(friend.getId());

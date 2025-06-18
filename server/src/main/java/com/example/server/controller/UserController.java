@@ -5,9 +5,12 @@ import com.example.server.dto.UpdateUserProfileRequest;
 import com.example.server.dto.ChangePasswordRequest;
 import com.example.server.dto.RequestEmailChangeRequest;
 import com.example.server.dto.VerifyEmailChangeRequest;
+import com.example.server.model.DTO.UserSettingsDTO;
 import com.example.server.service.UserService;
 import com.example.server.service.EmailChangeService;
 import com.example.server.service.CloudinaryService;
+import com.example.server.service.UserSettingsService;
+import com.example.server.service.FriendService;
 import com.example.server.repository.UserRepository;
 import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,12 @@ public class UserController {    @Autowired
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserSettingsService userSettingsService;
+
+    @Autowired
+    private FriendService friendService;
+
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
@@ -52,13 +61,79 @@ public class UserController {    @Autowired
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @GetMapping("/username/{username}")
+    }    @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
         try {
+            // Get the target user
             UserDTO user = userService.getUserByUsername(username);
-            return ResponseEntity.ok(user);
+            
+            // Get current authenticated user
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Integer currentUserId = null;
+            try {
+                currentUserId = getUserIdFromAuth(auth);
+            } catch (Exception e) {
+                // User not authenticated - treat as public access
+            }
+            
+            // If it's the same user, always allow access
+            if (currentUserId != null && currentUserId.equals(user.getId())) {
+                return ResponseEntity.ok(user);
+            }
+            
+            // Check target user's privacy settings
+            try {
+                UserSettingsDTO settings = userSettingsService.getUserSettings(user.getId());
+                String privacyLevel = settings.getPrivacyLevel();
+                
+                switch (privacyLevel) {
+                    case "public":
+                        // Anyone can view
+                        return ResponseEntity.ok(user);
+                        
+                    case "friends":
+                        // Only friends can view
+                        if (currentUserId == null) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        
+                        // Check if current user is friends with target user
+                        boolean areFriends = friendService.areFriends(currentUserId, user.getId());
+                        if (areFriends) {
+                            return ResponseEntity.ok(user);
+                        } else {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        
+                    case "private":
+                        // Only the user themselves can view (already handled above)
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        
+                    default:
+                        // Default to friends-only for unknown privacy levels
+                        if (currentUserId == null) {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                        boolean areDefaultFriends = friendService.areFriends(currentUserId, user.getId());
+                        if (areDefaultFriends) {
+                            return ResponseEntity.ok(user);
+                        } else {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        }
+                }
+            } catch (Exception e) {
+                // If settings can't be retrieved, default to friends-only
+                if (currentUserId == null) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                boolean areDefaultFriends = friendService.areFriends(currentUserId, user.getId());
+                if (areDefaultFriends) {
+                    return ResponseEntity.ok(user);
+                } else {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+            }
+            
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

@@ -117,28 +117,40 @@ export default function UserProfilePage() {
       await checkFriendshipStatus(user.id);
 
       // Check if user is blocked
-      await checkBlockStatus(user.id);
-
-      // Fetch user posts
-      const userPosts = await PostService.getPostsByUserId(user.id);
-      
-      // Transform backend post data to component format
-      const transformedPosts: PostProps[] = userPosts.map(post => ({
-        id: post.id.toString(),
-        authorName: user.displayName || user.username,
-        authorUsername: user.username,
-        authorAvatar: user.profilePicture,
-        content: post.content,
-        image: post.mediaUrls?.[0],        likes: post.reactionCount || 0,
-        comments: post.commentCount || 0,
-        createdAt: new Date(post.createdDate),
-        liked: false // Will need to check user reactions
-      }));
-      
-      setPosts(transformedPosts);
-    } catch (err) {
+      await checkBlockStatus(user.id);      // Fetch user posts (only if we can access the profile)
+      try {
+        const userPosts = await PostService.getPostsByUserId(user.id);
+        
+        // Transform backend post data to component format
+        const transformedPosts: PostProps[] = userPosts.map(post => ({
+          id: post.id.toString(),
+          authorName: user.displayName || user.username,
+          authorUsername: user.username,
+          authorAvatar: user.profilePicture,
+          content: post.content,
+          image: post.mediaUrls?.[0],        likes: post.reactionCount || 0,
+          comments: post.commentCount || 0,
+          createdAt: new Date(post.createdDate),
+          liked: false // Will need to check user reactions
+        }));
+        
+        setPosts(transformedPosts);
+      } catch (postError: any) {
+        console.warn('Could not fetch user posts:', postError);
+        // Posts might be restricted due to privacy, but profile is accessible
+        // This is fine - just show empty posts
+        setPosts([]);
+      }} catch (err: any) {
       console.error('Error fetching user data:', err);
-      setError('Không thể tải hồ sơ người dùng. Vui lòng thử lại.');
+      
+      // Check if it's a privacy/permission error
+      if (err.response?.status === 403) {
+        setError('Hồ sơ này được đặt ở chế độ riêng tư. Chỉ bạn bè mới có thể xem.');
+      } else if (err.response?.status === 404) {
+        setError('Không tìm thấy người dùng này.');
+      } else {
+        setError('Không thể tải hồ sơ người dùng. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -318,24 +330,54 @@ export default function UserProfilePage() {
       </AuthGuard>
     );
   }
-
   if (error) {
+    const isPrivacyError = error.includes('riêng tư');
+    
     return (
       <AuthGuard>
         <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
           <Sidebar />
           <main className="flex-1 ml-0 md:ml-64 p-4 lg:pr-80">
             <div className="max-w-2xl mx-auto">
-              <div className="text-center text-red-500 p-4">
-                <p>{error}</p>
-                <Button 
-                  onClick={() => fetchUserData()}
-                  className="mt-2"
-                  color="primary"
-                >
-                  Thử lại
-                </Button>
-              </div>
+              <Card className="p-8 text-center">
+                <CardBody className="space-y-4">
+                  {isPrivacyError ? (
+                    <>
+                      <div className="text-6xl mb-4">🔒</div>
+                      <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                        Hồ sơ riêng tư
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                        Hồ sơ này được đặt ở chế độ riêng tư. Chỉ bạn bè mới có thể xem thông tin và bài viết.
+                      </p>
+                      <Button 
+                        color="primary"
+                        onClick={() => router.push('/home')}
+                        className="mt-4"
+                      >
+                        Quay về trang chủ
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-6xl mb-4">❌</div>
+                      <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                        Không thể tải hồ sơ
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400">
+                        {error}
+                      </p>
+                      <Button 
+                        onClick={() => fetchUserData()}
+                        color="primary"
+                        className="mt-4"
+                      >
+                        Thử lại
+                      </Button>
+                    </>
+                  )}
+                </CardBody>
+              </Card>
             </div>
           </main>
           <RightSidebar />
