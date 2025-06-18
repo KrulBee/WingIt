@@ -81,7 +81,21 @@ export default function ChatManagementModal({
   currentUserId,
   onChatUpdated,
   onChatDeleted 
-}: ChatManagementModalProps) {  const [activeTab, setActiveTab] = useState("info");
+}: ChatManagementModalProps) {
+  // Helper function to display role names in Vietnamese
+  const getRoleDisplayName = (role: string): string => {
+    switch (role?.toUpperCase()) {
+      case 'ADMIN':
+        return 'quản trị viên';
+      case 'MODERATOR':
+        return 'người điều hành';
+      case 'MEMBER':
+      default:
+        return 'thành viên';
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState("info");
   const [loading, setLoading] = useState(false);
   const [participants, setParticipants] = useState<RoomUser[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
@@ -427,9 +441,8 @@ export default function ChatManagementModal({
                             {participant.user.id === currentUserId && (
                               <Chip size="sm" variant="flat" color="primary">Bạn</Chip>
                             )}
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            @{participant.user.username} • {participant.role.toLowerCase()}
+                          </div>                          <p className="text-sm text-gray-500">
+                            @{participant.user.username} • {getRoleDisplayName(participant.role)}
                           </p>
                         </div>
                       </div>

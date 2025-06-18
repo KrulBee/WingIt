@@ -26,6 +26,7 @@ interface ChatUser {
   timestamp: string;
   online: boolean;
   unread: number;
+  isGroupChat?: boolean;
 }
 
 interface ChatMessage {
@@ -415,18 +416,18 @@ function MessagesContent() {
         id: room.id.toString(),
         name: otherUser.displayName || otherUser.username,        avatar: getAvatarSrc(otherUser.profilePicture, otherUser.username, false),
         lastMessage: getLastMessageForRoom(room.id),
-        timestamp: formatTimestamp(room.createdDate),
-        online: isOnline,
-        unread: 0 // Could be implemented with unread message API
+        timestamp: formatTimestamp(room.createdDate),        online: isOnline,
+        unread: 0, // Could be implemented with unread message API
+        isGroupChat: false
       };    } else {
       // Group chat - don't show online status for groups
       return {
         id: room.id.toString(),
         name: room.roomName || 'Nhóm trò chuyện',        avatar: getAvatarSrc(undefined, undefined, true),
         lastMessage: getLastMessageForRoom(room.id),
-        timestamp: formatTimestamp(room.createdDate),
-        online: false, // Groups don't have online status
-        unread: 0
+        timestamp: formatTimestamp(room.createdDate),        online: false, // Groups don't have online status
+        unread: 0,
+        isGroupChat: true
       };
     }
   };  const getLastMessageForRoom = (roomId: number): string => {
@@ -547,6 +548,12 @@ function MessagesContent() {
   }  const ChatListItem = ({ user, active, onClick }: { user: ChatUser, active: boolean, onClick: () => void }) => {
     const handleAvatarClick = (e: React.MouseEvent) => {
       e.stopPropagation(); // Prevent triggering the chat selection
+      
+      // Don't navigate for group chats
+      if (user.isGroupChat) {
+        return;
+      }
+      
       // Don't navigate if clicking on own avatar
       if (currentUser && currentUser.username === user.name.toLowerCase()) {
         return;
@@ -564,15 +571,17 @@ function MessagesContent() {
         <div className="relative">
           <Avatar 
             src={user.avatar} 
-            className="flex-shrink-0 cursor-pointer hover:scale-105 transition-transform" 
+            className={`flex-shrink-0 transition-transform ${!user.isGroupChat ? 'cursor-pointer hover:scale-105' : ''}`}
             onClick={handleAvatarClick}
           />
-          <div className="absolute bottom-0 right-0">
-            <OnlineStatusIndicator 
-              status={user.online ? 'online' : 'offline'} 
-              size="sm"
-            />
-          </div>
+          {!user.isGroupChat && (
+            <div className="absolute bottom-0 right-0">
+              <OnlineStatusIndicator 
+                status={user.online ? 'online' : 'offline'} 
+                size="sm"
+              />
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
