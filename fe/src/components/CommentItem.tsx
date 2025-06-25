@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Avatar, Button, Textarea, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { formatRelativeTime } from '@/utils/timezone';
 import { MoreHorizontal, MessageCircle, Trash2, Flag, Edit3 } from 'react-feather';
 import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import { Comment } from '@/types/Comment';
@@ -91,12 +92,12 @@ export default function CommentItem({
             <span className="text-xs text-default-400">@{comment.authorUsername}</span>
             <span className="text-xs text-default-400">•</span>
             <span className="text-xs text-default-400">
-              {formatDistanceToNow(comment.createdAt, { addSuffix: true, locale: vi })}
+              {formatRelativeTime(comment.createdAt.toISOString())}
             </span>
           </div>
 
           {/* Comment Content */}
-          <div className="text-sm text-default-800 mb-2">
+          <div className="text-sm text-default-800 mb-2" style={{ whiteSpace: 'pre-wrap' }}>
             {comment.content}
           </div>
 

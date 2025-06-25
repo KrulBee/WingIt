@@ -422,7 +422,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
 
   return (
     <div className="space-y-6">
-      <CreatePostForm onPostCreated={handlePostCreated} />
+      <CreatePostForm onPostCreated={handlePostCreated} refreshPageAfterPost={true} />
       
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">

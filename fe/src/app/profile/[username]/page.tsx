@@ -629,9 +629,9 @@ export default function UserProfilePage() {
                 </div>
                 
                 {userData.bio && (
-                  <p className="mt-4 text-gray-700 dark:text-gray-300">
+                  <div className="mt-4 text-gray-700 dark:text-gray-300" style={{ whiteSpace: 'pre-wrap' }}>
                     {userData.bio}
-                  </p>
+                  </div>
                 )}
               </CardBody>
             </Card>
@@ -680,7 +680,7 @@ export default function UserProfilePage() {
                           )}
                           {userData.bio && (
                             <div>
-                              <span className="font-medium">Bio:</span> {userData.bio}
+                              <span className="font-medium">Bio:</span> <span style={{ whiteSpace: 'pre-wrap' }}>{userData.bio}</span>
                             </div>
                           )}                          {userData.dateOfBirth && (
                             <div>

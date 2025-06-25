@@ -632,7 +632,7 @@ function MessagesContent() {
             isMe ? 'text-blue-100' : 'text-gray-600 dark:text-gray-300'
           }`}>
             {message.senderName}
-          </p>          <p className="text-sm">{message.text}</p>
+          </p>          <div className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
           <div className="flex items-center justify-end mt-1">
             {getStatusIcon()}
           </div>

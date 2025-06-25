@@ -13,6 +13,7 @@ import { avatarBase64 } from "@/static/images/avatarDefault";
 
 interface CreatePostFormProps {
   onPostCreated?: (post: any) => void;
+  refreshPageAfterPost?: boolean;
 }
 
 interface UserData {
@@ -24,7 +25,7 @@ interface UserData {
   dateOfBirth?: string;
 }
 
-export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {  
+export default function CreatePostForm({ onPostCreated, refreshPageAfterPost = false }: CreatePostFormProps) {  
   const [content, setContent] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
@@ -107,6 +108,12 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       // Call the callback if provided
       if (onPostCreated) {
         onPostCreated(newPost);
+      }
+
+      // Refresh page if requested
+      if (refreshPageAfterPost) {
+        window.location.reload();
+        return; // Exit early as page will reload
       }
 
       // Reset form

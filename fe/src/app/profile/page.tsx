@@ -413,9 +413,9 @@ export default function ProfilePage() {
                 >
                   Chỉnh Sửa Hồ Sơ
                 </Button>
-              </div>                <p className="mt-4 text-gray-700 dark:text-gray-300">
+              </div>                <div className="mt-4 text-gray-700 dark:text-gray-300" style={{ whiteSpace: 'pre-wrap' }}>
                 {userData?.bio || 'Chưa có mô tả'}
-              </p>                <div className="flex gap-4 mt-4">
+              </div>                <div className="flex gap-4 mt-4">
                 <div>
                   <span className="font-bold">{posts.length}</span> <span className="text-gray-500 dark:text-gray-400">Bài Viết</span>
                 </div>

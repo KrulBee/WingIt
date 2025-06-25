@@ -14,6 +14,7 @@ import { vi } from "date-fns/locale";
 import { PostReactionService, BookmarkService, ReactionTypeService, viewService, PostService, AuthService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
+import { formatRelativeTime } from "@/utils/timezone";
 import ReportService from "@/services/ReportService";
 import MediaService from "@/services/MediaService";
 
@@ -453,7 +454,7 @@ export default function Post({
           className="px-3 py-0 text-sm cursor-pointer" 
           onClick={handleOpenModal}
         >
-          <p>{postContent}</p>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{postContent}</div>
           {/* Media display - Facebook style grid */}
           {(() => {
             // Combine all media sources and remove duplicates
@@ -612,7 +613,7 @@ export default function Post({
               </div>
             );
           })()}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
-            <span>{formatDistanceToNow(createdAt, { addSuffix: true, locale: vi })}</span>
+            <span>{formatRelativeTime(createdAt.toISOString())}</span>
           </div>
         </CardBody>        <CardFooter className="gap-3 pt-3" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between w-full">

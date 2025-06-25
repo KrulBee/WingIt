@@ -24,6 +24,7 @@ import { UpvoteArrow, DownvoteArrow } from './VoteArrows';
 import CommentSection from './CommentSection';
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import { formatRelativeTime } from "@/utils/timezone";
 import { PostReactionService, BookmarkService, ReactionTypeService, viewService } from "@/services";
 import { avatarBase64 } from "@/static/images/avatarDefault";
 import { useProfileNavigation } from "@/utils/profileNavigation";
@@ -317,7 +318,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                     <div className="flex flex-col">
                       <h4 className="text-sm font-semibold">{post.authorName}</h4>
                       <p className="text-xs text-gray-500">@{post.authorUsername}</p>                      <p className="text-xs text-gray-400">
-                        {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: vi })}
+                        {formatRelativeTime(post.createdAt.toISOString())}
                       </p>
                     </div>
                   </div>
@@ -347,7 +348,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                 </div>
                 
                 <div className="mt-3">
-                  <p className="text-sm">{post.content}</p>
+                  <div className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{post.content}</div>
                 </div>
 
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
