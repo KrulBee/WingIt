@@ -241,13 +241,12 @@ public class AuthController {
             user = userRepository.save(user);
 
             // Create UserData
-            UserData userData = new UserData();
-            userData.setUser(user);
+            UserData userData = new UserData();            userData.setUser(user);
             userData.setDisplayName(tempUser.getDisplayName() != null ? tempUser.getDisplayName() : username);
             userData.setBio("");
             userData.setProfilePicture(tempUser.getProfilePicture());
             userData.setDateOfBirth(null);
-            userData.setCreatedAt(LocalDate.now());
+            // createdAt will be automatically set by @PrePersist
             userDataRepository.save(userData);
 
             // Create default user settings

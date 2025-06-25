@@ -182,7 +182,7 @@ public class DatabaseInitController {
             adminUserData.setUser(savedUser);
             adminUserData.setDisplayName("Administrator");
             adminUserData.setBio("System Administrator Account");
-            adminUserData.setCreatedAt(LocalDate.now());
+            // createdAt will be automatically set by @PrePersist
             
             userDataRepository.save(adminUserData);
             

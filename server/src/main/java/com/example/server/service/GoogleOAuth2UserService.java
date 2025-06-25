@@ -126,11 +126,10 @@ public class GoogleOAuth2UserService extends DefaultOAuth2UserService {
         // Create UserData with the managed user entity
         UserData userData = new UserData();
         userData.setUser(user); // Use the saved (managed) user entity
-        userData.setDisplayName(name != null ? name : user.getUsername());
-        userData.setBio("");
+        userData.setDisplayName(name != null ? name : user.getUsername());        userData.setBio("");
         userData.setProfilePicture(picture);
         userData.setDateOfBirth(null);
-        userData.setCreatedAt(new java.sql.Date(System.currentTimeMillis()).toLocalDate());
+        // createdAt will be automatically set by @PrePersist
         userDataRepository.save(userData);
         logger.info("Created UserData for user: {}", user.getUsername());
 

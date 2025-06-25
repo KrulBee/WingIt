@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "user_data")
@@ -38,10 +39,10 @@ public class UserData {
     private LocalDate dateOfBirth;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDate createdAt;
+    private ZonedDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDate.now();
+        createdAt = ZonedDateTime.now();
     }
 }

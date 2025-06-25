@@ -176,8 +176,7 @@ public class UserSettingsController {
             
             // Get current settings
             UserSettingsDTO currentSettings = userSettingsService.getUserSettings(userId);
-            
-            // Update specific field
+              // Update specific field
             Object value = request.get("value");
             switch (settingName.toLowerCase()) {
                 case "privacylevel":
@@ -186,8 +185,9 @@ public class UserSettingsController {
                 case "showonlinestatus":
                     currentSettings.setShowOnlineStatus((Boolean) value);
                     break;
-                case "allowsearchengines":
-                    currentSettings.setAllowSearchEngines((Boolean) value);
+                case "enablenotifications":
+                case "allowsearchengines": // Support legacy field name for backwards compatibility
+                    currentSettings.setEnableNotifications((Boolean) value);
                     break;
                 default:
                     Map<String, String> error = new HashMap<>();

@@ -12,6 +12,7 @@ import UserService from "@/services/UserService";
 import PostService from "@/services/PostService";
 import FollowService from "@/services/FollowService";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
+import { formatJoinDate } from "@/utils/timezone";
 
 // Types matching the backend API
 interface UserData {
@@ -22,6 +23,7 @@ interface UserData {
   profilePicture?: string;
   coverPhoto?: string;
   dateOfBirth?: string;
+  createdDate?: string; // Join date
 }
 
 interface PostData {
@@ -396,18 +398,12 @@ export default function ProfilePage() {
                 <div>
                   <h1 className="text-2xl font-bold">
                     {userData?.displayName || userData?.username || 'Đang tải...'}
-                  </h1>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  </h1>                  <p className="text-gray-500 dark:text-gray-400">
                     @{userData?.username || 'loading'}
-                  </p>
-                  {userData?.dateOfBirth && (
+                  </p>                  {userData?.createdDate && (
                     <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
                       <Calendar size={14} className="mr-1" />
-                      Tham gia {new Date(userData.dateOfBirth).toLocaleDateString('vi-VN', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
+                      Tham gia {formatJoinDate(userData.createdDate)}
                     </div>
                   )}
                 </div>

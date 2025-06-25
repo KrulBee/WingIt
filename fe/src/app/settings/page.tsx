@@ -51,26 +51,25 @@ interface UserProfile {
   provider?: string;
 }
 
-interface CombinedSettings extends UserProfile {
-  // Database-backed settings
+interface CombinedSettings extends UserProfile {  // Database-backed settings
   privacyLevel: 'public' | 'friends' | 'private';
   showOnlineStatus: boolean;
-  allowSearchEngines: boolean;
+  enableNotifications: boolean;
 }
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isDeactivateOpen, onOpen: onDeactivateOpen, onClose: onDeactivateClose } = useDisclosure();
-  const { updateNotificationSettings } = useWebSocket();const [settings, setSettings] = useState<CombinedSettings>({
+  const { updateNotificationSettings } = useWebSocket();  const [settings, setSettings] = useState<CombinedSettings>({
     displayName: '',
     email: '',
     bio: '',
     profilePicture: '',
     provider: undefined,
-    privacyLevel: 'friends',
+    privacyLevel: 'public',
     showOnlineStatus: true,
-    allowSearchEngines: false,
+    enableNotifications: true,
   });
     const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -111,9 +110,7 @@ export default function SettingsPage() {
         // If settings don't exist, they will be created with defaults
         console.log('Creating default settings for user');
         dbSettings = await settingsService.getUserSettings(userData.id);
-      }
-
-      // Combine profile and settings data
+      }      // Combine profile and settings data
       setSettings({
         id: userData.id,
         displayName: userData.displayName || '',
@@ -123,11 +120,11 @@ export default function SettingsPage() {
         provider: userData.provider,
         privacyLevel: dbSettings.privacyLevel,
         showOnlineStatus: dbSettings.showOnlineStatus,
-        allowSearchEngines: dbSettings.allowSearchEngines,
+        enableNotifications: dbSettings.enableNotifications,
       });
       
       // Initialize notification settings
-      updateNotificationSettings(dbSettings.allowSearchEngines);
+      updateNotificationSettings(dbSettings.enableNotifications);
     } catch (err) {
       console.error('Error fetching user settings:', err);
       setError('Không thể tải cài đặt');
@@ -138,10 +135,9 @@ export default function SettingsPage() {
     setSettings(prev => ({
       ...prev,
       [key]: value
-    }));
-    
+    }));    
     // Update notification settings immediately when the toggle changes
-    if (key === 'allowSearchEngines') {
+    if (key === 'enableNotifications') {
       updateNotificationSettings(value);
     }
   };
@@ -158,12 +154,11 @@ export default function SettingsPage() {
         // Update profile information
       await UserService.updateUserProfile({
         displayName: settings.displayName,
-      });
-        // Update database-backed settings
+      });      // Update database-backed settings
       const settingsUpdate: UpdateSettingsRequest = {
         privacyLevel: settings.privacyLevel,
         showOnlineStatus: settings.showOnlineStatus,
-        allowSearchEngines: settings.allowSearchEngines,
+        enableNotifications: settings.enableNotifications,
       };
       
       await settingsService.updateUserSettings(currentUserId, settingsUpdate);
@@ -427,8 +422,8 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>                      <Switch
-                        isSelected={settings.allowSearchEngines}
-                        onValueChange={(value) => handleSettingChange('allowSearchEngines', value)}
+                        isSelected={settings.enableNotifications}
+                        onValueChange={(value) => handleSettingChange('enableNotifications', value)}
                         color="primary"
                       />
                     </div>

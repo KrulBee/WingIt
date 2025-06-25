@@ -84,10 +84,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             // Import settings service
             const settingsService = (await import('@/services/settingsService')).default;
             const userSettings = await settingsService.getUserSettings(userId);
-            
-            // The notification sound setting is stored in allowSearchEngines
-            // (This was a naming issue from before, but it works)
-            const notificationEnabled = userSettings.allowSearchEngines;
+              // The notification sound setting is stored in enableNotifications
+            const notificationEnabled = userSettings.enableNotifications;
             console.log('🔊 User notification setting loaded:', notificationEnabled);
             
             // Apply the setting

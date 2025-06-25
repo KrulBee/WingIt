@@ -86,95 +86,60 @@ public class AdminController {
         return user.getRole().getId() == 3;
     }    /**
      * Get admin dashboard statistics
-     */
-    @GetMapping("/dashboard/stats")
+     */    @GetMapping("/dashboard/stats")
     public ResponseEntity<?> getDashboardStats() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            System.out.println("DEBUG: Getting dashboard stats, auth: " + auth.getName());
             
             if (!isAdmin(auth)) {
-                System.out.println("DEBUG: User is not admin");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Access denied. Admin privileges required."));
             }
             
-            System.out.println("DEBUG: User has admin access, fetching stats...");
-            Map<String, Object> stats = new HashMap<>();            try {
+            Map<String, Object> stats = new HashMap<>();
+            
+            try {
                 // User statistics
-                System.out.println("DEBUG: Fetching user statistics...");
                 long totalUsers = userRepository.count();
-                System.out.println("DEBUG: Total users from repository.count(): " + totalUsers);
-                
-                // Alternative way to count users
-                List<User> allUsers = userRepository.findAll();
-                System.out.println("DEBUG: Total users from findAll().size(): " + allUsers.size());
-                
-                // Let's also check if we can find the current user
-                Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-                String currentUsername = currentAuth.getName();
-                User currentUser = userRepository.findByUsername(currentUsername);
-                System.out.println("DEBUG: Current user: " + (currentUser != null ? currentUser.getUsername() + " (ID: " + currentUser.getId() + ")" : "null"));
-                  // Let's try to find user by ID 1 (Admin)
-                User userById = userRepository.findById(Integer.valueOf(1)).orElse(null);
-                System.out.println("DEBUG: User by ID 1: " + (userById != null ? userById.getUsername() : "null"));
-                
-                // Use the actual count from findAll()
-                totalUsers = allUsers.size();
-                
                 long newUsersThisMonth = userRepository.countByCreatedDateAfter(
                     java.time.LocalDate.now().minusMonths(1)
                 );
                 stats.put("totalUsers", totalUsers);
-                stats.put("newUsersThisMonth", newUsersThisMonth);
-                System.out.println("DEBUG: User stats - total: " + totalUsers + ", new this month: " + newUsersThisMonth);
-            } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch user statistics: " + e.getMessage());
-                e.printStackTrace();
+                stats.put("newUsersThisMonth", newUsersThisMonth);            } catch (Exception e) {
                 stats.put("totalUsers", 0L);
                 stats.put("newUsersThisMonth", 0L);
             }
 
             try {
                 // Post statistics
-                System.out.println("DEBUG: Fetching post statistics...");
                 long totalPosts = postRepository.count();
                 long newPostsThisMonth = postRepository.countByCreatedDateAfter(
                     java.time.LocalDateTime.now().minusMonths(1)
                 );
                 stats.put("totalPosts", totalPosts);
                 stats.put("newPostsThisMonth", newPostsThisMonth);
-                System.out.println("DEBUG: Post stats - total: " + totalPosts + ", new this month: " + newPostsThisMonth);
             } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch post statistics: " + e.getMessage());
-                e.printStackTrace();
                 stats.put("totalPosts", 0L);
                 stats.put("newPostsThisMonth", 0L);
             }
 
             try {
                 // Comment statistics
-                System.out.println("DEBUG: Fetching comment statistics...");
                 long totalComments = commentRepository.count();
                 stats.put("totalComments", totalComments);
-                System.out.println("DEBUG: Comment stats - total: " + totalComments);
             } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch comment statistics: " + e.getMessage());
-                e.printStackTrace();
                 stats.put("totalComments", 0L);
-            }            try {
+            }
+            
+            try {
                 // Report statistics
-                System.out.println("DEBUG: Fetching report statistics...");
                 long totalReports = reportRepository.count();
                 long pendingReports = reportRepository.countByStatus(Report.ReportStatus.PENDING);
                 long resolvedReports = reportRepository.countByStatus(Report.ReportStatus.RESOLVED);
                 stats.put("totalReports", totalReports);
                 stats.put("pendingReports", pendingReports);
                 stats.put("resolvedReports", resolvedReports);
-                System.out.println("DEBUG: Report stats - total: " + totalReports + ", pending: " + pendingReports + ", resolved: " + resolvedReports);
             } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch report statistics: " + e.getMessage());
-                e.printStackTrace();
                 stats.put("totalReports", 0L);
                 stats.put("pendingReports", 0L);
                 stats.put("resolvedReports", 0L);

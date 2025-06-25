@@ -91,17 +91,15 @@ public class UserSettingsService {
     public UserSettingsDTO createDefaultSettings(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-        
-        UserSettings defaultSettings = new UserSettings();
+          UserSettings defaultSettings = new UserSettings();
         defaultSettings.setUser(user);
-        defaultSettings.setPrivacyLevel("friends");
+        defaultSettings.setPrivacyLevel("public");
         defaultSettings.setShowOnlineStatus(true);
-        defaultSettings.setAllowSearchEngines(false);
+        defaultSettings.setEnableNotifications(true);
         
         UserSettings savedSettings = userSettingsRepository.save(defaultSettings);
         return convertToDTO(savedSettings);
-    }
-      /**
+    }    /**
      * Convert UserSettings entity to DTO
      * @param userSettings the entity
      * @return UserSettingsDTO
@@ -111,10 +109,9 @@ public class UserSettingsService {
                 userSettings.getUser().getId(),
                 userSettings.getPrivacyLevel(),
                 userSettings.getShowOnlineStatus(),
-                userSettings.getAllowSearchEngines()
+                userSettings.getEnableNotifications()
         );
-    }
-      /**
+    }    /**
      * Update existing UserSettings entity from DTO
      * @param userSettings the entity to update
      * @param dto the DTO with new values
@@ -126,11 +123,10 @@ public class UserSettingsService {
         if (dto.getShowOnlineStatus() != null) {
             userSettings.setShowOnlineStatus(dto.getShowOnlineStatus());
         }
-        if (dto.getAllowSearchEngines() != null) {
-            userSettings.setAllowSearchEngines(dto.getAllowSearchEngines());
+        if (dto.getEnableNotifications() != null) {
+            userSettings.setEnableNotifications(dto.getEnableNotifications());
         }
-    }
-      /**
+    }    /**
      * Create new UserSettings entity from DTO
      * @param user the user entity
      * @param dto the DTO with values
@@ -139,9 +135,9 @@ public class UserSettingsService {
     private UserSettings createSettingsFromDTO(User user, UserSettingsDTO dto) {
         UserSettings userSettings = new UserSettings();
         userSettings.setUser(user);
-        userSettings.setPrivacyLevel(dto.getPrivacyLevel() != null ? dto.getPrivacyLevel() : "friends");
+        userSettings.setPrivacyLevel(dto.getPrivacyLevel() != null ? dto.getPrivacyLevel() : "public");
         userSettings.setShowOnlineStatus(dto.getShowOnlineStatus() != null ? dto.getShowOnlineStatus() : true);
-        userSettings.setAllowSearchEngines(dto.getAllowSearchEngines() != null ? dto.getAllowSearchEngines() : false);
+        userSettings.setEnableNotifications(dto.getEnableNotifications() != null ? dto.getEnableNotifications() : true);
         return userSettings;
     }
 }

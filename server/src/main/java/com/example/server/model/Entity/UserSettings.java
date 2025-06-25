@@ -13,15 +13,14 @@ public class UserSettings {
       @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
-    private User user;
-      @Column(name = "privacy_level", nullable = false, length = 20)
-    private String privacyLevel = "friends"; // User's privacy level: 'public', 'friends', or 'private'
+    private User user;    @Column(name = "privacy_level", nullable = false, length = 20)
+    private String privacyLevel = "public"; // User's privacy level: 'public', 'friends', or 'private'
     
     @Column(name = "show_online_status", nullable = false)
     private Boolean showOnlineStatus = true; // Whether to show user's online status to others
     
-    @Column(name = "allow_search_engines", nullable = false)
-    private Boolean allowSearchEngines = false; // Enable sound notifications (field repurposed from search engines)
+    @Column(name = "enable_notifications", nullable = false)
+    private Boolean enableNotifications = true; // Enable notifications for the user
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -30,13 +29,12 @@ public class UserSettings {
     private LocalDateTime updatedAt;
     
     // Default constructor
-    public UserSettings() {}
-      // Constructor with all fields
-    public UserSettings(User user, String privacyLevel, Boolean showOnlineStatus, Boolean allowSearchEngines) {
+    public UserSettings() {}    // Constructor with all fields
+    public UserSettings(User user, String privacyLevel, Boolean showOnlineStatus, Boolean enableNotifications) {
         this.user = user;
         this.privacyLevel = privacyLevel;
         this.showOnlineStatus = showOnlineStatus;
-        this.allowSearchEngines = allowSearchEngines;
+        this.enableNotifications = enableNotifications;
     }
       @PrePersist
     protected void onCreate() {
@@ -89,13 +87,12 @@ public class UserSettings {
     public void setShowOnlineStatus(Boolean showOnlineStatus) {
         this.showOnlineStatus = showOnlineStatus;
     }
-    
-    public Boolean getAllowSearchEngines() {
-        return allowSearchEngines;
+      public Boolean getEnableNotifications() {
+        return enableNotifications;
     }
     
-    public void setAllowSearchEngines(Boolean allowSearchEngines) {
-        this.allowSearchEngines = allowSearchEngines;
+    public void setEnableNotifications(Boolean enableNotifications) {
+        this.enableNotifications = enableNotifications;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -112,14 +109,13 @@ public class UserSettings {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-      @Override
+    }    @Override
     public String toString() {
         return "UserSettings{" +
                 "userId=" + userId +
                 ", privacyLevel='" + privacyLevel + '\'' +
                 ", showOnlineStatus=" + showOnlineStatus +
-                ", allowSearchEngines=" + allowSearchEngines +
+                ", enableNotifications=" + enableNotifications +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

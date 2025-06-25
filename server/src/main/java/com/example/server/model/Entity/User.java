@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -67,10 +68,8 @@ public class User {
     private List<PostReaction> postReactions;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommentReaction> commentReactions;
-
-    // Helper methods to get data from relationships
-    public LocalDate getCreatedDate() {
+    private List<CommentReaction> commentReactions;    // Helper methods to get data from relationships
+    public ZonedDateTime getCreatedDate() {
         return userData != null ? userData.getCreatedAt() : null;
     }
 }

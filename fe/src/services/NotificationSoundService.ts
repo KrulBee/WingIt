@@ -195,12 +195,11 @@ class NotificationSoundService {
     this.playNotification();
     this.isEnabled = wasEnabled;
   }
-
   /**
    * Initialize from user settings
    */
-  initializeFromSettings(allowSearchEngines: boolean): void {
-    this.setEnabled(allowSearchEngines);
+  initializeFromSettings(enableNotifications: boolean): void {
+    this.setEnabled(enableNotifications);
   }
 }
 

@@ -142,7 +142,7 @@ class ProfanityDetector:
         if os.path.exists(lock_file):
             logger.info("Another download process is in progress, waiting...")
             # Wait for up to 10 minutes for download to complete
-            for _ in range(600):  # 600 seconds = 10 minutes
+            for _ in range(600):
                 time.sleep(1)
                 if os.path.exists(target_path) and os.path.getsize(target_path) > 100 * 1024 * 1024:
                     logger.info("Download completed by another process")

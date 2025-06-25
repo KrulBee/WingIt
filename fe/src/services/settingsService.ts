@@ -2,13 +2,13 @@ export interface UserSettings {
   userId: number;
   privacyLevel: 'public' | 'friends' | 'private'; // User's privacy level setting
   showOnlineStatus: boolean; // Whether to show user's online status to others
-  allowSearchEngines: boolean; // Enable sound notifications (field repurposed)
+  enableNotifications: boolean; // Enable notifications for the user
 }
 
 export interface UpdateSettingsRequest {
   privacyLevel?: 'public' | 'friends' | 'private'; // User's privacy level setting
   showOnlineStatus?: boolean; // Whether to show user's online status to others
-  allowSearchEngines?: boolean; // Enable sound notifications (field repurposed)
+  enableNotifications?: boolean; // Enable notifications for the user
 }
 
 export interface ApiResponse<T> {

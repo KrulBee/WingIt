@@ -111,8 +111,9 @@ public class PostViewService {
         long totalPosts;
         long viewsToday;
         long viewsThisWeek;
-        List<Object[]> sourceCountData;
-        List<PostView> recentViewEntities;        if (userId != null) {
+        List<Object[]> sourceCountData;        List<PostView> recentViewEntities;
+        
+        if (userId != null) {
             // Get analytics for specific user
             totalViews = postViewRepository.countByUserId(userId);
             totalPosts = postViewRepository.countUniquePostsViewedByUser(userId);
@@ -120,13 +121,6 @@ public class PostViewService {
             viewsThisWeek = postViewRepository.countViewsThisWeekForUser(userId, startOfWeek);
             sourceCountData = postViewRepository.getViewCountBySourceForUser(userId);
             recentViewEntities = postViewRepository.findRecentViewsForUser(userId, 10);
-            
-            // Debug logging
-            System.out.println("🔍 DEBUG - User " + userId + " analytics:");
-            System.out.println("  Total views by countByUserId: " + totalViews);
-            long sourceTotal = sourceCountData.stream().mapToLong(row -> (Long) row[1]).sum();
-            System.out.println("  Total views by source count: " + sourceTotal);
-            System.out.println("  Source breakdown: " + sourceCountData);
         } else {
             // Get global analytics
             totalViews = postViewRepository.count();

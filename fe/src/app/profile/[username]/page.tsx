@@ -13,6 +13,7 @@ import FriendService from "@/services/FriendService";
 import AuthService from "@/services/AuthService";
 import BlockService from "@/services/BlockService";
 import AuthGuard from "@/components/AuthGuard";
+import { formatJoinDate } from "@/utils/timezone";
 
 // Types matching the backend API
 interface UserData {
@@ -683,12 +684,15 @@ export default function UserProfilePage() {
                             </div>
                           )}                          {userData.dateOfBirth && (
                             <div>
-                              <span className="font-medium">Ngày sinh:</span> {new Date(userData.dateOfBirth).toLocaleDateString('vi-VN')}
+                              <span className="font-medium">Ngày sinh:</span> {new Date(userData.dateOfBirth).toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'long', 
+                                day: 'numeric'
+                              })}
                             </div>
-                          )}
-                          {userData.createdDate && (
+                          )}{userData.createdDate && (
                             <div>
-                              <span className="font-medium">Tham gia:</span> {new Date(userData.createdDate).toLocaleDateString('vi-VN')}
+                              <span className="font-medium">Tham gia:</span> {formatJoinDate(userData.createdDate)}
                             </div>
                           )}
                         </div>
