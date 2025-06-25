@@ -3,7 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -13,14 +13,14 @@ public class BookmarkDTO {
     private Long id;
     private Integer userId;
     private Long postId;
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     private PostDTO post;    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PostDTO {
         private Long id;
         private String content;
-        private LocalDateTime createdDate;
+        private ZonedDateTime createdDate;
         private Integer userId;
         private UserDTO user;        private List<String> mediaUrls;
         private Integer likesCount;

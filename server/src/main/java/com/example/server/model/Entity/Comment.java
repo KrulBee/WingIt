@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Entity
@@ -36,17 +37,17 @@ public class Comment {
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentReaction> reactions;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdDate;
+    private ZonedDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdDate = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdDate = ZonedDateTime.now(ZoneOffset.UTC);
+        updatedAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

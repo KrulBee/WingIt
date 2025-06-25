@@ -60,7 +60,7 @@ interface PostProps {
   image?: string;
   likes: number;
   dislikes?: number;  comments: number;
-  createdAt: Date;
+  createdAt: string;
   liked: boolean;
   disliked?: boolean;
 }
@@ -134,7 +134,7 @@ export default function ProfilePage() {
         image: post.mediaUrls?.[0],
         likes: post.reactionCount || 0,
         dislikes: 0, // Will need backend support for dislike count
-        comments: post.commentCount || 0,        createdAt: new Date(post.createdDate),
+        comments: post.commentCount || 0,        createdAt: post.createdDate,
         liked: false, // Will need to check user reactions
         disliked: false // Will need to check user reactions
       }));

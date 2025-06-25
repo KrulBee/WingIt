@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "comment_replies")
@@ -26,10 +27,10 @@ public class CommentReply {
     @JoinColumn(name = "reply_id", nullable = false)
     private Comment reply;
 
-    private LocalDateTime createdDate;
+    private ZonedDateTime createdDate;
 
     @PrePersist
     protected void onCreate() {
-        createdDate = LocalDateTime.now();
+        createdDate = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

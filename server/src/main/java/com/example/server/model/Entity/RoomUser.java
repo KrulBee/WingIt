@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "room_user") // This is the join table for ChatRoom and User
@@ -26,7 +27,7 @@ public class RoomUser { // Represents the relationship between a User and a Chat
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    private LocalDateTime joinedAt;
+    private ZonedDateTime joinedAt;
 
     // Could add a role for the user within the room, e.g., ADMIN, MEMBER
     // @Column(nullable = false)
@@ -34,6 +35,6 @@ public class RoomUser { // Represents the relationship between a User and a Chat
 
     @PrePersist
     protected void onCreate() {
-        joinedAt = LocalDateTime.now();
+        joinedAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

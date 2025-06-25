@@ -5,7 +5,8 @@ import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,8 +72,8 @@ public class CommentService {    private final CommentRepository commentReposito
         comment.setUser(user);
         comment.setText(commentText);
         comment.setIsReply(false); // Root comment
-        comment.setCreatedDate(LocalDateTime.now());
-        comment.setUpdatedAt(LocalDateTime.now());
+        comment.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
+        comment.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Comment savedComment = commentRepository.save(comment);        // Trigger async comment notification if commenter is not the post author
         try {
@@ -101,7 +102,7 @@ public class CommentService {    private final CommentRepository commentReposito
         }
 
         comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
-        comment.setUpdatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Comment updatedComment = commentRepository.save(comment);
         return convertToDTO(updatedComment);
@@ -113,7 +114,7 @@ public class CommentService {    private final CommentRepository commentReposito
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
         comment.setText(request.getActualText()); // Use getActualText() to handle both 'text' and 'content'
-        comment.setUpdatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Comment updatedComment = commentRepository.save(comment);
         return convertToDTO(updatedComment);
@@ -149,8 +150,8 @@ public class CommentService {    private final CommentRepository commentReposito
         replyComment.setUser(user);
         replyComment.setText(request.getActualText());
         replyComment.setIsReply(true); // Mark as reply
-        replyComment.setCreatedDate(LocalDateTime.now());
-        replyComment.setUpdatedAt(LocalDateTime.now());
+        replyComment.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
+        replyComment.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Comment savedReply = commentRepository.save(replyComment);
         
@@ -158,9 +159,10 @@ public class CommentService {    private final CommentRepository commentReposito
         CommentReply relationship = new CommentReply();
         relationship.setRootComment(rootComment);
         relationship.setReply(savedReply);
-        relationship.setCreatedDate(LocalDateTime.now());
+        relationship.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
         
-        commentReplyRepository.save(relationship);        // Trigger async comment notification if replier is not the original commenter
+        // Trigger async comment notification if replier is not the original commenter
+        commentReplyRepository.save(relationship);        
         try {
             if (!rootComment.getUser().getId().equals(userId)) {
                 // Use async notification for better social media performance

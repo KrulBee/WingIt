@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "bookmarks")
@@ -27,10 +28,10 @@ public class Bookmark {
     private Post post;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

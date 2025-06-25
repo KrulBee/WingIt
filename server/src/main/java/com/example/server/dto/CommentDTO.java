@@ -3,7 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -14,8 +14,8 @@ public class CommentDTO {
     private Long postId;
     private UserDTO author;
     private String text;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdDate;
+    private ZonedDateTime updatedAt;
     private Boolean isReply;
     private List<CommentDTO> replies; // Changed from CommentReplyDTO to CommentDTO
 }

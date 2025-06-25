@@ -44,7 +44,7 @@ interface PostDetailModalProps {
     likes: number;
     dislikes?: number;
     comments: number;
-    createdAt: Date;
+    createdAt: string;
     liked?: boolean;
     disliked?: boolean;
   };
@@ -318,7 +318,7 @@ export default function PostDetailModal({ isOpen, onClose, post }: PostDetailMod
                     <div className="flex flex-col">
                       <h4 className="text-sm font-semibold">{post.authorName}</h4>
                       <p className="text-xs text-gray-500">@{post.authorUsername}</p>                      <p className="text-xs text-gray-400">
-                        {formatRelativeTime(post.createdAt.toISOString())}
+                        {formatRelativeTime(post.createdAt)}
                       </p>
                     </div>
                   </div>

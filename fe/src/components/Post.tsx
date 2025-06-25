@@ -28,7 +28,7 @@ interface PostProps {
   images?: string[]; // Add support for multiple images
   likes: number;
   dislikes?: number;  comments: number;
-  createdAt: Date;
+  createdAt: string;
   liked?: boolean;
   disliked?: boolean;
   highlighted?: boolean; // Add highlighted prop
@@ -613,7 +613,7 @@ export default function Post({
               </div>
             );
           })()}          <div className="flex items-center justify-between mt-3 text-xs text-default-400">
-            <span>{formatRelativeTime(createdAt.toISOString())}</span>
+            <span>{formatRelativeTime(createdAt)}</span>
           </div>
         </CardBody>        <CardFooter className="gap-3 pt-3" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between w-full">

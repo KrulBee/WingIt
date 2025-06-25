@@ -6,7 +6,8 @@ import com.example.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public class ChatRoomService {
         // For user-created chat rooms, force isGroupChat to true regardless of frontend value
         // This ensures all user-created rooms are group chats as required
         chatRoom.setIsGroupChat(true);
-        chatRoom.setCreatedDate(LocalDateTime.now());
+        chatRoom.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
         
         System.out.println("🔧 Setting isGroupChat to true for user-created chat room");
 
@@ -62,7 +63,7 @@ public class ChatRoomService {
         RoomUser creatorRoomUser = new RoomUser();
         creatorRoomUser.setChatRoom(savedChatRoom);
         creatorRoomUser.setUser(creator);
-        creatorRoomUser.setJoinedAt(LocalDateTime.now());
+        creatorRoomUser.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
         roomUserRepository.save(creatorRoomUser);
 
         // Add other participants if provided
@@ -75,7 +76,7 @@ public class ChatRoomService {
                     RoomUser roomUser = new RoomUser();
                     roomUser.setChatRoom(savedChatRoom);
                     roomUser.setUser(participant);
-                    roomUser.setJoinedAt(LocalDateTime.now());
+                    roomUser.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
                     roomUserRepository.save(roomUser);
                 }
             }        }
@@ -108,7 +109,7 @@ public class ChatRoomService {
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName("Private Chat"); // Generic name for private chats
         chatRoom.setIsGroupChat(false);
-        chatRoom.setCreatedDate(LocalDateTime.now());
+        chatRoom.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
 
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 
@@ -116,13 +117,13 @@ public class ChatRoomService {
         RoomUser roomUser1 = new RoomUser();
         roomUser1.setChatRoom(savedChatRoom);
         roomUser1.setUser(user1);
-        roomUser1.setJoinedAt(LocalDateTime.now());
+        roomUser1.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
         roomUserRepository.save(roomUser1);
 
         RoomUser roomUser2 = new RoomUser();
         roomUser2.setChatRoom(savedChatRoom);
         roomUser2.setUser(user2);
-        roomUser2.setJoinedAt(LocalDateTime.now());
+        roomUser2.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
         roomUserRepository.save(roomUser2);
 
         return convertToDTO(savedChatRoom);
@@ -141,7 +142,7 @@ public class ChatRoomService {
         RoomUser roomUser = new RoomUser();
         roomUser.setChatRoom(chatRoom);
         roomUser.setUser(user);
-        roomUser.setJoinedAt(LocalDateTime.now());
+        roomUser.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
         roomUserRepository.save(roomUser);
     }    public void leaveChatRoom(Long chatRoomId, Integer userId) {
         RoomUser roomUser = roomUserRepository.findByChatRoomIdAndUserId(chatRoomId, userId)
@@ -195,7 +196,7 @@ public class ChatRoomService {
         message.setChatRoom(chatRoom);
         message.setSender(sender);
         message.setContent(request.getContent());
-        message.setTimestamp(LocalDateTime.now());
+        message.setTimestamp(ZonedDateTime.now(ZoneOffset.UTC));
 
         Message savedMessage = messageRepository.save(message);
         return convertMessageToDTO(savedMessage);

@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "post_media")
@@ -30,10 +31,10 @@ public class PostMedia {
     @Column(nullable = false)
     private MediaType mediaType;
 
-    private LocalDateTime uploadedAt;
+    private ZonedDateTime uploadedAt;
 
     @PrePersist
     protected void onCreate() {
-        uploadedAt = LocalDateTime.now();
+        uploadedAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

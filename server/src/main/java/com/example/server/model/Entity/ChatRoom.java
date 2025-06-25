@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Entity
@@ -29,7 +30,7 @@ public class ChatRoom {
     private Boolean isAutoCreated = false;
 
     @Column(nullable = false)
-    private LocalDateTime createdDate;
+    private ZonedDateTime createdDate;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages;
@@ -40,7 +41,7 @@ public class ChatRoom {
     @PrePersist
     protected void onCreate() {
         if (createdDate == null) {
-            createdDate = LocalDateTime.now();
+            createdDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
     }
 }

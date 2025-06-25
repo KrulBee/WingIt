@@ -23,7 +23,7 @@ interface PostData {
   dislikes?: number;
   comments: number;
   viewCount?: number;
-  createdAt: Date;
+  createdAt: string;
   liked: boolean;
   disliked?: boolean;
 }
@@ -188,7 +188,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       likes: post.likesCount ?? post.reactionCount ?? 0,
       dislikes: post.dislikesCount ?? 0,
       comments: post.commentsCount ?? post.commentCount ?? 0,
-      createdAt: new Date(post.createdDate),
+      createdAt: post.createdDate,
       liked: post.liked ?? false,
       disliked: post.disliked ?? false
     };
@@ -330,7 +330,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
           dislikes: post.dislikesCount ?? 0,
           comments: post.commentsCount ?? post.commentCount ?? 0,
           viewCount: post.viewCount ?? 0,
-          createdAt: new Date(post.createdDate),
+          createdAt: post.createdDate,
           liked: post.liked ?? false,
           disliked: post.disliked ?? false
         };
@@ -386,7 +386,7 @@ export default function Feed({ highlightPostId }: FeedProps) {
       dislikes: 0,
       comments: 0,
       viewCount: 0,
-      createdAt: new Date(newPost.createdDate),
+      createdAt: newPost.createdDate,
       liked: false,
       disliked: false
     };

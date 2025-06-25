@@ -5,18 +5,17 @@ import com.example.server.model.Entity.Bookmark;
 import com.example.server.model.Entity.Post;
 import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.PostMedia;
-import com.example.server.model.Entity.Comment;
 import com.example.server.repository.BookmarkRepository;
 import com.example.server.repository.PostRepository;
 import com.example.server.repository.UserRepository;
 import com.example.server.repository.PostReactionRepository;
 import com.example.server.repository.PostMediaRepository;
 import com.example.server.repository.CommentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,7 +53,7 @@ public class BookmarkService {    private final BookmarkRepository bookmarkRepos
         Bookmark bookmark = new Bookmark();
         bookmark.setUser(user);
         bookmark.setPost(post);
-        bookmark.setCreatedAt(LocalDateTime.now());
+        bookmark.setCreatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Bookmark savedBookmark = bookmarkRepository.save(bookmark);
         return convertToDTO(savedBookmark);

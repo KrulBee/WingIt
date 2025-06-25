@@ -3,7 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -14,7 +14,7 @@ public class RoomUserDTO {
     private String username;
     private String displayName;
     private String profileImageUrl;
-    private LocalDateTime joinedAt;
+    private ZonedDateTime joinedAt;
     private Long chatRoomId;
     private String chatRoomName;
     private Boolean isGroupChat;

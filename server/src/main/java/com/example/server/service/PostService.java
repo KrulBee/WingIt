@@ -7,7 +7,8 @@ import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Service
 public class PostService {
@@ -113,8 +114,8 @@ public class PostService {
         post.setUser(user);
         post.setType(postType);
         post.setLocation(location);
-        post.setCreatedDate(LocalDateTime.now());
-        post.setUpdatedAt(LocalDateTime.now());
+        post.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
+        post.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Post savedPost = postRepository.save(post);
 
@@ -125,7 +126,7 @@ public class PostService {
                 media.setPost(savedPost);
                 media.setMediaUrl(mediaUrl);
                 media.setMediaType(determineMediaType(mediaUrl));
-                media.setUploadedAt(LocalDateTime.now());
+                media.setUploadedAt(ZonedDateTime.now(ZoneOffset.UTC));
                 postMediaRepository.save(media);
             }
         }        // Create async notifications for friends when a new post is created
@@ -156,7 +157,7 @@ public class PostService {
         }
 
         post.setContent(request.getContent());
-        post.setUpdatedAt(LocalDateTime.now());
+        post.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Post updatedPost = postRepository.save(post);
         return convertToDTO(updatedPost);
@@ -176,7 +177,7 @@ public class PostService {
         }
 
         post.setContent(request.getContent());
-        post.setUpdatedAt(LocalDateTime.now());
+        post.setUpdatedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         Post updatedPost = postRepository.save(post);
         return convertToDTO(updatedPost);

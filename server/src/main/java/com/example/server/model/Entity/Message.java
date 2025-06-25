@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "messages")
@@ -29,10 +30,10 @@ public class Message {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 
     @PrePersist
     protected void onCreate() {
-        timestamp = LocalDateTime.now();
+        timestamp = ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

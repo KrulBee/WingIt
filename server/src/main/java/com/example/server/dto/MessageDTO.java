@@ -3,7 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -14,5 +14,5 @@ public class MessageDTO {
     private Integer senderId;
     private UserDTO sender;
     private String content;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 }

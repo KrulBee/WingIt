@@ -9,7 +9,8 @@ import com.example.server.model.Entity.ChatRoom;
 import com.example.server.model.Entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,7 @@ public class RoomUserService {
         RoomUser roomUser = new RoomUser();
         roomUser.setChatRoom(chatRoom);
         roomUser.setUser(user);
-        roomUser.setJoinedAt(LocalDateTime.now());
+        roomUser.setJoinedAt(ZonedDateTime.now(ZoneOffset.UTC));
 
         RoomUser savedRoomUser = roomUserRepository.save(roomUser);
         return convertToDTO(savedRoomUser);

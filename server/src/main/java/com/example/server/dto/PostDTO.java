@@ -3,7 +3,7 @@ package com.example.server.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -12,8 +12,8 @@ import java.util.List;
 public class PostDTO {
     private Long id;
     private String content;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdDate;
+    private ZonedDateTime updatedAt;
     private UserDTO author;
     private PostTypeDTO type;
     private LocationDTO location;
