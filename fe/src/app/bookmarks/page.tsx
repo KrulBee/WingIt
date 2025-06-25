@@ -114,7 +114,7 @@ function BookmarksContent() {
                 likes={post.likesCount || 0}
                 dislikes={post.dislikesCount || 0}
                 comments={post.commentsCount || 0}
-                createdAt={new Date(post.createdDate)}
+                createdAt={post.createdDate}
                 liked={false}
                 disliked={false}
               />

@@ -60,7 +60,7 @@ interface PostProps {
   image?: string;
   likes: number;
   comments: number;
-  createdAt: Date;
+  createdAt: string;
   liked: boolean;
 }
 
@@ -131,15 +131,14 @@ export default function UserProfilePage() {
           content: post.content,
           image: post.mediaUrls?.[0],        likes: post.reactionCount || 0,
           comments: post.commentCount || 0,
-          createdAt: new Date(post.createdDate),
-          liked: false // Will need to check user reactions
+          createdAt: post.createdDate,
+          liked: false
         }));
         
         setPosts(transformedPosts);
       } catch (postError: any) {
         console.warn('Could not fetch user posts:', postError);
         // Posts might be restricted due to privacy, but profile is accessible
-        // This is fine - just show empty posts
         setPosts([]);
       }} catch (err: any) {
       console.error('Error fetching user data:', err);
