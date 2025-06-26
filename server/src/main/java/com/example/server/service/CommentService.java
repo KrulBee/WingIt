@@ -4,6 +4,7 @@ import com.example.server.dto.*;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
@@ -120,6 +121,7 @@ public class CommentService {    private final CommentRepository commentReposito
         return convertToDTO(updatedComment);
     }
 
+    @Transactional
     public void deleteComment(Long id, Integer userId) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
@@ -133,6 +135,7 @@ public class CommentService {    private final CommentRepository commentReposito
     }
 
     // Keep the old method for backward compatibility (admin use)
+    @Transactional
     public void deleteComment(Long id) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));

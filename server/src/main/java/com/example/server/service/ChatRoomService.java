@@ -50,12 +50,11 @@ public class ChatRoomService {
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
         
-        // For user-created chat rooms, force isGroupChat to true regardless of frontend value
-        // This ensures all user-created rooms are group chats as required
-        chatRoom.setIsGroupChat(true);
+        // Respect the isGroupChat value from the request
+        chatRoom.setIsGroupChat(request.isGroupChat());
         chatRoom.setCreatedDate(ZonedDateTime.now(ZoneOffset.UTC));
         
-        System.out.println("🔧 Setting isGroupChat to true for user-created chat room");
+        System.out.println("🔧 Setting isGroupChat to " + request.isGroupChat() + " based on request");
 
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 

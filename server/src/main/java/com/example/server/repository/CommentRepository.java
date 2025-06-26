@@ -2,6 +2,7 @@ package com.example.server.repository;
 
 import com.example.server.model.Entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,5 +27,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     
     // Methods for cascade deletion
     List<Comment> findByPostId(Long postId);
+    
+    @Modifying
     void deleteByPostId(Long postId);
 }

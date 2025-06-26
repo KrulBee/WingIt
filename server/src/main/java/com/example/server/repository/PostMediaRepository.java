@@ -2,6 +2,7 @@ package com.example.server.repository;
 
 import com.example.server.model.Entity.PostMedia;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,5 +13,6 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     List<PostMedia> findByPostIdOrderByUploadedAtAsc(Long postId);
     
     // Method for cascade deletion
+    @Modifying
     void deleteByPostId(Long postId);
 }

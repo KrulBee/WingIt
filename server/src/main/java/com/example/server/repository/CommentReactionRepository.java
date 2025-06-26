@@ -2,6 +2,7 @@ package com.example.server.repository;
 
 import com.example.server.model.Entity.CommentReaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,5 +23,6 @@ public interface CommentReactionRepository extends JpaRepository<CommentReaction
     long countByCommentIdAndReactionTypeId(@Param("commentId") Long commentId, @Param("reactionTypeId") Long reactionTypeId);
     
     // Method for cascade deletion
+    @Modifying
     void deleteByCommentId(Long commentId);
 }

@@ -5,6 +5,7 @@ import com.example.server.exception.ProfanityException;
 import com.example.server.model.Entity.*;
 import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.ZonedDateTime;
@@ -181,7 +182,10 @@ public class PostService {
 
         Post updatedPost = postRepository.save(post);
         return convertToDTO(updatedPost);
-    }    public void deletePost(Long id, Integer userId) {
+    }
+
+    @Transactional
+    public void deletePost(Long id, Integer userId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -192,7 +196,10 @@ public class PostService {
 
         // Perform cascade deletion
         deletePostWithCascade(id);
-    }    // Keep the old method for backward compatibility (admin use)
+    }
+
+    // Keep the old method for backward compatibility (admin use)
+    @Transactional
     public void deletePost(Long id) {
         // Verify post exists
         postRepository.findById(id)
@@ -205,6 +212,7 @@ public class PostService {
     /**
      * Helper method to delete a post and all its related entities
      */
+    @Transactional
     private void deletePostWithCascade(Long postId) {
         try {
             // 1. Delete all comment reactions for comments on this post

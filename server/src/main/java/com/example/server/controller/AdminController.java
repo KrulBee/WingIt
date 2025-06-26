@@ -98,30 +98,21 @@ public class AdminController {
             
             Map<String, Object> stats = new HashMap<>();
             
-            try {
-                // User statistics
-                long totalUsers = userRepository.count();
-                long newUsersThisMonth = userRepository.countByCreatedDateAfter(
-                    java.time.LocalDate.now().minusMonths(1)
-                );
-                stats.put("totalUsers", totalUsers);
-                stats.put("newUsersThisMonth", newUsersThisMonth);            } catch (Exception e) {
-                stats.put("totalUsers", 0L);
-                stats.put("newUsersThisMonth", 0L);
-            }
+            // User statistics
+            long totalUsers = userRepository.count();
+            long newUsersThisMonth = userRepository.countByCreatedDateAfter(
+                java.time.LocalDate.now().minusMonths(1)
+            );
+            stats.put("totalUsers", totalUsers);
+            stats.put("newUsersThisMonth", newUsersThisMonth);
 
-            try {
-                // Post statistics
-                long totalPosts = postRepository.count();
-                long newPostsThisMonth = postRepository.countByCreatedDateAfter(
-                    java.time.LocalDateTime.now().minusMonths(1)
-                );
-                stats.put("totalPosts", totalPosts);
-                stats.put("newPostsThisMonth", newPostsThisMonth);
-            } catch (Exception e) {
-                stats.put("totalPosts", 0L);
-                stats.put("newPostsThisMonth", 0L);
-            }
+            // Post statistics
+            long totalPosts = postRepository.count();
+            long newPostsThisMonth = postRepository.countByCreatedDateAfter(
+                java.time.LocalDateTime.now().minusMonths(1)
+            );
+            stats.put("totalPosts", totalPosts);
+            stats.put("newPostsThisMonth", newPostsThisMonth);
 
             try {
                 // Comment statistics

@@ -3,6 +3,7 @@ package com.example.server.repository;
 import com.example.server.model.Entity.PostView;
 import com.example.server.dto.LocationViewStatsDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -98,5 +99,6 @@ public interface PostViewRepository extends JpaRepository<PostView, Long> {
                                          @Param("startDate") LocalDateTime startDate);
     
     // Method for cascade deletion
+    @Modifying
     void deleteByPostId(Long postId);
 }

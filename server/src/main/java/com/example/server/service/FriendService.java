@@ -172,19 +172,12 @@ public class FriendService {    private final FriendRepository friendRepository;
             userRepository.findById(userId1)
                     .orElseThrow(() -> new RuntimeException("User 1 not found"));
             userRepository.findById(userId2)
-                    .orElseThrow(() -> new RuntimeException("User 2 not found"));            // Create chat room request - we'll use a generic name that can be personalized by frontend
-            CreateChatRoomRequest chatRoomRequest = new CreateChatRoomRequest();
-            // The room name will be dynamically displayed based on who's viewing it
-            chatRoomRequest.setRoomName("Private Chat"); 
-            chatRoomRequest.setGroupChat(false); // Explicitly set as private chat
-            
-            // Add both users as participants
-            chatRoomRequest.setParticipantIds(List.of(userId2)); // userId1 will be added as creator
+                    .orElseThrow(() -> new RuntimeException("User 2 not found"));
 
-            // Create the chat room with user1 as creator
-            chatRoomService.createChatRoom(chatRoomRequest, userId1);
+            // Use findOrCreatePrivateChat to ensure proper private chat creation
+            chatRoomService.findOrCreatePrivateChat(userId1, userId2);
             
-            System.out.println("Successfully created private chat room between users " + userId1 + " and " + userId2);
+            System.out.println("Successfully created/found private chat room between users " + userId1 + " and " + userId2);
         } catch (Exception e) {
             System.err.println("Failed to create private chat room between users " + userId1 + " and " + userId2 + ": " + e.getMessage());
             // Don't throw exception here to avoid breaking friend acceptance if chat creation fails
