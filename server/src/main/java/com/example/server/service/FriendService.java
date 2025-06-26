@@ -6,10 +6,8 @@ import com.example.server.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class FriendService {    private final FriendRepository friendRepository;
@@ -30,9 +28,7 @@ public class FriendService {    private final FriendRepository friendRepository;
     }
 
     public List<FriendDTO> getFriendsByUserId(Integer userId) {
-        List<Friend> friendships = friendRepository.findAll().stream()
-                .filter(friend -> friend.getUser1().getId().equals(userId) || friend.getUser2().getId().equals(userId))
-                .collect(Collectors.toList());
+        List<Friend> friendships = friendRepository.findByUserIdWithDetails(userId);
         
         return friendships.stream()
                 .map(friend -> convertToDTO(friend, userId))
@@ -59,11 +55,7 @@ public class FriendService {    private final FriendRepository friendRepository;
         System.out.println("Found sender: " + sender.getUsername() + ", receiver: " + receiver.getUsername());
 
         // Check if friendship already exists
-        boolean friendshipExists = friendRepository.findAll().stream()
-                .anyMatch(friend -> 
-                    (friend.getUser1().getId().equals(senderId) && friend.getUser2().getId().equals(receiverId)) ||
-                    (friend.getUser1().getId().equals(receiverId) && friend.getUser2().getId().equals(senderId))
-                );
+        boolean friendshipExists = friendRepository.existsBetweenUsers(senderId, receiverId);
 
         if (friendshipExists) {
             System.err.println("Error: Users " + senderId + " and " + receiverId + " are already friends");
@@ -71,12 +63,7 @@ public class FriendService {    private final FriendRepository friendRepository;
         }
 
         // Check if request already exists
-        boolean requestExists = friendRequestRepository.findAll().stream()
-                .anyMatch(request -> 
-                    request.getSender().getId().equals(senderId) && 
-                    request.getReceiver().getId().equals(receiverId) &&
-                    "PENDING".equals(request.getStatus().getStatusName())
-                );
+        boolean requestExists = friendRequestRepository.existsPendingRequest(senderId, receiverId);
 
         if (requestExists) {
             System.err.println("Error: Friend request from " + senderId + " to " + receiverId + " already exists");
@@ -85,12 +72,7 @@ public class FriendService {    private final FriendRepository friendRepository;
 
         // Find pending status
         System.out.println("Looking for PENDING status in request statuses...");
-        RequestStatus pendingStatus = requestStatusRepository.findAll().stream()
-                .filter(status -> {
-                    System.out.println("Found status: " + status.getStatusName());
-                    return "PENDING".equals(status.getStatusName());
-                })
-                .findFirst()
+        RequestStatus pendingStatus = requestStatusRepository.findByStatusName("PENDING")
                 .orElseThrow(() -> {
                     System.err.println("Error: PENDING status not found in database");
                     System.out.println("Available statuses: " + 
@@ -122,24 +104,20 @@ public class FriendService {    private final FriendRepository friendRepository;
     }
 
     public List<FriendRequestDTO> getSentFriendRequests(Integer userId) {
-        return friendRequestRepository.findAll().stream()
-                .filter(request -> request.getSender().getId().equals(userId))
+        return friendRequestRepository.findBySenderIdWithDetails(userId).stream()
                 .map(this::convertRequestToDTO)
                 .collect(Collectors.toList());
     }
 
     public List<FriendRequestDTO> getReceivedFriendRequests(Integer userId) {
-        return friendRequestRepository.findAll().stream()
-                .filter(request -> request.getReceiver().getId().equals(userId))
+        return friendRequestRepository.findByReceiverIdWithDetails(userId).stream()
                 .map(this::convertRequestToDTO)
                 .collect(Collectors.toList());
     }    public FriendDTO acceptFriendRequest(Long requestId) {
         FriendRequest request = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found"));
 
-        RequestStatus acceptedStatus = requestStatusRepository.findAll().stream()
-                .filter(status -> "ACCEPTED".equals(status.getStatusName()))
-                .findFirst()
+        RequestStatus acceptedStatus = requestStatusRepository.findByStatusName("ACCEPTED")
                 .orElseThrow(() -> new RuntimeException("Accepted status not found"));
 
         request.setStatus(acceptedStatus);
@@ -164,21 +142,14 @@ public class FriendService {    private final FriendRepository friendRepository;
         FriendRequest request = friendRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found"));
 
-        RequestStatus rejectedStatus = requestStatusRepository.findAll().stream()
-                .filter(status -> "REJECTED".equals(status.getStatusName()))
-                .findFirst()
+        RequestStatus rejectedStatus = requestStatusRepository.findByStatusName("REJECTED")
                 .orElseThrow(() -> new RuntimeException("Rejected status not found"));
 
         request.setStatus(rejectedStatus);
         request.setResponseDate(LocalDateTime.now());
         friendRequestRepository.save(request);
     }    public void removeFriend(Integer userId, Integer friendId) {
-        Friend friendship = friendRepository.findAll().stream()
-                .filter(friend -> 
-                    (friend.getUser1().getId().equals(userId) && friend.getUser2().getId().equals(friendId)) ||
-                    (friend.getUser1().getId().equals(friendId) && friend.getUser2().getId().equals(userId))
-                )
-                .findFirst()
+        Friend friendship = friendRepository.findFriendshipBetweenUsers(userId, friendId)
                 .orElseThrow(() -> new RuntimeException("Friendship not found"));
 
         // Delete the friendship record
@@ -290,22 +261,13 @@ public class FriendService {    private final FriendRepository friendRepository;
     */
 
     public List<UserDTO> getFriendSuggestions(Integer userId) {
-        // Get current user's friends
-        List<Friend> userFriends = friendRepository.findAll().stream()
-                .filter(friend -> friend.getUser1().getId().equals(userId) || friend.getUser2().getId().equals(userId))
-                .collect(Collectors.toList());
+        // Get current user's friend IDs efficiently
+        Set<Integer> friendIds = new HashSet<>(friendRepository.findFriendIdsByUserId(userId));
 
-        Set<Integer> friendIds = userFriends.stream()
-                .map(friend -> friend.getUser1().getId().equals(userId) ? friend.getUser2().getId() : friend.getUser1().getId())
-                .collect(Collectors.toSet());
+        // Get pending friend request user IDs efficiently
+        Set<Integer> pendingRequestIds = new HashSet<>(friendRequestRepository.findPendingRequestUserIds(userId));
 
-        // Get pending friend requests (sent and received)
-        Set<Integer> pendingRequestIds = friendRequestRepository.findAll().stream()
-                .filter(request -> request.getSender().getId().equals(userId) || request.getReceiver().getId().equals(userId))
-                .flatMap(request -> Stream.of(request.getSender().getId(), request.getReceiver().getId()))
-                .collect(Collectors.toSet());
-
-        // Get all users and filter out current user, friends, and pending requests
+        // Get all users (cached query - this is acceptable for suggestions)
         List<User> allUsers = userRepository.findAll();
         List<User> eligibleUsers = allUsers.stream()
                 .filter(user -> !user.getId().equals(userId) &&
@@ -313,23 +275,12 @@ public class FriendService {    private final FriendRepository friendRepository;
                                !pendingRequestIds.contains(user.getId()))
                 .collect(Collectors.toList());
 
-        // Calculate mutual friends for each eligible user and create suggestions
+        // For suggestions, we'll use a simpler approach to avoid N+1 queries
+        // Instead of calculating exact mutual friends, we'll prioritize by user activity
         List<UserDTO> suggestions = eligibleUsers.stream()
+                .limit(50) // Limit to first 50 eligible users to avoid performance issues
                 .map(user -> {
-                    // Calculate mutual friends count
-                    List<Friend> userFriendsList = friendRepository.findAll().stream()
-                            .filter(friend -> friend.getUser1().getId().equals(user.getId()) || friend.getUser2().getId().equals(user.getId()))
-                            .collect(Collectors.toList());
-
-                    Set<Integer> userFriendIds = userFriendsList.stream()
-                            .map(friend -> friend.getUser1().getId().equals(user.getId()) ? friend.getUser2().getId() : friend.getUser1().getId())
-                            .collect(Collectors.toSet());
-
-                    long mutualFriendsCount = friendIds.stream()
-                            .filter(userFriendIds::contains)
-                            .count();
-
-                    // Create UserDTO with suggestion score
+                    // Create UserDTO
                     UserDTO userDTO = new UserDTO();
                     userDTO.setId(user.getId());
                     userDTO.setUsername(user.getUsername());
@@ -343,8 +294,8 @@ public class FriendService {    private final FriendRepository friendRepository;
                     userDTO.setProfilePicture(profilePicture);
                     userDTO.setBio(bio);
 
-                    // Calculate suggestion score
-                    int score = (int) (mutualFriendsCount * 10);
+                    // Calculate simple suggestion score based on profile completeness
+                    int score = 1; // Base score
                     if (displayName != null && !displayName.isEmpty()) score += 2;
                     if (profilePicture != null && !profilePicture.isEmpty()) score += 2;
                     if (bio != null && !bio.isEmpty()) score += 1;

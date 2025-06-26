@@ -55,13 +55,13 @@ public class PostService {
     }
 
     public List<PostDTO> getAllPosts() {
-        return postRepository.findAllByOrderByCreatedDateDesc().stream()
+        return postRepository.findAllWithDetailsOrderByCreatedDateDesc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public PostDTO getPostById(Long id) {
-        Post post = postRepository.findById(id)
+        Post post = postRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         return convertToDTO(post);
     }

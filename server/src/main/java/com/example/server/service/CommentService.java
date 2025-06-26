@@ -30,8 +30,8 @@ public class CommentService {    private final CommentRepository commentReposito
     }
     
     public List<CommentDTO> getCommentsByPostId(Long postId) {
-        // Only get root comments (non-replies)
-        return commentRepository.findByPostIdAndIsReplyFalseOrderByCreatedDateDesc(postId).stream()
+        // Only get root comments (non-replies) with optimized query
+        return commentRepository.findByPostIdWithDetailsAndIsReplyFalse(postId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -181,7 +181,7 @@ public class CommentService {    private final CommentRepository commentReposito
     }
 
     public List<CommentDTO> getRepliesByCommentId(Long commentId) {
-        List<CommentReply> relationships = commentReplyRepository.findByRootCommentIdOrderByCreatedDateAsc(commentId);
+        List<CommentReply> relationships = commentReplyRepository.findByRootCommentIdWithDetails(commentId);
         return relationships.stream()
                 .map(relationship -> convertToDTO(relationship.getReply()))
                 .collect(Collectors.toList());
