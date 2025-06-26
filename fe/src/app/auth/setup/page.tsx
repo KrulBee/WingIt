@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
-import { Card, CardHeader, CardBody, Button, Input, Select, SelectItem, Spinner, Divider } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Button, Input, Spinner, Divider } from "@nextui-org/react";
 import { User, Eye, EyeOff, CheckCircle, AlertCircle } from "react-feather";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -24,14 +24,12 @@ function SetupPageContent() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    confirmPassword: '',
-    gender: ''
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState({
     username: '',
     password: '',
-    confirmPassword: '',
-    gender: ''
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -46,11 +44,13 @@ function SetupPageContent() {
     try {
       const token = searchParams.get('token');
       
-      const url = token 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info?token=${token}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info`;
+      if (!token) {
+        console.error('No setup token provided');
+        router.push('/auth');
+        return;
+      }
       
-      const response = await fetch(url, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info?token=${token}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -99,13 +99,6 @@ function SetupPageContent() {
     }
     if (password !== confirmPassword) {
       return 'Mật khẩu không khớp';
-    }
-    return '';
-  };
-
-  const validateGender = (gender: string): string => {
-    if (!gender) {
-      return 'Vui lòng chọn giới tính';
     }
     return '';
   };
@@ -175,9 +168,6 @@ function SetupPageContent() {
       case 'confirmPassword':
         error = validateConfirmPassword(formData.password, value);
         break;
-      case 'gender':
-        error = validateGender(value);
-        break;
     }
     
     setErrors(prev => ({ ...prev, [field]: error }));
@@ -190,22 +180,26 @@ function SetupPageContent() {
     const usernameError = validateUsername(formData.username);
     const passwordError = validatePassword(formData.password);
     const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
-    const genderError = validateGender(formData.gender);
 
     setErrors({
       username: usernameError,
       password: passwordError,
-      confirmPassword: confirmPasswordError,
-      gender: genderError
+      confirmPassword: confirmPasswordError
     });
 
-    if (usernameError || passwordError || confirmPasswordError || genderError || !usernameAvailable) {
+    if (usernameError || passwordError || confirmPasswordError || !usernameAvailable) {
       return;
     }
 
     setLoading(true);
     try {
       const token = searchParams.get('token');
+      
+      if (!token) {
+        setErrors(prev => ({ ...prev, username: 'Token thiết lập không hợp lệ' }));
+        setLoading(false);
+        return;
+      }
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup`, {
         method: 'POST',
@@ -229,7 +223,7 @@ function SetupPageContent() {
         router.push('/home');
       } else {
         const errorData = await response.json();
-        if (errorData.error === 'Username already taken') {
+        if (errorData.error === 'Tên đăng nhập đã được sử dụng' || errorData.error === 'Username already taken') {
           setErrors(prev => ({ ...prev, username: 'Tên đăng nhập đã được sử dụng' }));
           setUsernameAvailable(false);
         } else {
@@ -388,26 +382,6 @@ function SetupPageContent() {
                 inputWrapper: "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
               }}
             />
-
-            {/* Gender */}
-            <Select
-              label="Giới tính"
-              placeholder="Chọn giới tính"
-              value={formData.gender}
-              onChange={(e) => handleInputChange('gender', e.target.value)}
-              variant="bordered"
-              isRequired
-              isDisabled={loading}
-              isInvalid={!!errors.gender}
-              errorMessage={errors.gender}
-              classNames={{
-                trigger: "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
-              }}
-            >
-              <SelectItem key="MALE" value="MALE">Nam</SelectItem>
-              <SelectItem key="FEMALE" value="FEMALE">Nữ</SelectItem>
-              <SelectItem key="OTHER" value="OTHER">Khác</SelectItem>
-            </Select>
 
             <Divider className="my-6" />
 
