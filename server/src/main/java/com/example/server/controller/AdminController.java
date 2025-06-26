@@ -108,7 +108,7 @@ public class AdminController {
             // Post statistics
             long totalPosts = postRepository.count();
             long newPostsThisMonth = postRepository.countByCreatedDateAfter(
-                java.time.LocalDateTime.now().minusMonths(1)
+                java.time.ZonedDateTime.now().minusMonths(1)
             );
             stats.put("totalPosts", totalPosts);
             stats.put("newPostsThisMonth", newPostsThisMonth);
@@ -363,8 +363,8 @@ public class AdminController {
             try {
                 for (int i = 0; i <= 6; i++) {
                     java.time.LocalDate date = java.time.LocalDate.now().minusDays(i);
-                    java.time.LocalDateTime startOfDay = date.atStartOfDay();
-                    java.time.LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+                    java.time.ZonedDateTime startOfDay = date.atStartOfDay(java.time.ZoneOffset.UTC);
+                    java.time.ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC);
                     
                     System.out.println("DEBUG: Checking post growth for date: " + date);
                     long count = postRepository.countByCreatedDateBetween(startOfDay, endOfDay);

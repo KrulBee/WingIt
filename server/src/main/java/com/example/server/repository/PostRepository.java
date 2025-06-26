@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +49,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByLocationIdOrderByCreatedDateDesc(Integer locationId);
     
     // Admin analytics methods
-    long countByCreatedDateAfter(LocalDateTime date);
-    long countByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    long countByCreatedDateAfter(ZonedDateTime date);
+    long countByCreatedDateBetween(ZonedDateTime startDate, ZonedDateTime endDate);
 }
