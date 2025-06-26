@@ -30,12 +30,21 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Set<number>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);  useEffect(() => {
+    // Check if we're on setup page - if so, skip authentication attempts
+    const isSetupPage = typeof window !== 'undefined' && window.location.pathname.includes('/auth/setup');
+    
     // Connect to WebSocket when provider mounts
     webSocketService.connect()
       .then(() => {
         console.log('🌐 Global WebSocket connected');
         setIsConnected(true);        // Initialize current user ID for notifications
         const initCurrentUser = async () => {
+          // Skip authentication during setup flow
+          if (isSetupPage) {
+            console.log('ℹ️ On setup page, skipping user authentication');
+            return;
+          }
+          
           try {
             console.log('🔍 Attempting to get current user for notifications...');
             

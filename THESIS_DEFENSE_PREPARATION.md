@@ -39,6 +39,60 @@
 4. **Data Storage** → Database (PostgreSQL)
 5. **Real-time** → WebSocket connections
 
+### 3. Tại Sao Chọn Spring Boot Cho WingIt
+
+#### A. Development Productivity
+- **Auto-Configuration**: Tự động config database, security, web layer
+- **Starter Dependencies**: spring-boot-starter-web, spring-boot-starter-security
+- **DevTools**: Hot reload during development, faster iteration
+- **IDE Support**: Excellent IntelliJ IDEA integration
+
+#### E. Ba Lý Do Chính Chọn Spring Boot Cho WingIt
+1. **Dễ dàng chạy mà không cần máy chủ ngoài**
+   - Embedded Tomcat server built-in
+   - Chỉ cần `java -jar wingit.jar` để chạy
+   - Không cần cài đặt Apache Tomcat riêng biệt
+   - Deployment đơn giản trên cloud platforms như Render
+
+2. **Tích hợp WebSocket cho nhiều ứng dụng thời gian thực cho một mạng xã hội**
+   - Spring WebSocket native support
+   - Real-time messaging cho chat system
+   - Live notifications cho user interactions
+   - Real-time feed updates khi có post mới
+
+3. **Bảo mật toàn diện với Spring Security ecosystem**
+   - JWT Authentication tích hợp sẵn
+   - OAuth2 support cho Google login
+   - CSRF và XSS protection automatic
+   - Role-based authorization (@PreAuthorize)
+   - Password encryption với BCrypt
+   - Method-level security cho admin functions
+
+#### B. Social Media Specific Features
+- **WebSocket Support**: 
+  ```java
+  @EnableWebSocketMessageBroker
+  @Configuration
+  public class WebSocketConfig implements WebSocketMessageBrokerConfigurer
+  ```
+- **Security Integration**: JWT + OAuth2 seamless setup
+- **File Upload**: MultipartFile handling cho media uploads
+- **Database Relations**: JPA handles complex social graph relationships
+- **Caching**: Spring Cache abstraction cho performance
+
+#### C. Production Benefits
+- **Monitoring**: Actuator endpoints (/health, /metrics, /info)
+- **Logging**: Logback integration với structured logging
+- **Error Handling**: Global exception handlers
+- **Validation**: Bean Validation cho API input sanitization
+- **Transaction Management**: Declarative với @Transactional
+
+#### D. Scalability & Maintenance
+- **Stateless Design**: JWT tokens, no server-side sessions
+- **Profile-based Config**: dev, staging, prod environments
+- **Docker Support**: Layered JARs cho efficient container builds
+- **Testing**: MockMvc, @SpringBootTest, TestContainers integration
+
 ---
 
 ## 🔧 Chi Tiết Kỹ Thuật
@@ -462,24 +516,72 @@
 #### B. TRẢ LỜI VỀ CÔNG NGHỆ
 
 **A6.** **Spring Boot vs Other Frameworks:**
-- **Spring Boot advantages:**
-  * Auto-configuration giảm boilerplate code
-  * Embedded server (Tomcat) dễ deployment
-  * Production-ready features (actuator, monitoring)
-  * Enterprise application support
-  * Large ecosystem và community support
-- **So với Spring MVC:** Boot provides auto-config
-- **So với Struts:** Modern, annotation-based, better performance
+- **Spring Boot advantages cho WingIt project:**
+  * **Rapid Development**: Auto-configuration giảm 70% setup time
+  * **Embedded Server**: Tomcat embedded - deploy anywhere, no external server needed
+  * **Production-Ready**: Actuator endpoints cho health check, metrics, monitoring
+  * **Security Integration**: Spring Security seamless integration cho JWT + OAuth2
+  * **WebSocket Support**: Built-in WebSocket cho real-time messaging
+  * **Database Integration**: JPA/Hibernate auto-configuration
+  * **Testing Support**: Comprehensive testing framework với @SpringBootTest
+  * **Microservice Ready**: Easy to split monolith thành services sau này
+  * **Community & Documentation**: Large Vietnamese developer community
 
-**A7.** **Next.js vs React/Vue:**
-- **Next.js advantages:**
-  * Server-Side Rendering (SSR) tốt cho SEO
-  * Static Site Generation (SSG) cho performance
-  * Built-in routing và code splitting
-  * Image optimization automatic
-  * API routes cho backend functionality
-- **So với React thuần:** Built-in features, less configuration
-- **So với Vue.js:** Better TypeScript support, larger ecosystem
+- **Specific benefits cho social media platform:**
+  * **@RestController**: Clean REST API development
+  * **@Transactional**: Automatic transaction management cho data consistency
+  * **@Async**: Non-blocking operations cho heavy AI processing calls
+  * **@EventListener**: Event-driven architecture cho notifications
+  * **@Scheduled**: Background tasks cho cleanup, analytics
+  * **Validation**: Built-in Bean Validation cho input sanitization
+  * **CORS Support**: Easy cross-origin configuration
+  * **Profile Management**: Environment-specific configurations
+
+- **So với alternatives:**
+  * **vs Spring MVC**: Boot eliminates XML configuration, faster startup
+  * **vs Node.js**: Better for enterprise, stronger typing, easier scaling
+  * **vs Django**: More suitable cho Java ecosystem, better performance
+  * **vs .NET Core**: Free, open-source, platform independent
+
+**A7.** **Ba Lý Do Chính Chọn Next.js Cho WingIt:**
+
+1. **App Router và File-based Routing System**
+   - Next.js App Router cho clean URL structure
+   - Dynamic routes: `/profile/[username]` cho user profiles
+   - Nested layouts: shared sidebar across pages
+   - Route groups và parallel routes cho admin panel
+   - Built-in navigation với `useRouter` và `usePathname`
+
+2. **Built-in Performance Optimizations**
+   - **Next.js Image component**: Automatic optimization, lazy loading, responsive images
+   - **Code Splitting**: Automatic bundle splitting cho faster page loads
+   - **Client/Server Components**: "use client" directive cho selective hydration
+   - **Bundle Analysis**: Built-in tools cho performance monitoring
+   - **Static Asset Optimization**: Automatic compression và caching
+
+3. **Production-Ready Development Experience**
+   - **TypeScript Integration**: Zero-config TypeScript setup
+   - **Hot Module Replacement**: Instant updates during development
+   - **Error Boundaries**: Better error handling và debugging
+   - **Deployment Ready**: Optimized builds cho production
+   - **Middleware Support**: Request/response processing
+
+**Implementation trong WingIt:**
+```typescript
+// Dynamic routing
+/app/profile/[username]/page.tsx - User profiles
+/app/admin/page.tsx - Admin dashboard  
+/app/auth/page.tsx - Authentication
+
+// Performance optimizations
+import Image from "next/image" // Optimized images
+"use client" // Client-side components
+```
+
+**So với alternatives:**
+- **vs React thuần:** Built-in routing, no React Router setup needed
+- **vs Vue.js:** Better TypeScript support, larger Vietnamese dev community  
+- **vs Angular:** Simpler learning curve, faster development
 
 **A8.** **PostgreSQL cho Production:**
 - **Tại sao chọn PostgreSQL:**

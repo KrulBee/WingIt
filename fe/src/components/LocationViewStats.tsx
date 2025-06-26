@@ -59,6 +59,13 @@ export default function LocationViewStats({ className = '', limit = 5, onLocatio
     
     return () => clearInterval(interval);
   }, [limit]);  const fetchTopLocations = async () => {
+    // Skip fetching during setup flow
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/auth/setup')) {
+      console.log('ℹ️ On setup page, skipping location stats fetch');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/v1/post-views/locations/top?limit=${limit}`, {

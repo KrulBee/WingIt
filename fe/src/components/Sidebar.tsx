@@ -86,6 +86,13 @@ export default function Sidebar() {  const pathname = usePathname();
     };
   }, []);
   const fetchUserData = async () => {
+    // Skip authentication during setup flow
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/auth/setup')) {
+      console.log('ℹ️ On setup page, skipping sidebar user data fetch');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const user = await UserService.getCurrentUserProfile();
