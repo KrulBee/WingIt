@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Card, CardHeader, CardBody, Button, Input, Select, SelectItem, Spinner, Divider } from "@nextui-org/react";
 import { User, Eye, EyeOff, CheckCircle, AlertCircle } from "react-feather";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface SetupInfo {
   email: string;
@@ -15,8 +15,9 @@ interface UsernameCheckResponse {
   message?: string;
 }
 
-export default function SetupPage() {
+function SetupPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [setupInfo, setSetupInfo] = useState<SetupInfo | null>(null);
   const [formData, setFormData] = useState({
@@ -42,7 +43,13 @@ export default function SetupPage() {
 
   const fetchSetupInfo = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/setup-info`, {
+      const token = searchParams.get('token');
+      
+      const url = token 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/setup-info?token=${token}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/setup-info`;
+      
+      const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
       });
@@ -110,11 +117,18 @@ export default function SetupPage() {
 
     setCheckingUsername(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/check-username`, {
+      const token = searchParams.get('token');
+      
+      const url = token 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/check-username?token=${token}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/check-username`;
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ username }),
       });
 
@@ -191,7 +205,13 @@ export default function SetupPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/complete-setup`, {
+      const token = searchParams.get('token');
+      
+      const url = token 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/complete-setup?token=${token}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/complete-setup`;
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -417,5 +437,22 @@ export default function SetupPage() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <Card className="max-w-md w-full shadow-xl border-0">
+          <CardBody className="text-center py-12">
+            <Spinner size="lg" color="primary" />
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải...</p>
+          </CardBody>
+        </Card>
+      </div>
+    }>
+      <SetupPageContent />
+    </Suspense>
   );
 }
