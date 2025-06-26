@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -100,7 +104,7 @@ public class AdminController {
             // User statistics
             long totalUsers = userRepository.count();
             long newUsersThisMonth = userRepository.countByCreatedDateAfter(
-                java.time.ZonedDateTime.now().minusMonths(1)
+                ZonedDateTime.now().minusMonths(1)
             );
             stats.put("totalUsers", totalUsers);
             stats.put("newUsersThisMonth", newUsersThisMonth);
@@ -108,7 +112,7 @@ public class AdminController {
             // Post statistics
             long totalPosts = postRepository.count();
             long newPostsThisMonth = postRepository.countByCreatedDateAfter(
-                java.time.ZonedDateTime.now().minusMonths(1)
+                ZonedDateTime.now().minusMonths(1)
             );
             stats.put("totalPosts", totalPosts);
             stats.put("newPostsThisMonth", newPostsThisMonth);
@@ -135,11 +139,8 @@ public class AdminController {
                 stats.put("resolvedReports", 0L);
             }
 
-            System.out.println("DEBUG: Successfully fetched dashboard stats: " + stats);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
-            System.err.println("ERROR: Failed to get dashboard stats: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to get dashboard stats: " + e.getMessage()));
         }
@@ -333,67 +334,57 @@ public class AdminController {
     @GetMapping("/analytics")
     public ResponseEntity<?> getSystemAnalytics() {
         try {
-            System.out.println("DEBUG: Starting analytics request");
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (!isAdmin(auth)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Access denied. Admin privileges required."));
             }            Map<String, Object> analytics = new HashMap<>();
-              System.out.println("DEBUG: Building user growth analytics...");
+            
             // User growth over time (last 7 days) - Using LinkedHashMap to preserve reverse chronological order (latest first)
             Map<String, Long> userGrowth = new LinkedHashMap<>();
             try {
                 for (int i = 0; i <= 6; i++) {
-                    java.time.LocalDate date = java.time.LocalDate.now().minusDays(i);
-                    System.out.println("DEBUG: Checking user growth for date: " + date);
+                    LocalDate date = LocalDate.now().minusDays(i);
                     
                     // Convert LocalDate to ZonedDateTime at start of day since UserData.createdAt is ZonedDateTime
-                    java.time.ZonedDateTime zonedDate = date.atStartOfDay(java.time.ZoneId.systemDefault());
+                    ZonedDateTime zonedDate = date.atStartOfDay(ZoneId.systemDefault());
                     long count = userRepository.countByCreatedDateOnDate(zonedDate);
                     userGrowth.put(date.toString(), count);
-                    System.out.println("DEBUG: Found " + count + " users created on " + date);
                 }
-                analytics.put("userGrowth", userGrowth);} catch (Exception e) {
-                System.err.println("ERROR: Failed to get user growth data: " + e.getMessage());
-                e.printStackTrace();
+                analytics.put("userGrowth", userGrowth);
+            } catch (Exception e) {
                 analytics.put("userGrowth", new LinkedHashMap<>());
-            }            System.out.println("DEBUG: Building post growth analytics...");
+            }
+
             // Post creation over time (last 7 days) - Using LinkedHashMap to preserve reverse chronological order (latest first)
             Map<String, Long> postGrowth = new LinkedHashMap<>();
             try {
                 for (int i = 0; i <= 6; i++) {
-                    java.time.LocalDate date = java.time.LocalDate.now().minusDays(i);
-                    java.time.ZonedDateTime startOfDay = date.atStartOfDay(java.time.ZoneOffset.UTC);
-                    java.time.ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC);
+                    LocalDate date = LocalDate.now().minusDays(i);
+                    ZonedDateTime startOfDay = date.atStartOfDay(ZoneOffset.UTC);
+                    ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(ZoneOffset.UTC);
                     
-                    System.out.println("DEBUG: Checking post growth for date: " + date);
                     long count = postRepository.countByCreatedDateBetween(startOfDay, endOfDay);
                     postGrowth.put(date.toString(), count);
-                    System.out.println("DEBUG: Found " + count + " posts created on " + date);
                 }
-                analytics.put("postGrowth", postGrowth);} catch (Exception e) {
-                System.err.println("ERROR: Failed to get post growth data: " + e.getMessage());
-                e.printStackTrace();
+                analytics.put("postGrowth", postGrowth);
+            } catch (Exception e) {
                 analytics.put("postGrowth", new LinkedHashMap<>());
             }
-              System.out.println("DEBUG: Building report distribution analytics...");
+            
             // Report status distribution - Using LinkedHashMap to preserve order
             Map<String, Long> reportDistribution = new LinkedHashMap<>();
             try {
                 reportDistribution.put("PENDING", reportRepository.countByStatus(Report.ReportStatus.PENDING));
                 reportDistribution.put("RESOLVED", reportRepository.countByStatus(Report.ReportStatus.RESOLVED));
                 reportDistribution.put("DISMISSED", reportRepository.countByStatus(Report.ReportStatus.DISMISSED));
-                analytics.put("reportDistribution", reportDistribution);            } catch (Exception e) {
-                System.err.println("ERROR: Failed to get report distribution data: " + e.getMessage());
-                e.printStackTrace();
+                analytics.put("reportDistribution", reportDistribution);
+            } catch (Exception e) {
                 analytics.put("reportDistribution", new LinkedHashMap<>());
             }
 
-            System.out.println("DEBUG: Successfully built analytics: " + analytics);
             return ResponseEntity.ok(analytics);
         } catch (Exception e) {
-            System.err.println("ERROR: Failed to get analytics: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Failed to get analytics: " + e.getMessage()));
         }
