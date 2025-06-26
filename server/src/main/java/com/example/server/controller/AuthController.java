@@ -273,6 +273,33 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/oauth2/setup/check-username")
+    public ResponseEntity<?> checkUsernameForSetup(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String username = request.get("username");
+        
+        if (token == null || username == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Missing required fields"));
+        }
+        
+        // Verify the setup token is valid
+        TempOAuth2User tempUser = tempOAuth2UserService.getTempUser(token);
+        if (tempUser == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired setup token"));
+        }
+        
+        // Check if username is available
+        boolean available = !userRepository.existsByUsername(username);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("available", available);
+        if (!available) {
+            response.put("message", "Username already taken");
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/oauth2/setup/info")
     public ResponseEntity<?> getSetupInfo(@RequestParam String token) {
         TempOAuth2User tempUser = tempOAuth2UserService.getTempUser(token);

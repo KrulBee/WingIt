@@ -46,8 +46,8 @@ function SetupPageContent() {
       const token = searchParams.get('token');
       
       const url = token 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/setup-info?token=${token}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/setup-info`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info?token=${token}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/info`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -119,17 +119,16 @@ function SetupPageContent() {
     try {
       const token = searchParams.get('token');
       
-      const url = token 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/check-username?token=${token}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/check-username`;
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup/check-username`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ 
+          token: token,
+          username 
+        }),
       });
 
       const data: UsernameCheckResponse = await response.json();
@@ -207,24 +206,25 @@ function SetupPageContent() {
     try {
       const token = searchParams.get('token');
       
-      const url = token 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/complete-setup?token=${token}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/complete-setup`;
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/oauth2/setup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
+          setupToken: token,
           username: formData.username,
           password: formData.password,
-          gender: formData.gender
         }),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        // Store the JWT token
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         router.push('/home');
       } else {
         const errorData = await response.json();
