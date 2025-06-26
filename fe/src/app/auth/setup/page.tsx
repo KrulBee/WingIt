@@ -6,8 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 interface SetupInfo {
   email: string;
-  name: string;
+  displayName: string;
   provider: string;
+  profilePicture?: string;
 }
 
 interface UsernameCheckResponse {
@@ -293,10 +294,10 @@ function SetupPageContent() {
           <div className="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                {setupInfo.name.charAt(0).toUpperCase()}
+                {(setupInfo.displayName || setupInfo.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-gray-200">{setupInfo.name}</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200">{setupInfo.displayName || 'User'}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{setupInfo.email}</p>
               </div>
             </div>
