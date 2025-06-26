@@ -14,7 +14,6 @@ import com.example.server.model.Entity.User;
 import com.example.server.model.Entity.Report;
 import com.example.server.model.Entity.Message;
 import com.example.server.model.Entity.ChatRoom;
-import com.example.server.model.Entity.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,7 +100,7 @@ public class AdminController {
             // User statistics
             long totalUsers = userRepository.count();
             long newUsersThisMonth = userRepository.countByCreatedDateAfter(
-                java.time.LocalDate.now().minusMonths(1)
+                java.time.ZonedDateTime.now().minusMonths(1)
             );
             stats.put("totalUsers", totalUsers);
             stats.put("newUsersThisMonth", newUsersThisMonth);
@@ -348,8 +347,9 @@ public class AdminController {
                     java.time.LocalDate date = java.time.LocalDate.now().minusDays(i);
                     System.out.println("DEBUG: Checking user growth for date: " + date);
                     
-                    // Use LocalDate directly since UserData.createdAt is LocalDate
-                    long count = userRepository.countByCreatedDateOnDate(date);
+                    // Convert LocalDate to ZonedDateTime at start of day since UserData.createdAt is ZonedDateTime
+                    java.time.ZonedDateTime zonedDate = date.atStartOfDay(java.time.ZoneId.systemDefault());
+                    long count = userRepository.countByCreatedDateOnDate(zonedDate);
                     userGrowth.put(date.toString(), count);
                     System.out.println("DEBUG: Found " + count + " users created on " + date);
                 }
